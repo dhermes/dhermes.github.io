@@ -228,250 +228,152 @@ handle with the brain alone (or at least to be worth reading about when
 solved by hand). In my follow up to this, I'll show how a combination of
 smarts and programming can perform an exhaustive search in under 10
 seconds.&lt;/p&gt;
-&lt;p&gt;&lt;a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;"&gt;About Bossy Lobster&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Mon, 22 Sep 2014 00:00:00 -0700</pubDate><guid>tag:,2014-09-22:2014/09/quantitative-brain-teaser-brain-only.html</guid><category>Brain Teaser</category><category>Combinatorics</category><category>Digit Counting</category><category>Interview Questions</category><category>Mathematics</category></item><item><title>Math for Humans, A Second Attempt</title><link>/2014/08/math-for-humans-second-attempt.html</link><description>&lt;p&gt;The morning after posting my latest &lt;a href="http://blog.bossylobster.com/2014/07/conditional-probabilities-in-thinking.html"&gt;blog
-post&lt;/a&gt;,
+&lt;p&gt;&lt;a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;"&gt;About Bossy Lobster&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Mon, 22 Sep 2014 00:00:00 -0700</pubDate><guid>tag:,2014-09-22:2014/09/quantitative-brain-teaser-brain-only.html</guid><category>Brain Teaser</category><category>Combinatorics</category><category>Digit Counting</category><category>Interview Questions</category><category>Mathematics</category></item><item><title>Math for Humans, A Second Attempt</title><link>/2014/08/math-for-humans-second-attempt.html</link><description>&lt;p&gt;The morning after posting my latest
+&lt;a href="http://blog.bossylobster.com/2014/07/conditional-probabilities-in-thinking.html"&gt;blog post&lt;/a&gt;,
 I woke up still thinking about how to explain the concept.&lt;/p&gt;
-&lt;p&gt;More importantly, I realized that my goal of writing &lt;span&gt;math for
-humans&lt;/span&gt; failed miserably.&lt;/p&gt;
+&lt;p&gt;More importantly, I realized that my goal of writing
+&lt;strong&gt;math for humans&lt;/strong&gt; failed miserably.&lt;/p&gt;
 &lt;p&gt;So here is a second go at it.&lt;/p&gt;
-&lt;p&gt;First we're told we're in a world where &lt;span&gt;85% of cabs are
-Green&lt;/span&gt; and the rest are Blue. Humans love tables (and they are
+&lt;p&gt;First we're told we're in a world where &lt;strong&gt;85% of cabs are Green&lt;/strong&gt;
+and the rest are Blue. Humans love tables (and they are
 easy to understand). So we start off with a representative sample of 100
-cabs:
-&lt;!--- http://blogknowhow.blogspot.com/2011/01/how-add-table-blogger-blogspot-post.html --&gt;&lt;/p&gt;
+cabs:&lt;/p&gt;
+&lt;!--- http://blogknowhow.blogspot.com/2011/01/how-add-table-blogger-blogspot-post.html --&gt;
+
+&lt;style type="text/css"&gt;
+.nobrtable br { display: none }
+.nobrtable tr {text-align: center;}
+.nobrtable tr.alt td {background-color: #eeeecc; color: black;}
+.nobrtable td {text-align: center;}
+.nobrtable caption {caption-side:bottom;}
+&lt;/style&gt;
+
 &lt;div style="margin-left: auto; margin-right: auto; text-align: center;"&gt;
-
 &lt;div class="nobrtable"&gt;
-
 &lt;table border="2" bordercolor="#0033FF" cellpadding="10" cellspacing="0" style="background-color: #99ffff; border-collapse: collapse; color: black; margin-left: auto; margin-right: auto; width: 100%px;"&gt;
 &lt;tbody&gt;
 &lt;tr style="background-color: #0033ff; color: white; padding-bottom: 4px; padding-top: 5px;"&gt;
-&lt;th&gt;
-Category
-&lt;/th&gt;
-&lt;th&gt;
-Green
-&lt;/th&gt;
-&lt;th&gt;
-Blue
-&lt;/th&gt;
-&lt;th&gt;
-Total
-&lt;/th&gt;
+&lt;th&gt;Category&lt;/th&gt;
+&lt;th&gt;Green&lt;/th&gt;
+&lt;th&gt;Blue&lt;/th&gt;
+&lt;th&gt;Total&lt;/th&gt;
 &lt;/tr&gt;
 &lt;tr class="alt"&gt;
-&lt;td&gt;
-Cabs
-&lt;/td&gt;
-&lt;td&gt;
-85
-&lt;/td&gt;
-&lt;td&gt;
-15
-&lt;/td&gt;
-&lt;td&gt;
-100
-&lt;/td&gt;
+&lt;td&gt;Cabs&lt;/td&gt;
+&lt;td&gt;85&lt;/td&gt;
+&lt;td&gt;15&lt;/td&gt;
+&lt;td&gt;100&lt;/td&gt;
 &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
+&lt;/tbody&gt;&lt;/table&gt;
+&lt;/div&gt;
 &lt;/div&gt;
 
-&lt;/div&gt;
-
-&lt;p&gt;After this, we're told that a bystander &lt;span&gt;correctly identifies a cab
-80% of the time&lt;/span&gt;, or 4 out of every 5. Applying this to the 85
-Green cabs (85 is 17 times 5), this bystander will mis-identify 17 as
-Blue (1 out of 5) and the other 68 will correctly be identified as
-Green:&lt;/p&gt;
+&lt;p&gt;After this, we're told that a bystander
+&lt;strong&gt;correctly identifies a cab 80% of the time&lt;/strong&gt;, or 4 out of every 5.
+Applying this to the 85 Green cabs (85 is 17 times 5), this bystander
+will mis-identify 17 as Blue (1 out of 5) and the other 68 will
+correctly be identified as Green:&lt;/p&gt;
 &lt;div style="margin-left: auto; margin-right: auto; text-align: center;"&gt;
-
 &lt;div class="nobrtable"&gt;
-
 &lt;table border="2" bordercolor="#0033FF" cellpadding="10" cellspacing="0" style="background-color: #99ffff; border-collapse: collapse; color: black; margin-left: auto; margin-right: auto; width: 100%px;"&gt;
 &lt;tbody&gt;
 &lt;tr style="background-color: #0033ff; color: white; padding-bottom: 4px; padding-top: 5px;"&gt;
-&lt;th&gt;
-Category
-&lt;/th&gt;
-&lt;th&gt;
-Green
-&lt;/th&gt;
-&lt;th&gt;
-Blue
-&lt;/th&gt;
-&lt;th&gt;
-Total
-&lt;/th&gt;
+&lt;th&gt;Category&lt;/th&gt;
+&lt;th&gt;Green&lt;/th&gt;
+&lt;th&gt;Blue&lt;/th&gt;
+&lt;th&gt;Total&lt;/th&gt;
 &lt;/tr&gt;
 &lt;tr class="alt"&gt;
-&lt;td&gt;
-Cabs
-&lt;/td&gt;
-&lt;td&gt;
-85
-&lt;/td&gt;
-&lt;td&gt;
-15
-&lt;/td&gt;
-&lt;td&gt;
-100
-&lt;/td&gt;
+&lt;td&gt;Cabs&lt;/td&gt;
+&lt;td&gt;85&lt;/td&gt;
+&lt;td&gt;15&lt;/td&gt;
+&lt;td&gt;100&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;
-ID'd Green
-&lt;/td&gt;
-&lt;td&gt;
-**68**
-&lt;/td&gt;
-&lt;td&gt;
-&lt;/td&gt;
-&lt;td&gt;
-&lt;/td&gt;
+&lt;td&gt;ID'd Green&lt;/td&gt;
+&lt;td&gt;&lt;b&gt;68&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr class="alt"&gt;
-&lt;td&gt;
-ID'd Blue
-&lt;/td&gt;
-&lt;td&gt;
-**17**
-&lt;/td&gt;
-&lt;td&gt;
-&lt;/td&gt;
-&lt;td&gt;
-&lt;/td&gt;
+&lt;td&gt;ID'd Blue&lt;/td&gt;
+&lt;td&gt;&lt;b&gt;17&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
 &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
+&lt;/tbody&gt;&lt;/table&gt;
 &lt;/div&gt;
-
 &lt;/div&gt;
 
 &lt;p&gt;Similarly, of the 15 Blue cabs (15 is 3 times 5), this bystander will
 mis-identify 3 as Green (1 out of 5) and the other 12 will correctly be
 identified as Blue:&lt;/p&gt;
 &lt;div style="margin-left: auto; margin-right: auto; text-align: center;"&gt;
-
 &lt;div class="nobrtable"&gt;
-
 &lt;table border="2" bordercolor="#0033FF" cellpadding="10" cellspacing="0" style="background-color: #99ffff; border-collapse: collapse; color: black; margin-left: auto; margin-right: auto; width: 100%px;"&gt;
 &lt;tbody&gt;
 &lt;tr style="background-color: #0033ff; color: white; padding-bottom: 4px; padding-top: 5px;"&gt;
-&lt;th&gt;
-Category
-&lt;/th&gt;
-&lt;th&gt;
-Green
-&lt;/th&gt;
-&lt;th&gt;
-Blue
-&lt;/th&gt;
-&lt;th&gt;
-Total
-&lt;/th&gt;
+&lt;th&gt;Category&lt;/th&gt;
+&lt;th&gt;Green&lt;/th&gt;
+&lt;th&gt;Blue&lt;/th&gt;
+&lt;th&gt;Total&lt;/th&gt;
 &lt;/tr&gt;
 &lt;tr class="alt"&gt;
-&lt;td&gt;
-Cabs
-&lt;/td&gt;
-&lt;td&gt;
-85
-&lt;/td&gt;
-&lt;td&gt;
-15
-&lt;/td&gt;
-&lt;td&gt;
-100
-&lt;/td&gt;
+&lt;td&gt;Cabs&lt;/td&gt;
+&lt;td&gt;85&lt;/td&gt;
+&lt;td&gt;15&lt;/td&gt;
+&lt;td&gt;100&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;
-ID'd Green
-&lt;/td&gt;
-&lt;td&gt;
-68
-&lt;/td&gt;
-&lt;td&gt;
-**3**
-&lt;/td&gt;
-&lt;td&gt;
-&lt;/td&gt;
+&lt;td&gt;ID'd Green&lt;/td&gt;
+&lt;td&gt;68&lt;/td&gt;
+&lt;td&gt;&lt;b&gt;3&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr class="alt"&gt;
-&lt;td&gt;
-ID'd Blue
-&lt;/td&gt;
-&lt;td&gt;
-17
-&lt;/td&gt;
-&lt;td&gt;
-**12**
-&lt;/td&gt;
-&lt;td&gt;
-&lt;/td&gt;
+&lt;td&gt;ID'd Blue&lt;/td&gt;
+&lt;td&gt;17&lt;/td&gt;
+&lt;td&gt;&lt;b&gt;12&lt;/b&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
 &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
+&lt;/tbody&gt;&lt;/table&gt;
 &lt;/div&gt;
-
 &lt;/div&gt;
 
 &lt;p&gt;Now Kahneman wants us to use the data at hand to determine what the
 probability is that a cab is &lt;span&gt;actually Blue&lt;/span&gt; given the
-bystander &lt;span&gt;identified the cab as Blue.&lt;/span&gt; To determine this
+bystander &lt;strong&gt;identified the cab as Blue&lt;/strong&gt;. To determine this
 probability, we simply need to consider the final row of the table:&lt;/p&gt;
 &lt;div style="margin-left: auto; margin-right: auto; text-align: center;"&gt;
-
 &lt;div class="nobrtable"&gt;
-
 &lt;table border="2" bordercolor="#0033FF" cellpadding="10" cellspacing="0" style="background-color: #99ffff; border-collapse: collapse; color: black; margin-left: auto; margin-right: auto; width: 100%px;"&gt;
 &lt;tbody&gt;
 &lt;tr style="background-color: #0033ff; color: white; padding-bottom: 4px; padding-top: 5px;"&gt;
-&lt;th&gt;
-Category
-&lt;/th&gt;
-&lt;th&gt;
-Green
-&lt;/th&gt;
-&lt;th&gt;
-Blue
-&lt;/th&gt;
-&lt;th&gt;
-Total
-&lt;/th&gt;
+&lt;th&gt;Category&lt;/th&gt;
+&lt;th&gt;Green&lt;/th&gt;
+&lt;th&gt;Blue&lt;/th&gt;
+&lt;th&gt;Total&lt;/th&gt;
 &lt;/tr&gt;
 &lt;tr class="alt"&gt;
-&lt;td&gt;
-ID'd Blue
-&lt;/td&gt;
-&lt;td&gt;
-17
-&lt;/td&gt;
-&lt;td&gt;
-12
-&lt;/td&gt;
-&lt;td&gt;
-**29**
-&lt;/td&gt;
+&lt;td&gt;ID'd Blue&lt;/td&gt;
+&lt;td&gt;17&lt;/td&gt;
+&lt;td&gt;12&lt;/td&gt;
+&lt;td&gt;&lt;b&gt;29&lt;/b&gt;&lt;/td&gt;
 &lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
-
+&lt;/tbody&gt;&lt;/table&gt;
 &lt;/div&gt;
-
 &lt;/div&gt;
 
 &lt;p&gt;This rows tells us that only 29 cabs will be identified as Blue, and
-among those, 12 will actually be Blue. Hence the probability will be
-\[\boxed{\frac{12}{29} \approx 0.413793103}.\] What this really
-shows is that even though the bystander has a large chance (80%) of
-getting the color right, the number of Green cabs is so much larger it
-overwhelms the correctly identified Blue cabs with incorrectly
-identified Green ones.&lt;/p&gt;
+among those, 12 will actually be Blue. Hence the probability will be&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;&lt;blockquote&gt;&lt;span style="font-size: x-large;"&gt;
+&lt;span class="katex"&gt;&lt;span class="katex-inner"&gt;&lt;span class="strut" style="height:0.845108em;"&gt;&lt;/span&gt;&lt;span class="strut bottom" style="height:1.190108em;vertical-align:-0.345em;"&gt;&lt;/span&gt;&lt;span class="base textstyle uncramped"&gt;&lt;span class="minner reset-textstyle textstyle uncramped"&gt;&lt;span class="mfrac"&gt;&lt;span class="vlist"&gt;&lt;span style="top:0.345em;"&gt;&lt;span class="fontsize-ensurer reset-size5 size5"&gt;&lt;span style="font-size:0em;"&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class="reset-textstyle scriptstyle cramped"&gt;&lt;span class="mord scriptstyle cramped"&gt;&lt;span class="mord"&gt;2&lt;/span&gt;&lt;span class="mord"&gt;9&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="top:-0.22999999999999998em;"&gt;&lt;span class="fontsize-ensurer reset-size5 size5"&gt;&lt;span style="font-size:0em;"&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class="reset-textstyle textstyle uncramped frac-line"&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="top:-0.394em;"&gt;&lt;span class="fontsize-ensurer reset-size5 size5"&gt;&lt;span style="font-size:0em;"&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class="reset-textstyle scriptstyle uncramped"&gt;&lt;span class="mord scriptstyle uncramped"&gt;&lt;span class="mord"&gt;1&lt;/span&gt;&lt;span class="mord"&gt;2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="baseline-fix"&gt;&lt;span class="fontsize-ensurer reset-size5 size5"&gt;&lt;span style="font-size:0em;"&gt;​&lt;/span&gt;&lt;/span&gt;​&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="mrel"&gt;≈&lt;/span&gt;&lt;span class="mord"&gt;0&lt;/span&gt;&lt;span class="mord"&gt;.&lt;/span&gt;&lt;span class="mord"&gt;4&lt;/span&gt;&lt;span class="mord"&gt;1&lt;/span&gt;&lt;span class="mord"&gt;3&lt;/span&gt;&lt;span class="mord"&gt;7&lt;/span&gt;&lt;span class="mord"&gt;9&lt;/span&gt;&lt;span class="mord"&gt;3&lt;/span&gt;&lt;span class="mord"&gt;1&lt;/span&gt;&lt;span class="mord"&gt;0&lt;/span&gt;&lt;span class="mord"&gt;3&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/blockquote&gt;&lt;/div&gt;
+
+&lt;p&gt;What this really shows is that even though the bystander has a large
+chance (80%) of getting the color right, the number of Green cabs is
+so much larger it overwhelms the correctly identified Blue cabs with
+incorrectly identified Green ones.&lt;/p&gt;
 &lt;h2&gt;What I Overlooked&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;Dense text is always bad&lt;/li&gt;
