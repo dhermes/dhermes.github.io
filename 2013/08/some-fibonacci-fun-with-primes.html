@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Some Fibonacci Fun with Primes</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Some Fibonacci Fun with Primes</h1>
+      <p class="meta"><time datetime="2013-08-18T00:00:00-07:00" pubdate>Aug 18, 2013</time></p>
+</header>
+
+  <div class="entry-content"><p>I haven't written in way too long and just wanted to post this fun
+little proof.</p>
+<p><strong>Assertion:</strong> Let \(F_n\) be the \(n\)th Fibonacci number defined
+by \(F_n = F_{n-1} + F_{n-2}\), \(F_0 = 0, F_1 = 1\). Show that
+for an odd prime \(p\neq 5\), we have \(p\) divides
+\(F_{p\^2−1}\).</p>
+<p><strong>Proof:</strong> We do this by working inside \(\mathbb{F}_p\) instead of
+working in \(\mathbb{R}\). The recurrence is given by</p>
+<p>\[ \left( \begin{array}{cc}
+1 &amp; 1 \\
+1 &amp; 0 \end{array} \right)
+\left( \begin{array}{c}
+F_{n-1} \\
+F_{n-2} \end{array} \right)
+=
+\left( \begin{array}{c}
+F_{n-1} + F_{n-2} \\
+F_{n-1} \end{array} \right)
+=
+\left( \begin{array}{c}
+F_n \\
+F_{n-1} \end{array} \right)\] and in general
+\[ \left( \begin{array}{cc}
+1 &amp; 1 \\
+1 &amp; 0 \end{array} \right)\^{n}
+\left( \begin{array}{c}
+1 \\
+0 \end{array} \right)
+=
+\left( \begin{array}{cc}
+1 &amp; 1 \\
+1 &amp; 0 \end{array} \right)\^{n}
+\left( \begin{array}{c}
+F_1 \\
+F_0 \end{array} \right)
+=
+\left( \begin{array}{c}
+F_{n + 1} \\
+F_n \end{array} \right)\] The matrix \(A =
+\left(\begin{array}{cc} 1 &amp; 1 \\ 1 &amp; 0 \end{array} \right)\) has
+characteristic polynomial
+\[\chi_A(t) = (1 - t)(0 - t) - (1)(1) = t\^2 - t - 1\] If this
+polynomial has distinct roots, then \(A\) is diagonalizable (this is
+sufficient, but not necessary). Assuming the converse we have
+\(\chi_A(t) = (t - \alpha)\^2\) for some \(\alpha \in
+\mathbb{F}_p\); we can assume \(\alpha \in \mathbb{F}_p\) since
+\(-2\alpha = -1\) is the coefficient of \(t\), which means
+\(\alpha = 2\^{-1} \) (we are fine with this since \(p\) odd means
+that \(2\^{-1}\) exists). In order for this to be a root of
+\(\chi_A\), we must have
+\[0 \equiv 4 \cdot \chi_A\left(2\^{-1}\right) \equiv 4 \cdot
+\left(2\^{-2} - 2\^{-1} - 1\right) \equiv 1 - 2 - 4 \equiv -5
+\bmod{p}.\] Since \(p \neq 5\) is prime, this is not possible,
+hence we reached a contradiction and \(\chi_A\) does not have a
+repeated root.</p>
+<p>Thus we may write \(\chi_A(t) = (t - \alpha)(t - \beta)\) for
+\(\alpha, \beta \in \mathbb{F}_{p\^2}\) (it's possible that
+\(\chi_A\) is irreducible over \(\mathbb{F}_p\), but due to
+degree considerations it <strong>must</strong> split completely over
+\(\mathbb{F}_{p\^2}\)). Using this, we may write</p>
+<p>\[A = P \left(\begin{array}{cc} \alpha &amp; 0 \\ 0 &amp; \beta
+\end{array} \right) P\^{-1}\] for some \(P \in GL_{2}
+\left(\mathbb{F}_{p\^2}\right)\) and so</p>
+<p>\[A\^{p\^2 - 1} = P \left(\begin{array}{cc} \alpha &amp; 0 \\ 0 &amp;
+\beta \end{array} \right)\^{p\^2 - 1} P\^{-1}
+= P \left(\begin{array}{cc} \alpha\^{p\^2 - 1}  &amp; 0 \\ 0 &amp;
+\beta\^{p\^2 - 1}  \end{array} \right)P\^{-1}\] Since \(\chi_A(0)
+= 0 - 0 - 1 \neq 0\) we know \(\alpha\) and \(\beta\) are
+nonzero, hence \(\alpha\^{p\^2 - 1} = \beta\^{p\^2 - 1} = 1 \in
+\mathbb{F}_{p\^2} \). Thus \(A\^{p\^2 - 1} = P I_2 P\^{-1} =
+I_2\) and so</p>
+<p>\[\left( \begin{array}{c}
+F_p \\
+F_{p\^2 - 1} \end{array} \right)
+=
+\left( \begin{array}{cc}
+1 &amp; 1 \\
+1 &amp; 0 \end{array} \right)\^{p\^2 - 1}
+\left( \begin{array}{c}
+1 \\
+0 \end{array} \right)
+=
+I_2 \left( \begin{array}{c}
+1 \\
+0 \end{array} \right)
+=
+\left( \begin{array}{c}
+1 \\
+0 \end{array} \right)\] so we have \(F_{p\^2 - 1} = 0\) in
+\(\mathbb{F}_p\) as desired.</p>
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2013-08-18T00:00:00-07:00" pubdate>Aug 18, 2013</time>  <span class="categories">
+    <a class="category" href="/tag/algebra.html">Algebra</a>
+    <a class="category" href="/tag/fibonacci.html">Fibonacci</a>
+    <a class="category" href="/tag/finite-field.html">Finite Field</a>
+    <a class="category" href="/tag/linear-algebra.html">Linear Algebra</a>
+    <a class="category" href="/tag/math.html">Math</a>
+    <a class="category" href="/tag/number-theory.html">Number Theory</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2013/08/some-fibonacci-fun-with-primes.html" data-via="bossylobster" data-counturl="/2013/08/some-fibonacci-fun-with-primes.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

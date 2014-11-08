@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Verifying 1and1 Site Ownership with Google Apps</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Verifying 1and1 Site Ownership with Google Apps</h1>
+      <p class="meta"><time datetime="2011-07-03T00:00:00-07:00" pubdate>Jul 03, 2011</time></p>
+</header>
+
+  <div class="entry-content"><p>Hello freens. I purchased bossylobster.com from <a href="http://1and1.com/">1&amp;1</a>
+recently with the intent of hosting it on Google App Engine. I soon
+found out how delightful this process is. I made a 0.1 version for my
+site at <a href="http://bossylobster.appspot.com/">bossylobster.appspot.com</a> and
+decided to launch by clicking "Add Domain" in the "Application
+Settings".</p>
+<div style="text-align: center;">
+<p><img alt="Application Settings" src="/images/verify1and1_screenshot1.png" /></p>
+</div>
+<p>After clicking this I was greeted with a note: "You must sign up for
+Google Apps to register this domain or prove that you already own it."
+Great, so now I had to sign up for Google Apps. (As a side note, at the
+time this seemed an unnecessary, annoying wrinkle to add my App, but I
+now realize the integration with <a href="http://mail.bossylobster.com/">GMail</a>,
+Calendar, Docs, etc. is fantastic.)</p>
+<p>So here is my ish: prove that you already own it.</p>
+<p>Yesterday morning, I spent several hours trying to verify ownership of
+bossylobster.com (which I had purchased a week prior). While I realize
+the DNS propagation process takes some time, I didn't want to try one
+method, wait 24 hours and then realize at that point it hadn't worked.</p>
+<p>So, Google Apps <a href="http://www.google.com/support/a/bin/answer.py?answer=60216">gives four
+options</a> on
+how to verify:</p>
+<ul>
+<li><a href="http://www.google.com/support/a/bin/answer.py?answer=183895">Create a TXT
+    record</a></li>
+<li>Upload an HTML file to a specific path on your site</li>
+<li>Add a <span class="Apple-style-span"
+    style="background-color: white; color: white; font-family: Arial, Tahoma, Helvetica, FreeSans, sans-serif; font-size: 13px; line-height: 18px;"><span
+    class="Apple-style-span"
+    style="color: #881280; font-family: monospace; white-space: pre-wrap;">\<meta</span><span
+    class="Apple-style-span"
+    style="color: #881280; font-family: monospace; white-space: pre-wrap;">></span></span> tag
+    to your home page</li>
+<li>Verify using your Google Analytics tracking code</li>
+</ul>
+<p>Well, since I hadn't set my website up, the last three options were off
+limits to me (or so I thought). I had a bare minimum package from 1&amp;1,
+so hosting was pretty much off limits. Apparently I picked one of the
+inept domain hosts because they don't support creation of a CNAME TXT
+record!! A quick Google search
+<a href="http://webmasters.stackexchange.com/questions/859/how-can-i-create-an-spf-record-on-my-1and1-com-hosted-domain">reveals</a></p>
+<blockquote>
+<p>Yes, we do understand what an SPF record is. Unfortunately we
+do not support in on our hosting plans. We apologize for any
+inconvenience.</p>
+</blockquote>
+<div style="text-align: center;">
+<p><img alt="Verify Ownership Panel" src="/images/verify1and1_screenshot2.png" /></p>
+</div>
+<p>So here I am back to square one, just trying to prove I own something,
+an inherently basic task made incredibly frustrating. Hopefully I can
+help people avoid some frustration with the following instructions.</p>
+<ol>
+<li>Open terminal and <a href="http://ss64.com/bash/cd.html">change into the
+directory</a> with code for bossylobster
+(your site).</li>
+<li>Create a Django project in that directory via the command
+<span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">sudo
+django-admin.py startproject bossylobster_django</span>.
+(If you don't have Django or you are using Windows, read these
+<a href="https://docs.djangoproject.com/en/1.3/intro/install/">install</a>
+instructions, but DON'T SET UP A DATABASE, not necessary here. For a
+more detailed tutorial see <a href="https://docs.djangoproject.com/en/1.3/intro/tutorial01/">this
+page</a>. Also
+note, <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">startproject</span>
+is the function name in the <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">django-admin</span>
+module and <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">bossylobster_django</span>
+can be replaced with your project name.)</li>
+<li>Change the file <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">bossylobster_django/urls.py</span>
+to:</li>
+</ol>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+from django.conf.urls.defaults import patternsfrom django.conf.urls.defaults import urlurlpatterns = patterns('',  url(r'^$', 'bossylobster_django.views.index', name='home'),)</p>
+<div class="highlight"><pre><span class="err">​</span><span class="mi">5</span><span class="nx">.</span> <span class="nx">Change</span> <span class="nx">the</span> <span class="nb">file</span> <span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">bossylobster</span><span class="o">\</span><span class="nx">_django</span><span class="p">/</span><span class="nx">views.py</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
+<span class="k">to</span><span class="p">:</span>
+
+<span class="err">~~~~</span> <span class="p">{</span><span class="bp">.</span><span class="nx">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="nb">from</span> <span class="nx">django.http</span> <span class="k">import</span> <span class="nx">HttpResponsedef</span> <span class="nb">index</span><span class="p">(</span><span class="nx">request</span><span class="p">):</span><span class="err"> </span> <span class="n">content</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="bp">.</span><span class="nb">join</span><span class="p">(</span><span class="err">[</span><span class="s1">&#39;&lt;html&gt;&#39;</span><span class="p">,</span><span class="err"> </span> <span class="err"> </span> <span class="s1">&#39;  &lt;head&gt;&#39;</span><span class="p">,</span><span class="err"> </span> <span class="err"> </span> <span class="s1">&#39;    &lt;meta name=&quot;google-site-verification&quot; content=&quot;XXXX&quot; /&gt;&#39;</span><span class="p">,</span><span class="err"> </span> <span class="err"> </span> <span class="s1">&#39;  &lt;/head&gt;&#39;</span><span class="p">,</span><span class="err"> </span> <span class="err"> </span> <span class="s1">&#39;  &lt;body&gt;&#39;</span><span class="p">,</span><span class="err"> </span> <span class="err"> </span> <span class="s1">&#39;    Hello world!&#39;</span><span class="p">,</span><span class="err"> </span> <span class="err"> </span> <span class="s1">&#39;  &lt;/body&gt;&#39;</span><span class="p">,</span><span class="err"> </span> <span class="err"> </span> <span class="s1">&#39; &lt;/html&gt;&#39;</span><span class="cp">]</span>)  return HttpResponse(content)
+</pre></div>
+
+
+<p>where XXXX should be replaced by the content value provided by Google.
+6a. <a href="http://www.bitwiseim.com/wiki/index.php?title=Determine_your_LAN_/_Local_/_Internal_IP_Address">Determine your internal IP
+address</a>
+for use in step 7
+6b. <a href="http://checkip.dyndns.com/">Determine your router's (external) IP
+address</a> for use in step 8
+7. Set up a <a href="http://portforward.com/dyndns/">port forwarding rule</a> in
+your router for port 80 (<a href="https://www.grc.com/port_80.htm">websites</a>)
+with the IP address you found in 6a
+8. (After logging in to <a href="http://1and1.com/">1&amp;1</a>) <a href="http://faq.1and1.com/domains/domain_admin/dns_settings/13.html">change IP for
+bossylobster.com</a>
+to point to your router (from 6b)
+9. From the <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">bossylobster_django</span>
+directory (or whatever you called it), run the server via
+<span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">sudo
+python manage.py runserver 192.168.XX.YY:80</span>
+where <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">192.168.XX.YY </span>is
+the IP you found in 6b.
+10. <a href="http://www.whatsmydns.net/#A/bossylobster.com">Check</a> to see if
+your change has propagated to DNS servers worldwide (wait until it has)
+11. Upon propagation, login to <a href="https://www.google.com/a">Google Apps</a>
+and verify via the meta tag</p>
+<div style="text-align: center;">
+<p><img alt="Verify Ownership Success" src="/images/verify1and1_screenshot3.png" /></p>
+</div>
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2011-07-03T00:00:00-07:00" pubdate>Jul 03, 2011</time>  <span class="categories">
+    <a class="category" href="/tag/1and1com.html">1and1.com</a>
+    <a class="category" href="/tag/django.html">Django</a>
+    <a class="category" href="/tag/google-apps.html">Google Apps</a>
+    <a class="category" href="/tag/verification.html">Verification</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2011/07/verifying-1-site-ownership-with-google.html" data-via="bossylobster" data-counturl="/2011/07/verifying-1-site-ownership-with-google.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

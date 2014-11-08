@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Finding (Fibonacci) Golden Nuggets Part 2</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Finding (Fibonacci) Golden Nuggets Part 2</h1>
+      <p class="meta"><time datetime="2011-08-29T00:00:00-07:00" pubdate>Aug 29, 2011</time></p>
+</header>
+
+  <div class="entry-content"><p>This is the <em>mostly code</em> second half of a <a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets.html">two part
+post</a>
+that delivers on a promise of meaningful uses of some theory I
+overviewed in my last set of posts. If you see words like topograph,
+river, and base and you aren't sure what I mean, you may want to read
+that last <a href="http://blog.bossylobster.com/2011/08/conways-topograph-part-3.html">set of
+posts</a>.</p>
+<p>In the first half of this post, I outlined a solution to Project Euler
+<a href="http://projecteuler.net/index.php?section=problems&amp;id=137">problem
+137</a> and will
+continue with the solution here. Stop reading now if you don't want to
+be spoiled. There was no code in the first post, so this post will be
+mostly code, providing a pretty useful abstraction for dealing with
+binary quadratic forms.</p>
+<p>In the very specific solution, I was able to use one picture to
+completely classify all integer solutions to the equation \(5 x\^2 -
+y\^2 = 4\) due to some dumb luck. In the solution, we were able to use
+"Since every edge protruding from the river on the positive side has a
+value of 4 on a side...by the climbing lemma, we know all values above
+those on the river have value greater than 4," but this is no help when
+trying to find solutions to \(5 x\^2 - y\^2 = 9\), for example.</p>
+<p>To answer the question \(5 x\^2 - y\^2 = 9\), we'll use the same
+pretty picture, but emphasize different parts of it. As you can see
+below, to classify all the values, we only need to travel from the
+initial base</p>
+<div class="separator" style="clear: both; text-align: center;">
+
+[![](http://www.bossylobster.com/images/blog/golden_nugget_first_base.png)](http://www.bossylobster.com/images/blog/golden_nugget_first_base.png)
+
+</div>
+
+<p>along the river until we arrive at an identical base as the blue circles
+indicate below:</p>
+<div class="separator" style="clear: both; text-align: center;">
+
+[![](http://www.bossylobster.com/images/blog/golden_nugget_next.png)](http://www.bossylobster.com/images/blog/golden_nugget_next.png)
+
+</div>
+
+<p>As noted above, for problem 137, we luckily were concerned about finding
+values \(4\) or \(1\), and the climbing lemma saved us from leaving
+the river. However, as I've noted above with <span
+class="Apple-style-span" style="color: #6fa8dc;">#1</span>,<span
+class="Apple-style-span" style="color: #6fa8dc;"> #2</span>,<span
+class="Apple-style-span" style="color: #6fa8dc;"> #3</span>, and <span
+class="Apple-style-span" style="color: #6fa8dc;">#4</span>, there are
+four <em>tributaries</em> coming from the river where we can consider larger
+values. Using the <em>Arithmetic Progression Rule</em>, we find values
+\(19\), \(11\), \(11\), and \(19\) as the first set of values
+above the river. From this point, we can stop checking for solutions to
+\(f(x, y) = 9\) since the climbing lemma says all further values above
+the tributaries will be \(11\) or greater. Thus, the only solutions
+come via scaling solutions of \(f(x, y) = 1\) by a factor of \(3\)
+(using homogeneity of a quadratic form).</p>
+<p>Now for the (Python) code.</p>
+<p>First, the data structure will be representative of a base along the
+river, but will also include the previous and next faces (on the shared
+superbases) and so we'll call it a <em>juncture</em>(my term, not Conway's).
+Each face in a juncture needs to be represented by both the pair \((x,
+y)\) and the value that \(f\) takes on this face. For our sanity, we
+organize a juncture as a tuple \((B, P, N, F)\), (in that order)</p>
+<div class="separator" style="clear: both; text-align: center;">
+
+[![](http://www.bossylobster.com/images/blog/juncture.png)](http://www.bossylobster.com/images/blog/juncture.png)
+
+</div>
+
+<p>where \(P\) and \(N\) form a base straddling the river, with \(P\)
+ taking the positive value and \(N\) negative, as well as \(B\) the
+face "back" according to our orientation and \(F\)  the face
+"forward". Note, depending on the value of the form at \(F\), the
+river may "turn left" or "turn right" at the superbase formed by
+\(P\), \(N\) and \(F\).</p>
+<p>To move "along the river until we arrive at an identical base", we need
+a way to move "forward" (according to our imposed orientation) to the
+next juncture on the river. Moving along the river, we'll often come to
+superbases \((B, N, P)\) and need to calculate the forward face
+\(F\). To calculate \(F\), assume we have <a href="http://code.google.com/p/dhermes-project-euler/source/browse/python_code/conway_topograph.py#33">already
+written</a>
+a <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">plus</span> function that
+determines the vector at \(F\) by adding the vectors from \(P\) and
+\(N\) and determines the value at \(F\) by using the arithmetic
+progression rule with the values at all three faces in the superbase.
+Using this helper function, we can define a way to get the next juncture
+by turning left or right:</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+def next_juncture_on_river(juncture):    B, P, N, F = juncture    forward_val = F[1]    if forward_val &lt; 0:        # turn left        NEXT = plus(P, F, N[1])        return (N, P, F, NEXT)    elif forward_val &gt; 0:        # turn right        NEXT = plus(N, F, P[1])        return (P, F, N, NEXT)    else:        raise Exception("No infinite river here.")</p>
+<div class="highlight"><pre><span class="o">&lt;</span><span class="n">div</span> <span class="n">id</span><span class="o">=</span><span class="s">&quot;footnote&quot;</span><span class="o">&gt;</span>
+
+<span class="n">Next</span><span class="p">,</span> <span class="n">to</span> <span class="n">know</span> <span class="n">when</span> <span class="n">to</span> <span class="n">stop</span> <span class="n">crawling</span> <span class="n">on</span> <span class="n">the</span> <span class="n">river</span><span class="p">,</span> <span class="n">we</span> <span class="n">need</span> <span class="n">to</span> <span class="n">know</span> <span class="n">when</span>
+<span class="n">we</span> <span class="n">have</span> <span class="n">returned</span> <span class="n">to</span> <span class="n">an</span> <span class="n">identical</span> <span class="n">juncture</span><span class="p">,</span> <span class="n">so</span> <span class="n">we</span> <span class="n">define</span><span class="o">:</span>
+<span class="o">~~~~</span> <span class="p">{.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="n">def</span> <span class="n">juncture_ident</span><span class="p">(</span><span class="n">juncture1</span><span class="p">,</span> <span class="n">juncture2</span><span class="p">)</span><span class="o">:</span>    <span class="n">B1</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span> <span class="n">N1</span><span class="p">,</span> <span class="n">F1</span> <span class="o">=</span> <span class="n">juncture1</span>    <span class="n">B2</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span> <span class="n">N2</span><span class="p">,</span> <span class="n">F2</span> <span class="o">=</span> <span class="n">juncture2</span>    <span class="k">return</span> <span class="p">((</span><span class="n">B1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">B2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="n">and</span> <span class="p">(</span><span class="n">P1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">P2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="n">and</span>            <span class="p">(</span><span class="n">N1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">N2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="n">and</span> <span class="p">(</span><span class="n">F1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">F2</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+
+
+<p>Using these functions, we can first find the recurrence that will take
+us from a base of solutions to all solutions and second, keep track of
+the positive faces on the river to generalize the solution of \(f(x, y)
+= z\). For both of these problems, we impose a simplification for the
+sake of illustration. We will only be considering quadratic forms
+\[f(x, y) = a x\^2 + b y\^2\] where \(a > 0\), \(b \&lt; 0\) and
+\(\sqrt{\left|\frac{a}{b}\right|}\) is not rational. This
+guarantees the existence of a river. We will pass such forms as an
+argument <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">form=(a,
+b)</span> to our functions. We start our river at the juncture defined
+by the trivial base \((1, 0), (0, 1)\)
+<div class="separator" style="clear: both; text-align: center;"></p>
+<p><a href="http://www.bossylobster.com/images/blog/trivial_base.png"><img alt="" src="http://www.bossylobster.com/images/blog/trivial_base.png" /></a></p>
+</div>
+
+<p>and crawl the river using the functions defined above. (<em><strong>Note</strong>:</em>
+\(f(1, -1) = a(1)\^2 + b(-1)\^2 = a + b\), <em>etc.</em>)</p>
+<p>To find the recurrence, we need just walk along the river until we get
+an identical juncture where the trivial base is replaced by the base
+\((p, q), (r, s)\). Using the same terminology as in <a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets.html">part
+one</a>,
+let the base vectors define a sequence \(\left\{(u_k,
+v_k)\right\}_{k \geq 0}\) with \(u_0 = (1, 0)\) and \(v_0 =
+(0, 1)\), then we have a recurrence \begin{align*}u_{k + 1} &amp;= p
+u_k + q v_k \\ v_{k + 1} &amp;= r u_k + s v_k. \end{align*} Using
+this -- \(u_{k + 2} - p u_{k + 1} - s(u_{k + 1} - p u_k) = q v_{k
++ 1} - s (q v_k) = q(r u_k)\) -- hence \(u\) satisfies the
+recurrence \(u_{k + 2} = (r q - p s)u_k + (p + s)u_{k + 1}\). (You
+can check that \(v\) satisfies this as well.) Hence our function to
+spit out the recurrence coefficients is:
+~~~~ {.prettyprint style="background-color: white;"}
+def get_recurrence(form):    a, b = form    B = ((1, -1), a + b)    P = ((1, 0), a)    N = ((0, 1), b)    F = ((1, 1), a + b)    J_init = (B, P, N, F)    J_curr = next_juncture_on_river(J_init)    while not juncture_ident(J_init, J_curr):        J_curr = next_juncture_on_river(J_curr)    final_B, final_P, final_N, final_F = J_curr    p, q = final_P[0]    r, s = final_N[0]    return (r<em>q - p</em>s, p + s)</p>
+<div class="highlight"><pre><span class="nb">For</span> <span class="nx">solving</span> <span class="o">\\</span><span class="p">(</span><span class="nb">f</span><span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">)</span> <span class="o">=</span> <span class="nb">z</span><span class="o">\\</span><span class="p">),</span> <span class="p">(</span><span class="o">\\</span><span class="p">(</span><span class="nb">z</span><span class="o">\\</span><span class="p">)</span> <span class="nx">positive</span><span class="p">)</span> <span class="nx">we</span> <span class="nx">need</span> <span class="k">to</span> <span class="nx">consider</span>
+<span class="kc">all</span> <span class="nx">the</span> <span class="nx">positive</span> <span class="nx">tributaries</span> <span class="nx">coming</span> <span class="nb">out</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">river</span> <span class="ow">and</span> <span class="k">let</span> <span class="n">them</span> <span class="nx">grow</span>
+<span class="ow">and</span> <span class="nx">grow</span> <span class="nx">until</span> <span class="nx">the</span> <span class="nx">climbing</span> <span class="nx">lemma</span> <span class="nx">tells</span> <span class="nx">us</span> <span class="nx">we</span> <span class="nx">no</span> <span class="nx">longer</span> <span class="nx">need</span> <span class="k">to</span> <span class="nx">consider</span>
+<span class="nb">values</span> <span class="nx">larger</span> <span class="nx">than</span> <span class="o">\\</span><span class="p">(</span><span class="nb">z</span><span class="o">\\</span><span class="p">)</span><span class="nx">.</span><span class="err"> </span><span class="k">In</span> <span class="k">order</span> <span class="k">to</span> <span class="nx">consider</span> <span class="nx">tributaries</span><span class="p">,</span> <span class="nx">we</span>
+<span class="nb">describe</span> <span class="nx">a</span> <span class="nb">new</span> <span class="nx">kind</span> <span class="nx">of</span> <span class="nx">juncture.</span> <span class="nx">Instead</span> <span class="nx">of</span> <span class="nx">having</span> <span class="nx">a</span> <span class="nx">positive</span><span class="p">/</span><span class="nx">negative</span>
+<span class="n">base</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">center</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">juncture</span><span class="p">,</span> <span class="nx">we</span> <span class="nx">have</span> <span class="nx">two</span> <span class="nx">consecutive</span> <span class="nx">faces</span> <span class="nb">from</span>
+<span class="nx">the</span> <span class="nx">positive</span> <span class="nx">side</span>
+<span class="o">&lt;</span><span class="nb">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;separator&quot;</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;clear: both; text-align: center;&quot;</span><span class="o">&gt;</span>
+
+<span class="err">[</span><span class="o">!</span><span class="err">[</span><span class="cp">]</span>(http://www.bossylobster.com/images/blog/positive_root.png)](http://www.bossylobster.com/images/blog/positive_root.png)
+
+<span class="nt">&lt;/div&gt;</span>
+
+and have the negative from across the river as the &quot;back&quot; face. With
+this definition, we first write a function to return all tributaries:
+~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
+def all_positive_tributaries(form):    # ...Initialization logic...    new_positives = <span class="cp">[]</span>    J_curr = next_juncture_on_river(J_init)    while not juncture_ident(J_init, J_curr):        # we add a new positive if the forward        # value is positive        forward = J_curr<span class="cp">[</span><span class="o">-</span><span class="mi">1</span><span class="cp">]</span>        if forward<span class="cp">[</span><span class="mi">1</span><span class="cp">]</span> &gt; 0:            new_positives.append(J_curr)        J_curr = next_juncture_on_river(J_curr)    # For each (B, P, N, F) in new_positives, we want to    # transform to a juncture with positive values, which will    # be (N, P_1, P_2, P_F)    result = <span class="cp">[]</span>    for new_positive in new_positives:        B, P, N, F = new_positive        new_face = plus(P, F, N<span class="cp">[</span><span class="mi">1</span><span class="cp">]</span>)        tributary = (N, P, F, new_face)        result.append(tributary)    return result
+</pre></div>
+
+
+<p>For each tributary, we can climb up away from the river until our values
+are too large. So we write a helper function to take a given tributary
+and a max value and recursively "climb" the topograph until we exceed
+the value. This function will naively return all possible faces (value
+and vector) without checking the actual values.
+~~~~ {.prettyprint style="background-color: white;"}
+def seek_up_to_val(juncture, max_value):    N, P_1, P_2, P_F = juncture    if P_F[1] &gt; max_value:        return []    result = [P_F]    turn_left = plus(P_1, P_F, P_2[1])    J_left = (P_2, P_F, P_1, turn_left)    result.extend(seek_up_to_val(J_left, max_value))    turn_right = plus(P_2, P_F, P_1[1])    J_right = (P_1, P_F, P_2, turn_right)    result.extend(seek_up_to_val(J_right, max_value))    return result</p>
+<div class="highlight"><pre><span class="nx">Finally</span><span class="p">,</span> <span class="nx">we</span> <span class="nx">can</span> <span class="nx">combine</span> <span class="nx">these</span> <span class="nx">two</span> <span class="nx">helper</span> <span class="nx">functions</span> <span class="nx">into</span> <span class="nx">a</span> <span class="kd">function</span> <span class="nx">which</span>
+<span class="nx">will</span> <span class="nx">find</span> <span class="nx">all</span> <span class="nx">solutions</span> <span class="nx">to</span> <span class="err">\\</span><span class="p">(</span><span class="nx">f</span><span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">)</span> <span class="o">=</span> <span class="nx">z</span><span class="err">\\</span><span class="p">)</span> <span class="nx">above</span> <span class="nx">the</span> <span class="nx">river</span><span class="p">.</span> <span class="nx">We</span> <span class="nx">may</span>
+<span class="nx">have</span> <span class="nx">a</span> <span class="nx">pair</span> <span class="p">(</span><span class="nx">or</span> <span class="nx">pairs</span><span class="p">)</span> <span class="err">\\</span><span class="p">((</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">)</span><span class="err">\\</span><span class="p">)</span> <span class="nx">on</span> <span class="nx">the</span> <span class="nx">topograph</span> <span class="nx">where</span> <span class="err">\\</span><span class="p">(</span><span class="nx">f</span><span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">)</span> <span class="o">=</span>
+<span class="err">\\</span><span class="nx">frac</span><span class="p">{</span><span class="nx">z</span><span class="p">}{</span><span class="nx">k</span><span class="err">\</span><span class="o">^</span><span class="mi">2</span><span class="p">}</span><span class="err">\\</span><span class="p">)</span> <span class="k">for</span> <span class="nx">some</span> <span class="nx">integer</span> <span class="err">\\</span><span class="p">(</span><span class="nx">k</span><span class="err">\\</span><span class="p">);</span> <span class="k">if</span> <span class="nx">so</span><span class="p">,</span> <span class="k">this</span> <span class="nx">gives</span> <span class="nx">rise</span> <span class="nx">to</span> <span class="nx">a</span>
+<span class="nx">solution</span> <span class="err">\\</span><span class="p">((</span><span class="nx">kx</span><span class="p">,</span> <span class="nx">ky</span><span class="p">)</span><span class="err">\\</span><span class="p">)</span> <span class="nx">which</span> <span class="nx">we</span><span class="err">&#39;</span><span class="nx">ll</span> <span class="nx">be</span> <span class="nx">sure</span> <span class="nx">to</span> <span class="nx">account</span> <span class="k">for</span> <span class="k">in</span> <span class="nx">our</span>
+<span class="kd">function</span><span class="p">.</span>
+<span class="o">~~~~</span> <span class="p">{.</span><span class="nx">prettyprint</span> <span class="nx">style</span><span class="o">=</span><span class="s2">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="nx">def</span> <span class="nx">all_values_on_form</span><span class="p">(</span><span class="nx">form</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span><span class="o">:</span>    <span class="err">#</span> <span class="nx">Use</span> <span class="nx">a</span> <span class="nx">helper</span> <span class="p">(</span><span class="nx">factors</span><span class="p">)</span> <span class="nx">to</span> <span class="nx">get</span> <span class="nx">all</span> <span class="nx">positive</span> <span class="nx">integer</span> <span class="nx">factors</span> <span class="nx">of</span> <span class="nx">value</span>    <span class="nx">factor_list</span> <span class="o">=</span> <span class="nx">factors</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>    <span class="err">#</span> <span class="nx">Use</span> <span class="nx">another</span> <span class="nx">helper</span> <span class="p">(</span><span class="nx">is_square</span><span class="p">)</span> <span class="nx">to</span> <span class="nx">determine</span> <span class="nx">which</span> <span class="nx">factors</span> <span class="nx">can</span> <span class="nx">be</span>    <span class="err">#</span> <span class="nx">written</span> <span class="nx">as</span> <span class="nx">value</span><span class="o">/</span><span class="nx">k</span><span class="o">^</span><span class="mi">2</span> <span class="k">for</span> <span class="nx">some</span> <span class="nx">integer</span> <span class="nx">k</span>    <span class="nx">valid_factors</span> <span class="o">=</span> <span class="cp">[</span><span class="nx">factor</span> <span class="nb">for</span> <span class="n">factor</span> <span class="k">in</span> <span class="nx">factor_list</span>                     <span class="k">if</span> <span class="nx">is_square</span><span class="p">(</span><span class="nb">value</span><span class="p">/</span><span class="nx">factor</span><span class="p">)</span><span class="cp">]</span>    <span class="nx">tributaries</span> <span class="o">=</span> <span class="nx">all_positive_tributaries</span><span class="p">(</span><span class="nx">form</span><span class="p">)</span>    <span class="nx">found</span> <span class="o">=</span> <span class="nx">set</span><span class="p">()</span>    <span class="k">for</span> <span class="nx">tributary</span> <span class="k">in</span> <span class="nx">tributaries</span><span class="o">:</span>        <span class="nx">candidates</span> <span class="o">=</span> <span class="nx">seek_up_to_val</span><span class="p">(</span><span class="nx">tributary</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span>        <span class="nx">found</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="cp">[</span><span class="nx">candidate</span> <span class="nb">for</span> <span class="n">candidate</span> <span class="k">in</span> <span class="nx">candidates</span>                      <span class="k">if</span> <span class="nx">candidate</span><span class="err">[</span><span class="mi">1</span><span class="cp">]</span> <span class="k">in</span> <span class="nx">valid_factors</span><span class="p">])</span>        <span class="err">#</span> <span class="nx">Since</span> <span class="nx">each</span> <span class="nx">tributary</span> <span class="nx">is</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">form</span> <span class="p">(</span><span class="nx">N</span><span class="p">,</span> <span class="nx">P_1</span><span class="p">,</span> <span class="nx">P_2</span><span class="p">,</span> <span class="nx">P_F</span><span class="p">)</span> <span class="k">for</span>        <span class="err">#</span> <span class="nx">P_1</span><span class="p">,</span> <span class="nx">P_2</span> <span class="nx">on</span> <span class="nx">the</span> <span class="nx">river</span><span class="p">,</span> <span class="nx">we</span> <span class="nx">need</span> <span class="nx">only</span> <span class="nx">consider</span> <span class="nx">P_1</span> <span class="nx">and</span> <span class="nx">P_2</span> <span class="nx">since</span>        <span class="err">#</span> <span class="nx">those</span> <span class="nx">faces</span> <span class="nx">above</span> <span class="nx">are</span> <span class="k">in</span> <span class="nx">candidates</span><span class="p">.</span> <span class="nx">But</span> <span class="nx">P_2</span> <span class="nx">will</span> <span class="nx">always</span> <span class="nx">be</span> <span class="k">in</span>        <span class="err">#</span> <span class="nx">next</span> <span class="nx">tributary</span><span class="p">,</span> <span class="nx">so</span> <span class="nx">we</span> <span class="nx">need</span> <span class="nx">not</span> <span class="nx">count</span> <span class="nx">it</span><span class="p">.</span> <span class="nx">You</span> <span class="nx">may</span> <span class="nx">assume</span> <span class="k">this</span> <span class="nx">ignores</span>        <span class="err">#</span> <span class="nx">the</span> <span class="nx">very</span> <span class="kr">final</span> <span class="nx">tributary</span><span class="p">,</span> <span class="nx">but</span> <span class="nx">here</span> <span class="nx">P_2</span> <span class="nx">actually</span> <span class="nx">lies</span> <span class="k">in</span> <span class="nx">the</span>         <span class="err">#</span> <span class="nx">second</span> <span class="nx">period</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">river</span>        <span class="nx">N</span><span class="p">,</span> <span class="nx">P_1</span><span class="p">,</span> <span class="nx">P_2</span><span class="p">,</span> <span class="nx">F</span> <span class="o">=</span> <span class="nx">tributary</span>        <span class="k">if</span> <span class="nx">P_1</span><span class="cp">[</span><span class="mi">1</span><span class="cp">]</span> <span class="k">in</span> <span class="nx">valid_factors</span><span class="o">:</span>            <span class="nx">found</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">P_1</span><span class="p">)</span>    <span class="err">#</span> <span class="nx">Finally</span> <span class="nx">we</span> <span class="nx">must</span> <span class="nx">scale</span> <span class="nx">up</span> <span class="nx">factors</span> <span class="nx">to</span> <span class="nx">account</span> <span class="k">for</span>    <span class="err">#</span> <span class="nx">the</span> <span class="nx">reduction</span> <span class="nx">by</span> <span class="nx">a</span> <span class="nx">square</span> <span class="nx">multiple</span>    <span class="nx">result</span> <span class="o">=</span> <span class="cp">[]</span>    <span class="k">for</span> <span class="nx">face</span> <span class="k">in</span> <span class="nx">found</span><span class="o">:</span>        <span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">),</span> <span class="nx">val</span> <span class="o">=</span> <span class="nx">face</span>        <span class="k">if</span> <span class="nx">val</span> <span class="o">&lt;</span> <span class="nx">value</span><span class="o">:</span>            <span class="nx">ratio</span> <span class="o">=</span> <span class="kr">int</span><span class="p">(</span><span class="nx">sqrt</span><span class="p">(</span><span class="nx">value</span><span class="o">/</span><span class="nx">val</span><span class="p">))</span>            <span class="nx">x</span> <span class="o">*=</span> <span class="nx">ratio</span>            <span class="nx">y</span> <span class="o">*=</span> <span class="nx">ratio</span>        <span class="nx">result</span><span class="p">.</span><span class="nx">append</span><span class="p">((</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">))</span>    <span class="k">return</span> <span class="nx">result</span>
+</pre></div>
+
+
+<p>Combining <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">all_values_on_form</span>
+with <span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">get_recurrence</span>,
+we can parameterize every existing solution!</p>
+<p>As far as Project Euler is concerned, in addition to Problem 137, I was
+able to write lightning fast solutions to <a href="http://projecteuler.net/index.php?section=problems&amp;id=66">Problem
+66</a>, <a href="http://projecteuler.net/index.php?section=problems&amp;id=94">Problem
+94</a>, <a href="http://projecteuler.net/index.php?section=problems&amp;id=100">Problem 100</a>, <a href="http://projecteuler.net/index.php?section=problems&amp;id=138">Problem 138</a>
+and <a href="http://projecteuler.net/index.php?section=problems&amp;id=140">Problem 140</a> using
+tools based on the above -- a general purpose library for solving binary
+quadratic forms over integers!</p>
+</div>
+
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2011-08-29T00:00:00-07:00" pubdate>Aug 29, 2011</time>  <span class="categories">
+    <a class="category" href="/tag/binary-quadratic-form.html">Binary Quadratic Form</a>
+    <a class="category" href="/tag/conway.html">Conway</a>
+    <a class="category" href="/tag/conways-topograph.html">Conway's Topograph</a>
+    <a class="category" href="/tag/math.html">Math</a>
+    <a class="category" href="/tag/number-theory.html">Number Theory</a>
+    <a class="category" href="/tag/project-euler.html">Project Euler</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2011/08/finding-fibonacci-golden-nuggets-part-2.html" data-via="bossylobster" data-counturl="/2011/08/finding-fibonacci-golden-nuggets-part-2.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

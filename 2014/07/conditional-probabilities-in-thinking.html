@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Conditional Probabilities in "Thinking Fast and Slow"</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Conditional Probabilities in "Thinking Fast and Slow"</h1>
+      <p class="meta"><time datetime="2014-07-29T00:00:00-07:00" pubdate>Jul 29, 2014</time></p>
+</header>
+
+  <div class="entry-content"><p>I'm currently reading <a href="http://www.amazon.com/Thinking-Fast-Slow-Daniel-Kahneman/dp/0374533555">Thinking Fast and
+Slow</a>
+by <a href="http://en.wikipedia.org/wiki/Daniel_Kahneman">Daniel Kahneman</a>.
+(Thanks to Elianna for letting me borrow it.) I'm not finished yet, but
+60% of the way through I definitely recommend it.</p>
+<p>While reading the "Causes Trump Statistics" chapter (number 16), there
+is a description of a study about cabs and hit-and-run accidents. It
+describes a scenario where participants are told that 85% of cabs are
+Green, 15% are Blue and a given observer has an 80% chance of correctly
+identifying the color of a given cab. Given this data, the chapter
+presents a scenario where a bystander identifies a cab in an accident as
+Blue and Kahneman goes on to explain how we fail to take the data into
+consideration. I really enjoyed this chapter, but won't wreck the book
+for you.</p>
+<p>Instead, I want to do some math (big surprise, I know). However, I want
+to make it accessible to non-mathematicians (atypical for my posts).</p>
+<p>Given the data, Kahneman tells us that the true probability that the cab
+was Blue is 41% though we likely bias our thinking towards the 80%
+probability of the identification being correct. I was on the
+<a href="http://www.sfmta.com/">bus</a> and it kept bothering me, to the point that
+I couldn't continue reading. Eventually I figured it out (when I got to
+the <a href="http://www.bart.gov/">train</a>) and I wanted to explain how this is
+computed using <a href="http://en.wikipedia.org/wiki/Bayes%27_law">Bayes' Law</a>.
+As a primer, I wrote a
+<a href="http://blog.bossylobster.com/2014/07/bayes-law-primer.html">post</a> using
+layman's terms explaining how we use Bayes' Law. (There is some notation
+introduced but I hope it isn't too confusing.)</p>
+<h2>Putting Bayes' Law to Use</h2>
+<p>We need to understand what 41% even corresponds to before we can compute
+it. What's actually happened is that we know the event \(IDB\) has
+occurred -- the cab has been identified (\(ID\)) as Blue (\(B\)).
+What we want is the probability that the cab <strong><em>is Blue</em></strong> given we know
+it has been identified -- we want:
+\[\text{Pr}(B \mid IDB).\] Using Bayes' Law, we can write</p>
+<div>
+
+\\[\\text{Pr}(B \\mid IDB) = \\frac{\\text{Pr}(B \\text{ and } IDB
+\\text{ both occur})}{\\text{Pr}(IDB)} \\quad \\text{and} \\quad
+\\text{Pr}(IDB \\mid B) = \\frac{\\text{Pr}(B \\text{ and } IDB \\text{
+both occur})}{\\text{Pr}(B)}.\\] We're told that a cab can be correctly
+identified 80% of the time hence
+\\[\\text{Pr}(IDB \\mid B) = 0.8\\] (i.e. the probability of correct ID
+as Blue given it is actually Blue). We're also told that 15% of the cabs
+are Blue hence
+\\[\\text{Pr}(B) = 0.15.\\] We can combine these with the second
+application of Bayes' Law above to show that
+\\[\\text{Pr}(B \\text{ and } IDB \\text{ both occur}) = \\text{Pr}(IDB
+\\mid B) \\cdot \\text{Pr}(B) = 0.8 \\cdot 0.15 = 0.12.\\] The only
+piece of data missing now to finish our computation is
+\\(\\text{Pr}(IDB)\\).
+
+Using the [extended
+form](http://blog.bossylobster.com/2014/07/bayes-law-primer.html#extended)
+of Bayes' Law, since we know that the events \\(B\\) and \\(G\\) (the
+cab is Blue or Green) are exclusive and cover all possibilities for the
+cab, we can say that
+\\[\\text{Pr}(IDB) = \\text{Pr}(IDB \\mid B) \\cdot \\text{Pr}(B)
++ \\text{Pr}(IDB \\mid G) \\cdot \\text{Pr}(G).\\] Since there is only
+an 80% chance of correct identification, we know that \\(\\text{Pr}(IDB
+\\mid G) = 0.2\\) (the probability of misidentifying a Green cab as
+Blue). We also know that 85% of the cabs are Green hence we can plug
+these in (along with numbers already computed) to get
+\\[\\text{Pr}(IDB) = 0.8 \\cdot 0.15 + 0.2 \\cdot 0.85 = 0.12 + 0.17 =
+0.29.\\] Putting it all together we get our answer
+\\[\\text{Pr}(B \\mid IDB) = \\frac{\\text{Pr}(B \\text{ and } IDB
+\\text{ both occur})}{\\text{Pr}(IDB)} = \\frac{0.12}{0.29} =
+\\boxed{\\frac{12}{29} \\approx 0.413793103}.\\] Fantastic! Now we can
+get back to reading...
+
+</div>
+
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2014-07-29T00:00:00-07:00" pubdate>Jul 29, 2014</time>  <span class="categories">
+    <a class="category" href="/tag/bayes.html">Bayes</a>
+    <a class="category" href="/tag/bayesian.html">Bayesian</a>
+    <a class="category" href="/tag/kahneman.html">Kahneman</a>
+    <a class="category" href="/tag/layman.html">Layman</a>
+    <a class="category" href="/tag/mathematics.html">Mathematics</a>
+    <a class="category" href="/tag/probability.html">Probability</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2014/07/conditional-probabilities-in-thinking.html" data-via="bossylobster" data-counturl="/2014/07/conditional-probabilities-in-thinking.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

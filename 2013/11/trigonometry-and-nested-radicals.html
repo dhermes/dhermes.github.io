@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Trigonometry and Nested Radicals</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Trigonometry and Nested Radicals</h1>
+      <p class="meta"><time datetime="2013-11-25T00:00:00-08:00" pubdate>Nov 25, 2013</time></p>
+</header>
+
+  <div class="entry-content"><p>Early last month, I was chatting with one of my officemates about a
+curious problem I had studied in high school. I hadn't written any of
+the results down, so much of the discussion involved me rediscovering
+the results and proving them with much more powerful tools than I once
+possessed.</p>
+<p>Before writing about the problem I had played around with, I want to
+give a ~~brief~~ motivation. For as long as humans have been doing
+mathematics, finding values of \(\pi\) has been deemed worthwhile (or
+every generation has just found it worthwhile to waste time computing
+digits).</p>
+<p>One such way the Greeks (particularly
+<a href="http://www.math.utah.edu/~alfeld/Archimedes/Archimedes.html">Archmides</a>)
+computed \(\pi\) was by approximating a circle by a regular polygon
+and letting the number of sides grow large enough so that the error
+between the area of the unit circle (\(\pi \cdot 1\^2\)) and the
+area of the polygon would be smaller than some fixed threshold. Usually
+these thresholds were picked to ensure that the first \(k\) digits
+were fully accurate (for some appropriate value of \(k\)).</p>
+<p>In many introductory Calculus courses, this problem is introduced
+exactly when the limit is introduced and students are forced to think
+about the <a href="http://www.qbyte.org/puzzles/p045s.html">area problem</a> in the
+regular polygon:</p>
+<div class="separator" style="clear: both; text-align: center;">
+
+<div markdown="1" style="text-align: center;">
+  ![Compute pi from polygons](/images/p045.png)
+</div>
+
+</div>
+
+<div class="separator" style="clear: both; text-align: center;">
+
+</div>
+
+<p>Given \(N\) sides, the area is \(N \cdot T_N\) where \(T_N\) is
+the area of each individual triangle given by one side of the polygon
+and the circumcenter.</p>
+<p>Call one such triangle \(\Delta ABC\) and let \(BC\) be the side
+that is also a side of the polygon while the other sides have
+\(\left|AB\right| = \left|AC\right| = 1\) since the polygon is
+inscribed in a unit circle. The angle \(\angle BAC =
+\frac{2\pi}{N}\) since each of the triangles has the same internal
+angle and there are \(N\) of them. If we can find the perpendicular
+height \(h\) from \(AB\) to \(C\), the area will be
+\(\frac{1}{2} h \left|AB\right| = \frac{h}{2}\). But we also know
+that
+\[\sin\left(\angle BAC\right) = \frac{h}{\left|AC\right|}
+\Rightarrow h = \sin\left(\frac{2\pi}{N}\right).\] Combining all
+of these, we can approximate \(\pi\) with the area:
+\[\pi \approx \frac{N}{2} \sin\left(\frac{2\pi}{N}\right) =
+\pi \frac{\sin\left(\frac{2\pi}{N}\right)}{\frac{2 \pi}{N}}.
+\] As I've shown my <a href="http://math.berkeley.edu/courses/choosing/lowerdivcourses/math1A">Math
+1A</a>
+students, we see that
+\[\lim_{N \to \infty} \pi
+\frac{\sin\left(\frac{2\pi}{N}\right)}{\frac{2 \pi}{N}} = \pi
+\lim_{x \to 0} \frac{\sin(x)}{x} = \pi\] so these are indeed good
+approximations.</p>
+<h3>Theory is Nice, But I Thought We Were Computing Something</h3>
+<p>Unfortunately for us (and Archimedes), computing
+\(\sin\left(\frac{2\pi}{N}\right)\) is not quite as simple as
+dividing by \(N\), so often special values of \(N\) were chosen. In
+fact, starting from \(N\) and then using \(2N\), the areas could be
+computed via a special way of averaging the previous areas. Lucky for
+us, such a method is equivalent to the trusty <a href="http://en.wikipedia.org/wiki/List_of_trigonometric_identities#Double-angle.2C_triple-angle.2C_and_half-angle_formulae">half angle
+identities</a> (courtesy
+of <a href="http://en.wikipedia.org/wiki/Abraham_de_Moivre">Abraham De Moivre</a>).
+To keep track of these polygons with a power of two as the number of
+sides, we call \(A_n = \frac{2\^n}{2}
+\sin\left(\frac{2\pi}{2\^n}\right)\).</p>
+<p>Starting out with the simplest polygon, the square with \(N = 2\^2\)
+sides, we have
+\[A_2 = 2 \sin\left(\frac{\pi}{2}\right) = 2.\] Jumping to the
+<a href="http://en.wikipedia.org/wiki/Octagon">octagon</a> (no not that "<a href="https://www.google.com/search?q=%22the+octagon%22&amp;tbm=isch">The
+Octagon</a>"),
+we have
+\[A_3 = 4 \sin\left(\frac{\pi}{4}\right) = 4 \frac{\sqrt{2}}{2}
+= 2 \sqrt{2}.\] So far, the toughest thing we've had to deal with is a
+\(45\^{\circ}\) angle and haven't yet had to lean on Abraham
+(<a href="http://www.nocturnar.com/imagenes/abraham-de-moivre-mathematician-abraham-de-moivre.jpg">him</a>, <a href="http://foglobe.com/data_images/main/abraham-lincoln/abraham-lincoln-03.jpg">not
+him</a>) for
+help. The <a href="http://en.wikipedia.org/wiki/Hexadecagon">hexadecagon</a> wants
+to change that:
+\[A_4 = 8 \sin\left(\frac{\pi}{8}\right) = 8 \sqrt{\frac{1 -
+\cos\left(\frac{\pi}{4}\right)}{2}} = 8 \sqrt{\frac{2 -
+\sqrt{2}}{4}} = 4 \sqrt{2 - \sqrt{2}}.\]</p>
+<div>
+
+To really drill home the point (and motivate my next post) we'll compute
+this for the \\(32\\)-gon (past the point where polygons have worthwhile
+names):
+
+</div>
+
+<div>
+
+\\[A\_5 = 16 \\sin\\left(\\frac{\\pi}{16}\\right) = 16 \\sqrt{\\frac{1 -
+\\cos\\left(\\frac{\\pi}{8}\\right)}{2}}.\\] Before, we could rely on
+the fact that we know that a \\(45-45-90\\) triangle looked like, but
+now, we come across \\(\\cos\\left(\\frac{\\pi}{8}\\right)\\), a value
+which we haven't seen before. Luckily, Abraham has help here as well:
+\\[\\cos\\left(\\frac{\\pi}{8}\\right) = \\sqrt{\\frac{1 +
+\\cos\\left(\\frac{\\pi}{4}\\right)}{2}} = \\sqrt{\\frac{2 +
+\\sqrt{2}}{4}} = \\frac{1}{2} \\sqrt{2 + \\sqrt{2}}\\] which lets us
+compute
+\\[A\_5 = 16 \\sqrt{\\frac{1 - \\frac{1}{2} \\sqrt{2 + \\sqrt{2}}}{2}} =
+8 \\sqrt{2 - \\sqrt{2 + \\sqrt{2}}}.\\]
+
+</div>
+
+<div>
+
+
+
+</div>
+
+<div>
+
+So why have I put you through all this? If we wave our hands like a
+[magician](http://imgs.tuts.dragoart.com/how-to-draw-fantasia-wizard-mickey_1_000000008546_5.jpg),
+we can see this pattern continues and for the general \\(n\\)
+
+</div>
+
+<div>
+
+\\[A\_n = 2\^{n - 2} \\sqrt{2 - \\sqrt{2 + \\sqrt{2 + \\sqrt{\\cdots +
+\\sqrt{2}}}}}\\]
+
+</div>
+
+<div>
+
+where there are \\(n - 3\\) nested radicals with the \\(\\oplus\\) sign
+and only one minus sign at the beginning.
+
+</div>
+
+<div>
+
+
+
+</div>
+
+<div>
+
+This motivates us to study two questions, what is the limiting behavior
+of such a nested radical:
+
+</div>
+
+<p>\[\sqrt{2 + s_1 \sqrt{2 + s_2 \sqrt{ \cdots }}}\] as the signs
+\(s_1, s_2, \ldots\) takes values in \(\left\{-1,
+1\right\}\). Recasting in terms of the discussion above, we want to
+know how close we are to \(\pi\) as we increase the number of sides.</p>
+<div>
+
+
+
+</div>
+
+<div>
+
+When I was in high school, I just loved to [nerd
+out](http://blog.verdebmx.com/wp-content/uploads/2008/07/computer.jpg) on
+any and all math problems, so I studied this just for fun. Having heard
+about the unfathomable brain of
+[Ramanujan](http://en.wikipedia.org/wiki/Srinivasa_Ramanujan) and the
+fun [work he had done](http://www.isibang.ac.in/~sury/ramanujanday.pdf)
+with infinitely [nested
+radicals](http://en.wikipedia.org/wiki/Nested_radical), I wanted to
+examine which sequences of signs \\((s\_1, s\_2, \\ldots)\\) produced an
+infinite radical that converged and what the convergence behavior was.
+
+</div>
+
+<div>
+
+
+
+</div>
+
+<div>
+
+I'm fairly certain my original questions came from an Illinois Council
+of Teachers of Mathematics ([ICTM](http://www.ictm.org/contest.html))
+contest problem along the lines of
+
+</div>
+
+<div>
+
+\\[\\text{Find the value of the infinite nested radical } \\sqrt{2 +
+\\sqrt{2 + \\cdots}}\\] or maybe the slightly more difficult
+\\[\\text{Find the value of the infinite nested radical } \\sqrt{2 -
+\\sqrt{2 + \\sqrt{2 - \\sqrt{2 + \\cdots}}}}.\\]
+[Armed](http://www.search-best-cartoon.com/cartoon-moose/armed-cartoon-moose.jpg)
+with my
+[TI-83](http://img1.targetimg1.com/wcsstore/TargetSAS//img/p/93/50/93505.jpg),
+I set out to do some hardcore programming and figure it out. It took me
+around a month of off-and-on tinkering. This second time around as a
+mathematical grown-up, it took me the first half of a plane ride from
+SFO to Dallas.
+
+</div>
+
+<div>
+
+
+
+</div>
+
+<div>
+
+In the next few weeks/months, I hope to write a few blog posts,
+including math, proofs and some real code on what answers I came up with
+and what other questions I have.
+
+</div>
+
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2013-11-25T00:00:00-08:00" pubdate>Nov 25, 2013</time>  <span class="categories">
+    <a class="category" href="/tag/approximation.html">Approximation</a>
+    <a class="category" href="/tag/infinite-nested-radical.html">Infinite Nested Radical</a>
+    <a class="category" href="/tag/math.html">Math</a>
+    <a class="category" href="/tag/nested-radical.html">Nested Radical</a>
+    <a class="category" href="/tag/pi.html">Pi</a>
+    <a class="category" href="/tag/radical.html">Radical</a>
+    <a class="category" href="/tag/root-two.html">Root Two</a>
+    <a class="category" href="/tag/square-root.html">Square Root</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2013/11/trigonometry-and-nested-radicals.html" data-via="bossylobster" data-counturl="/2013/11/trigonometry-and-nested-radicals.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

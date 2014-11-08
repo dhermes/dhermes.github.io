@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Reverse Calculating An Interest Rate</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Reverse Calculating An Interest Rate</h1>
+      <p class="meta"><time datetime="2012-05-15T00:00:00-07:00" pubdate>May 15, 2012</time></p>
+</header>
+
+  <div class="entry-content"><p>I was recently playing around with some loan data and only happened to
+have the term (or length, or duration) of the loan, the amount of the
+recurring payment (in this case monthly) and the remaining principal
+owed on the loan. I figured there was an easy way to get at the interest
+rate, but wasn't sure how. After some badgering from my coworker
+<a href="https://plus.google.com/104679465567407024302">+Paul</a>, I searched the
+web and found a
+<a href="http://www.calcamo.net/loancalculator/quickcalculations/loan-rate.php5">tool</a>
+from <a href="http://www.calcamo.net/">CALCAmo</a> (a site just for calculating
+amortizations).</p>
+<p>Problem solved, right? Wrong. I wanted to know why; I had to <a href="http://t.qkme.me/35co7h.jpg">go
+deeper</a>. So I did a bit of math and a bit
+of programming and I was where I needed to be. I'll break the following
+down into parts before going on full steam.</p>
+<ul>
+<li>Break down the amortization schedule in terms of the variables we
+    have and the one we want</li>
+<li>Determine a function we want to find zeroes of</li>
+<li>Write some code to implement the Newton-Raphson method</li>
+<li>Utilize the Newton-Raphson code to find an interest rate</li>
+<li>Bonus: Analyze the function to make sure we are right</li>
+</ul>
+<p><strong><span style="font-size: large;">Step I: Break Down the <a href="http://en.wikipedia.org/wiki/Amortization_schedule">Amortization
+Schedule</a></span></strong></p>
+<p>We can do this using the series \(\left\{P_i\right\}_i\) of
+principal owed, which varies over time and will go to zero once paid
+off. In this series, \(P_0\) is the principal owed currently and
+\(P_i\) is the principal owed after \(i\) payments have been made.
+(Assuming monthly payments, this will be after \(i\) months.) If the
+term is \(T\) periods, then we have \(P_T = 0\).</p>
+<p>We have already introduced the term (\(T\)); we also need the value
+of the recurring (again, usually monthly) payment \(R\), the interest
+rate \(r\) and the initial principal owed \(P_0 = P\).</p>
+<p><strong>Time-Relationship between Principal Values</strong></p>
+<p>If after \(i\) periods, \(P_i\) is owed, then after one period has
+elapsed, we will owe \(P_i \cdot m\) where \(m = m(r)\) is some
+multiplier based on the length of the term. For example if each period
+is one month, then we divide our rate by \(12\) for the interest and
+add \(1\) to note that we are adding to existing principal: \[m(r) =
+1 + \frac{r}{12}.\] In addition to the interest, we will have paid off
+\(R\) hence \[P_{i + 1} = P_i \cdot m - R.\] <strong>Formula for
+\(P_i\)</strong></p>
+<p>Using this, we can actually determine \(P_i\) strictly in terms of
+\(m, R\) and \(P\). First, note that \[P_2 = P_1 \cdot m - R =
+(P_0 \cdot m - R) \cdot m - R = P \cdot m\^2 - R(m + 1)\] since
+\(P_0 = P\). We can show inductively that \[P_i = P \cdot m\^i - R
+\cdot \sum_{j = 0}\^{i - 1} m\^j.\] We already have the base case
+\(i = 1\), by definition. Assuming it holds for \(i\), we see that
+\[P_{i + 1} = P_i \cdot m - R =  m \cdot \left(P \cdot m\^i - R
+\cdot \sum_{j = 0}\^{i - 1} m\^j\right) - R = P \cdot m\^{i + 1} -
+R \cdot \sum_{j = 1}\^{i} m\^j - R,\] and our induction is complete.
+(We bump the index \(j\) since we are multiplying each \(m\^j\) by
+\(m\).)
+Each term in the series is related to the previous one (except
+\(P_0\), since time can't be negative in this case).</p>
+<p><strong><span style="font-size: large;">Step II: Determine a Function we want
+to find Zeroes of</span></strong></p>
+<p>Since we know \(P_T = 0\) and \(P_T = P \cdot m\^T - R \cdot
+\sum_{j = 0}\^{T - 1} m\^j\), we actually have a polynomial in place
+that will let us solve for \(m\) and in so doing, solve for \(r\).</p>
+<p>To make our lives a tad easier, we'll do some rearranging. First, note
+that \[\sum_{j = 0}\^{T - 1} m\^j = m\^{T - 1} + \cdots + m + 1 =
+\frac{m\^T - 1}{m - 1}.\] We calculate this sum of a geometric series
+here, but I'll just refer you to the <a href="http://en.wikipedia.org/wiki/Geometric_series">Wikipedia
+page</a> instead. With this
+reduction we want to solve \[0 = P \cdot m\^T - R \cdot \frac{m\^T -
+1}{m - 1} \Longleftrightarrow P \cdot m\^T \cdot (m - 1) = R
+\cdot (m\^T - 1).\] With that, we have accomplished Step II, we have
+found a function (parameterized by \(P, T\) and \(R\) which we can
+use zeroes from to find our interest rate: \[f_{P, T, R}(m) = P \cdot
+m\^T \cdot (m - 1) - R \cdot (m\^T - 1) = P \cdot m\^{T + 1} - (P +
+R) \cdot m\^T + R.\] <strong><span style="font-size: large;">Step III: Write
+some code to implement the <a href="http://en.wikipedia.org/wiki/Newton's_method">Newton-Raphson
+method</a></span></strong></p>
+<p>We use the Newton-Raphson method to get super-duper-close to a zero of
+the function. For in-depth coverage, see the Wikipedia page on the
+Newton-Raphson method, but I'll give some cursory coverage below. The
+methods used to show that a fixed point is found are not necessary for
+the intuition behind the method.</p>
+<p><strong>Intuition behind the method</strong></p>
+<p>For the intuition, assume we know (and can compute) a function \(f\),
+its derivative \(f'\) and a value \(x\). Assume there is some zero
+\(y\) nearby \(x\). Since they are close, we can approximate the
+slope of the line between the points \((x, f(x)\) and \((y, f(y)\)
+with the derivative nearby. Since we know \(x\), we use \(f'(x)\)
+and intuit that \[f'(x) = \text{slope} = \frac{f(y) - f(x)}{y - x}
+\Rightarrow y - x = \frac{f(y) - f(x)}{f'(x)}.\] But, since we know
+that \(y\) is a zero, \(f(y) - f(x) = -f(x)\) hence \[y - x =
+\frac{-f(x)}{f'(x)} \Rightarrow y = x - \frac{f(x)}{f'(x)}.\] Using
+this method, one can start with a given value \(x_0 = x\) and compute
+better and better approximations of a zero via the iteration above that
+determines \(y\). We use a sequence to do so: \[x_{i + 1} = x_i -
+\frac{f(x_i)}{f'(x_i)}\] and stop calculating the \(x_i\) either
+after \(f(x_i)\) is below a preset threshold or after the fineness of
+the approximation \(\left|x_i - x_{i + 1}\right|\) goes below a
+(likely different) preset threshold. Again, there is much that can be
+said about these approximations, but we are trying to accomplish things
+today, not theorize.</p>
+<p><strong>Programming Newton-Raphson</strong></p>
+<p>To perform Newton-Raphson, we'll implement a Python function that takes
+the initial guess (\(x_0\)) and the functions \(f\) and \(f'\).
+We'll also (arbitrarily) stop after the value \(f(x_i)\) drops below
+\(10\^{-8}\) in absolute value.</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+def newton_raphson_method(guess, f, f_prime):    def next_value(value):        return value - f(value)<em>1.0/f_prime(value)    current = guess    while abs(f(current)) &gt; 10</em>*(-8):        current = next_value(current)    return current</p>
+<div class="highlight"><pre><span class="nx">As</span> <span class="nx">you</span> <span class="nx">can</span> <span class="nx">see</span><span class="p">,</span> <span class="nb">once</span> <span class="nx">we</span> <span class="nx">have</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">f</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
+<span class="err"> </span><span class="ow">and</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">f</span><span class="o">\</span><span class="nx">_prime</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="nx">everything</span> <span class="k">else</span> <span class="nx">is</span> <span class="nx">easy</span> <span class="nx">because</span> <span class="kc">all</span> <span class="nx">the</span> <span class="n">work</span> <span class="k">in</span> <span class="nx">calculating</span> <span class="nx">the</span> <span class="nb">next</span>
+<span class="nb">value</span> <span class="p">(</span><span class="nx">via</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">next</span><span class="o">\</span><span class="nx">_value</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="nx">is</span> <span class="nb">done</span> <span class="k">by</span> <span class="nx">the</span> <span class="nx">functions.</span>
+
+<span class="o">**&lt;</span><span class="nx">span</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;font-size: large;&quot;</span><span class="o">&gt;</span><span class="nb">Step</span> <span class="nx">IV</span><span class="p">:</span> <span class="nx">Utilize</span> <span class="nx">the</span> <span class="nx">Newton</span><span class="na">-Raphson</span>
+<span class="nb">code</span> <span class="k">to</span> <span class="nb">find</span> <span class="nx">an</span> <span class="nx">Interest</span> <span class="nx">Rate</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;**</span>
+
+<span class="nx">We</span> <span class="nb">first</span> <span class="nx">need</span> <span class="k">to</span> <span class="nx">implement</span> <span class="o">\\</span><span class="p">(</span><span class="nb">f</span><span class="o">\</span><span class="nx">_</span><span class="p">{</span><span class="nx">P</span><span class="p">,</span> <span class="nb">T</span><span class="p">,</span> <span class="nb">R</span><span class="p">}(</span><span class="nx">m</span><span class="p">)</span> <span class="o">=</span> <span class="nx">P</span> <span class="o">\\</span><span class="nx">cdot</span> <span class="nx">m</span><span class="o">\</span><span class="p">^{</span><span class="nb">T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">}</span> <span class="o">-</span> <span class="p">(</span><span class="nx">P</span>
+<span class="o">+</span> <span class="nb">R</span><span class="p">)</span> <span class="o">\\</span><span class="nx">cdot</span> <span class="nx">m</span><span class="o">\</span><span class="p">^</span><span class="nb">T</span> <span class="o">+</span> <span class="nb">R</span><span class="o">\\</span><span class="p">)</span> <span class="ow">and</span> <span class="o">\\</span><span class="p">(</span><span class="nb">f</span><span class="s1">&#39;\_{P, T, R}</span><span class="se">\\</span><span class="s1">) in Python. Before doing</span>
+<span class="s1">so, we do a simple derivative calculation: </span><span class="se">\\</span><span class="s1">[f\_{P, T, R}&#39;</span><span class="p">(</span><span class="nx">m</span><span class="p">)</span> <span class="o">=</span><span class="err"> </span><span class="nx">P</span>
+<span class="o">\\</span><span class="nx">cdot</span> <span class="p">(</span><span class="nb">T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">\\</span><span class="nx">cdot</span> <span class="nx">m</span><span class="o">\</span><span class="p">^</span><span class="nb">T</span> <span class="o">-</span> <span class="p">(</span><span class="nx">P</span> <span class="o">+</span> <span class="nb">R</span><span class="p">)</span> <span class="o">\\</span><span class="nx">cdot</span> <span class="nb">T</span> <span class="o">\\</span><span class="nx">cdot</span> <span class="nx">m</span><span class="o">\</span><span class="p">^{</span><span class="nb">T</span> <span class="o">-</span> <span class="mi">1</span><span class="p">}</span><span class="nx">.</span><span class="o">\\</span><span class="cp">]</span> With
+these <span class="cp">[</span><span class="nx">formulae</span><span class="cp">]</span>(http://dictionary.reference.com/browse/formulae) in
+hand, we write a function which will spit out the corresponding <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>f<span class="nt">&lt;/span&gt;</span>
+and <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>f\_prime<span class="nt">&lt;/span&gt;</span>
+given the parameters \\(P\\) (<span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>principal<span class="nt">&lt;/span&gt;</span>),
+\\(T\\) (<span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>term<span class="nt">&lt;/span&gt;</span>)
+and \\(R\\) (<span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>payment<span class="nt">&lt;/span&gt;</span>):
+
+~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
+def generate_polynomials(principal, term, payment):    def f(m):        return (principal*(m**(term + 1)) - (principal + payment)*(m**term) +                payment)    def f_prime(m):        return (principal*(term + 1)*(m**term) -                (principal + payment)*term*(m**(term - 1)))    return (f, f_prime)
+</pre></div>
+
+
+<p>Note that these functions only take a single argument (<span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">m</span>),
+but we are able to use the other parameters from the parent scope beyond
+the life of the call to <span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">generate_polynomials</span>
+due to
+<a href="http://en.wikipedia.org/wiki/Closure_(computer_science)">closure</a> in
+Python.</p>
+<p>In order to solve, we need an initial <span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">guess</span>,
+but we need to know the relationship between \(m\) and \(r\) before
+we can determine what sort of <span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">guess</span> makes
+sense. In addition, once a value for \(m\) is returned from
+Newton-Raphson, we need to be able to turn it into an \(r\) value so
+functions <span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">m</span>
+and <span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">m_inverse</span>
+should be implemented. For our dummy case here, we'll assume monthly
+payments (and compounding):</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+def m(r):    return 1 + r/12.0def m_inverse(m_value):    return 12.0*(m_value - 1)</p>
+<div class="highlight"><pre><span class="n">Using</span> <span class="n">these</span><span class="p">,</span> <span class="n">and</span> <span class="n">assuming</span> <span class="n">that</span> <span class="n">an</span> <span class="n">interest</span> <span class="n">rate</span> <span class="n">of</span> <span class="o">**</span><span class="mi">10</span><span class="o">%**</span> <span class="n">is</span> <span class="n">a</span> <span class="n">good</span>
+<span class="n">guess</span><span class="p">,</span> <span class="n">we</span> <span class="n">can</span> <span class="n">put</span> <span class="n">all</span> <span class="n">the</span> <span class="n">pieces</span> <span class="n">together</span><span class="o">:</span>
+
+<span class="o">~~~~</span> <span class="p">{.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="n">def</span> <span class="n">solve_for_interest_rate</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">payment</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">m_inverse</span><span class="p">)</span><span class="o">:</span>    <span class="n">f</span><span class="p">,</span> <span class="n">f_prime</span> <span class="o">=</span> <span class="n">generate_polynomials</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">payment</span><span class="p">)</span>    <span class="n">guess_m</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="mf">0.10</span><span class="p">)</span>  <span class="err">#</span> <span class="n">ten</span> <span class="n">percent</span> <span class="n">as</span> <span class="n">a</span> <span class="n">decimal</span>    <span class="n">m_value</span> <span class="o">=</span> <span class="n">newton_raphson_method</span><span class="p">(</span><span class="n">guess_m</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f_prime</span><span class="p">)</span>    <span class="k">return</span> <span class="n">m_inverse</span><span class="p">(</span><span class="n">m_value</span><span class="p">)</span>
+</pre></div>
+
+
+<p>To check that this makes sense, let's plug in some values. Using the
+<a href="http://www.bankrate.com/calculators/mortgages/mortgage-calculator.aspx">bankrate.com loan
+calculator</a>,
+if we have a 30-year loan (with \(12 \cdot 30 = 360\) months of
+payments) of \$100,000 with an interest rate of 7%, the monthly payment
+would be \$665.30. Plugging this into our pipeline:</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>principal = 100000&gt;&gt;&gt; term = 360&gt;&gt;&gt; payment = 665.30&gt;&gt;&gt; solve_for_interest_rate(principal, term, payment, m, m_inverse)0.0699996284703
+~~~~</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>And we see the rate of 7% is approximated quite well!</p>
+<p><strong><span style="font-size: large;">Bonus: Analyze the function to make
+sure we are right</span></strong></p>
+<p>Coming soon. We will analyze the derivate and concavity to make sure
+that our guess yield the correct (and unique) zero.</p>
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2012-05-15T00:00:00-07:00" pubdate>May 15, 2012</time>  <span class="categories">
+    <a class="category" href="/tag/finance.html">Finance</a>
+    <a class="category" href="/tag/interest-rate.html">Interest Rate</a>
+    <a class="category" href="/tag/mortgage.html">Mortgage</a>
+    <a class="category" href="/tag/newton-raphson-method.html">Newton-Raphson Method</a>
+    <a class="category" href="/tag/numerical-analysis.html">Numerical Analysis</a>
+    <a class="category" href="/tag/python.html">Python</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2012/05/reverse-calculating-interest-rate.html" data-via="bossylobster" data-counturl="/2012/05/reverse-calculating-interest-rate.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

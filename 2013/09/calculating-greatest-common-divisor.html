@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Calculating a Greatest Common Divisor with Dirichlet's Help</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Calculating a Greatest Common Divisor with Dirichlet's Help</h1>
+      <p class="meta"><time datetime="2013-09-10T00:00:00-07:00" pubdate>Sep 10, 2013</time></p>
+</header>
+
+  <div class="entry-content"><p>Having just left Google and started my PhD in Applied Mathematics
+at <a href="http://math.berkeley.edu/">Berkeley</a>, I thought it might be
+appropriate to write some (more) math-related blog posts. Many of these
+posts, I jotted down on napkins and various other places on the web and
+just haven't had time to post until now.</p>
+<p>For today, I'm posting a result which was somewhat fun to figure out
+with/for one of
+my <a href="https://picasaweb.google.com/101796704659729637490/WhereHasYourMathTShirtBeen#5802889644579484306">buddies</a> from
+<a href="http://www.lsa.umich.edu/math/">Michigan Math</a>. I'd also like to point
+out that he is absolutely kicking ass at Brown.</p>
+<p>While trying to determine if
+\[J(B_n)_{\text{Tor}}\left(\mathbb{Q}\right) \stackrel{?}{=}
+\mathbb{Z}/2\mathbb{Z} \] where \(J(B_n)\) is the Jacobian of the
+curve \(B_n\) given by \(y\^2 = (x + 2) \cdot f\^n(x)\) where
+\(f\^n\) denotes \(\underbrace{f \circ \cdots \circ f}_{n
+\text{ times}}\) and \(f(x) = x\^2 - 2\).</p>
+<p>Now, his and my interests diverged some time ago, so I can't appreciate
+what steps took him from this to the problem I got to help with.
+However, he was able to show (trivially maybe?) that this was equivalent
+to showing that
+\[\gcd\left(5\^{2\^n} + 1, 13\^{2\^n} + 1, \ldots, p\^{2\^n} + 1,
+\ldots \right) = 2 \qquad (1)\] where the \(n\) in the exponents
+is the same as that in \(B_n\) and where the values we are using in
+our greatest common divisor (e.g. \(5, 13\) and \(p\) above) are all
+of the primes \(p \equiv 5 \bmod{8}\).</p>
+<p>My buddy, being sadistic and for some reason angry with me, passed me
+along the stronger statement:
+\[\gcd\left(5\^{2\^n} + 1, 13\^{2\^n} + 1\right) = 2 \qquad (2)\]
+which I of course struggled with and tried to beat down with tricks like
+\(5\^2 + 12\^2 = 13\^2\). After a few days of this struggle, he
+confessed that he was trying to ruin my life and told me about the
+weaker version \((1)\).</p>
+<p>When he sent me the email informing me of this, I read it at 8am, drove
+down to Santa Clara for <a href="https://us.pycon.org/2013/">PyCon</a> and by the
+time I arrived at 8:45am I had figured the weaker case \((1)\) out.
+This felt much better than the days of struggle and made me want to
+write about my victory (which I'm doing now). Though, before we actually
+demonstrate the weaker fact \((1)\)  I will admit that I am not in
+fact tall. Instead I stood on the shoulders of Dirichlet and <a href="http://www.youtube.com/watch?v=A6f-6l0W-0o#t=35s">called
+myself tall</a>.
+Everything else is bookkeeping.</p>
+<h2><span style="font-size: large;">Let's Start the Math</span></h2>
+<p>First, if \(n = 0\), we see trivially that
+\[\gcd\left(5\^{2\^0} + 1, 13\^{2\^0} + 1\right) = \gcd\left(6,
+14\right) = 2\] and all the remaining terms are divisible by \(2\)
+hence the \(\gcd\) over all the primes must be \(2\).</p>
+<p>Now, if \(n > 0\), we will show that \(2\) divides our \(\gcd\),
+but \(4\) does not and that no odd prime can divide this \(\gcd\).
+First, for \(2\), note that
+\[p\^{2\^n} + 1 \equiv \left(\pm 1\right)\^{2\^n} + 1 \equiv 2
+\bmod{4}\] since our primes are odd. Thus they are all divisible by
+\(2\) and none by \(4\).</p>
+<p>Now assume some odd prime \(p\^{\ast}\) divides all of the quantities
+in question. We'll show no such \(p\^{\ast}\) can exist by
+contradiction.</p>
+<p>In much the same way we showed the \(\gcd\) wasn't divisible by
+\(4\), we seek to find a contradiction in some modulus. But since we
+are starting with \(p\^{2\^n} + 1 \equiv 0 \bmod{p\^{\ast}}\), if
+we can find some such \(p\) with \(p \equiv 1 \bmod{p\^{\ast}}\),
+then we'd have our contradiction from
+\[0 \equiv p\^{2\^n} + 1 \equiv 1\^{2\^n} + 1 \equiv 2
+\bmod{p\^{\ast}}\] which can't occur since \(p\^{\ast}\) is an odd
+prime.</p>
+<p>With this in mind, along with a subsequence of the arithmetic
+progression \(\left\{5, 13, 21, 29, \ldots\right\}\), it seems
+that using <a href="http://en.wikipedia.org/wiki/Dirichlet's_theorem_on_arithmetic_progressions">Dirichlet's theorem on arithmetic
+progressions</a> may
+be a good strategy. However, this sequence only tells us about the
+residue modulo \(8\), but we also want to know about the residue
+modulo \(p\^{\ast}\). Naturally, we look for a subsequence in
+\[\mathbb{Z}/\mathbb{8Z} \times \mathbb{Z}/\mathbb{p\^{\ast}Z}\]
+corresponding to the residue pair \((5 \bmod{8}, 1
+\bmod{p\^{\ast}})\). Due to the <a href="http://en.wikipedia.org/wiki/Chinese_remainder_theorem">Chinese remainder
+theorem</a> this
+corresponds to a unique residue modulo \(8p\^{\ast}\).</p>
+<p>Since this residue \(r\) has \(r \equiv 1 \bmod{p\^{\ast}}\), we
+must have
+\[r \in \left\{1, 1 + p\^{\ast}, 1 + 2p\^{\ast}, \ldots, 1 +
+7p\^{\ast}\right\} .\] But since \(1 + kp\^{\ast} \equiv r
+\equiv 5 \bmod{8}\), we have \(kp\^{\ast} \equiv 4 \bmod{8}\)
+and \(k \equiv 4\left(p\^{\ast}\right)\^{-1} \bmod{8}\) since
+\(p\^{\ast}\) is odd and invertible mod \(8\). But this also means
+its inverse is odd, hence \(k \equiv 4\cdot(2k' + 1) \equiv 4
+\bmod{8}\). Thus we have \(1 + 4 p\^{\ast} \in
+\mathbb{Z}/8p\^{\ast}\mathbb{Z}\) corresponding to our residue
+pair. Thus every element in the arithmetic progression \(S =
+\left\{(1 + 4p\^{\ast}) + (8p\^{\ast})k
+\right\}_{k=0}\^{\infty}\) is congruent to \(1 + 4 p\^{\ast}
+\bmod{8p\^{\ast}}\) and hence \(5 \bmod{8}\) and \(1
+\bmod{p\^{\ast}}\).</p>
+<p>What's more, since \(5 \in
+\left(\mathbb{Z}/8\mathbb{Z}\right)\^{\times}\) and \(1 \in
+\left(\mathbb{Z}/p\^{\ast}\mathbb{Z}\right)\^{\times}\), we have
+\(1 + 4 p\^{\ast} \in
+\left(\mathbb{Z}/8p\^{\ast}\mathbb{Z}\right)\^{\times}\) (again
+by the Chinese remainder theorem). Thus the arithmetic progression
+\(S\) satisfies the hypothesis of Dirichlet's theorem. Hence there
+must at least one prime \(p\) occurring in the progression (since
+there are infinitely many). But that also means \(p\) occurs in
+\(\left\{5, 13, 29, 37, \ldots\right\}\) hence we've reached our
+desired contradiction. RAA.</p>
+<h2><span style="font-size: large;">Now What?</span></h2>
+<p>We still don't know if the strong version \((2)\)
+\[\gcd\left(5\^{2\^n} + 1, 13\^{2\^n} + 1, \ldots, p\^{2\^n} + 1,
+\ldots \right) = 2\] By similar arguments as above, if any odd prime
+\(p\^{\ast}\) divides this \(\gcd\), then we have
+\[5\^{2\^n} \equiv -1 \bmod{p\^{\ast}}\] hence there is an element
+of order \(2\^{n + 1}\). This means the order of the multiplicative
+group \(\varphi\left(p\^{\ast}\right) = p\^{\ast} - 1\) is
+divisible by \(2\^{n + 1}\). Beyond that, who knows? We're still
+thinking about it (but only passively, more important things to do).</p>
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2013-09-10T00:00:00-07:00" pubdate>Sep 10, 2013</time>  <span class="categories">
+    <a class="category" href="/tag/dirichlet.html">Dirichlet</a>
+    <a class="category" href="/tag/math.html">Math</a>
+    <a class="category" href="/tag/mathematics.html">Mathematics</a>
+    <a class="category" href="/tag/number-theory.html">Number Theory</a>
+    <a class="category" href="/tag/prime-number.html">Prime Number</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2013/09/calculating-greatest-common-divisor.html" data-via="bossylobster" data-counturl="/2013/09/calculating-greatest-common-divisor.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

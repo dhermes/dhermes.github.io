@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Math for Humans, A Second Attempt</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Math for Humans, A Second Attempt</h1>
+      <p class="meta"><time datetime="2014-08-22T00:00:00-07:00" pubdate>Aug 22, 2014</time></p>
+</header>
+
+  <div class="entry-content"><p>The morning after posting my latest <a href="http://blog.bossylobster.com/2014/07/conditional-probabilities-in-thinking.html">blog
+post</a>,
+I woke up still thinking about how to explain the concept.</p>
+<p>More importantly, I realized that my goal of writing <span>math for
+humans</span> failed miserably.</p>
+<p>So here is a second go at it.</p>
+<p>First we're told we're in a world where <span>85% of cabs are
+Green</span> and the rest are Blue. Humans love tables (and they are
+easy to understand). So we start off with a representative sample of 100
+cabs:
+<!--- http://blogknowhow.blogspot.com/2011/01/how-add-table-blogger-blogspot-post.html --></p>
+<div style="margin-left: auto; margin-right: auto; text-align: center;">
+
+<div class="nobrtable">
+
+<table border="2" bordercolor="#0033FF" cellpadding="10" cellspacing="0" style="background-color: #99ffff; border-collapse: collapse; color: black; margin-left: auto; margin-right: auto; width: 100%px;">
+<tbody>
+<tr style="background-color: #0033ff; color: white; padding-bottom: 4px; padding-top: 5px;">
+<th>
+Category
+</th>
+<th>
+Green
+</th>
+<th>
+Blue
+</th>
+<th>
+Total
+</th>
+</tr>
+<tr class="alt">
+<td>
+Cabs
+</td>
+<td>
+85
+</td>
+<td>
+15
+</td>
+<td>
+100
+</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+<p>After this, we're told that a bystander <span>correctly identifies a cab
+80% of the time</span>, or 4 out of every 5. Applying this to the 85
+Green cabs (85 is 17 times 5), this bystander will mis-identify 17 as
+Blue (1 out of 5) and the other 68 will correctly be identified as
+Green:</p>
+<div style="margin-left: auto; margin-right: auto; text-align: center;">
+
+<div class="nobrtable">
+
+<table border="2" bordercolor="#0033FF" cellpadding="10" cellspacing="0" style="background-color: #99ffff; border-collapse: collapse; color: black; margin-left: auto; margin-right: auto; width: 100%px;">
+<tbody>
+<tr style="background-color: #0033ff; color: white; padding-bottom: 4px; padding-top: 5px;">
+<th>
+Category
+</th>
+<th>
+Green
+</th>
+<th>
+Blue
+</th>
+<th>
+Total
+</th>
+</tr>
+<tr class="alt">
+<td>
+Cabs
+</td>
+<td>
+85
+</td>
+<td>
+15
+</td>
+<td>
+100
+</td>
+</tr>
+<tr>
+<td>
+ID'd Green
+</td>
+<td>
+**68**
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr class="alt">
+<td>
+ID'd Blue
+</td>
+<td>
+**17**
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+<p>Similarly, of the 15 Blue cabs (15 is 3 times 5), this bystander will
+mis-identify 3 as Green (1 out of 5) and the other 12 will correctly be
+identified as Blue:</p>
+<div style="margin-left: auto; margin-right: auto; text-align: center;">
+
+<div class="nobrtable">
+
+<table border="2" bordercolor="#0033FF" cellpadding="10" cellspacing="0" style="background-color: #99ffff; border-collapse: collapse; color: black; margin-left: auto; margin-right: auto; width: 100%px;">
+<tbody>
+<tr style="background-color: #0033ff; color: white; padding-bottom: 4px; padding-top: 5px;">
+<th>
+Category
+</th>
+<th>
+Green
+</th>
+<th>
+Blue
+</th>
+<th>
+Total
+</th>
+</tr>
+<tr class="alt">
+<td>
+Cabs
+</td>
+<td>
+85
+</td>
+<td>
+15
+</td>
+<td>
+100
+</td>
+</tr>
+<tr>
+<td>
+ID'd Green
+</td>
+<td>
+68
+</td>
+<td>
+**3**
+</td>
+<td>
+</td>
+</tr>
+<tr class="alt">
+<td>
+ID'd Blue
+</td>
+<td>
+17
+</td>
+<td>
+**12**
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+<p>Now Kahneman wants us to use the data at hand to determine what the
+probability is that a cab is <span>actually Blue</span> given the
+bystander <span>identified the cab as Blue.</span> To determine this
+probability, we simply need to consider the final row of the table:</p>
+<div style="margin-left: auto; margin-right: auto; text-align: center;">
+
+<div class="nobrtable">
+
+<table border="2" bordercolor="#0033FF" cellpadding="10" cellspacing="0" style="background-color: #99ffff; border-collapse: collapse; color: black; margin-left: auto; margin-right: auto; width: 100%px;">
+<tbody>
+<tr style="background-color: #0033ff; color: white; padding-bottom: 4px; padding-top: 5px;">
+<th>
+Category
+</th>
+<th>
+Green
+</th>
+<th>
+Blue
+</th>
+<th>
+Total
+</th>
+</tr>
+<tr class="alt">
+<td>
+ID'd Blue
+</td>
+<td>
+17
+</td>
+<td>
+12
+</td>
+<td>
+**29**
+</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+<p>This rows tells us that only 29 cabs will be identified as Blue, and
+among those, 12 will actually be Blue. Hence the probability will be
+\[\boxed{\frac{12}{29} \approx 0.413793103}.\] What this really
+shows is that even though the bystander has a large chance (80%) of
+getting the color right, the number of Green cabs is so much larger it
+overwhelms the correctly identified Blue cabs with incorrectly
+identified Green ones.</p>
+<h2>What I Overlooked</h2>
+<ul>
+<li>Dense text is always bad</li>
+<li>Using colors and breaking up text makes reading easier (more
+    modular)</li>
+<li>Introducing mathematical notation is almost always overkill</li>
+<li>Tables and samples are a good way to discuss probabilities</li>
+</ul>
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2014-08-22T00:00:00-07:00" pubdate>Aug 22, 2014</time>  <span class="categories">
+    <a class="category" href="/tag/bayes.html">Bayes</a>
+    <a class="category" href="/tag/bayesian.html">Bayesian</a>
+    <a class="category" href="/tag/kahneman.html">Kahneman</a>
+    <a class="category" href="/tag/layman.html">Layman</a>
+    <a class="category" href="/tag/mathematics.html">Mathematics</a>
+    <a class="category" href="/tag/probability.html">Probability</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2014/08/math-for-humans-second-attempt.html" data-via="bossylobster" data-counturl="/2014/08/math-for-humans-second-attempt.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

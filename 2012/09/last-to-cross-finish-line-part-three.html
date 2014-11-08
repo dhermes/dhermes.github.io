@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Last to Cross the Finish Line: Part Three</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Last to Cross the Finish Line: Part Three</h1>
+      <p class="meta"><time datetime="2012-09-10T00:00:00-07:00" pubdate>Sep 10, 2012</time></p>
+</header>
+
+  <div class="entry-content"><p>Recently, my colleague <a href="https://plus.google.com/115640166224745944209">+Fred
+Sauer</a> and I gave a tech
+talk called "Last Across the Finish Line: Asynchronous
+<a href="https://developers.google.com/appengine/docs/python/taskqueue/overview">Tasks</a>
+with <a href="https://appengine.google.com/">App Engine</a>". This is part three in
+a three part series where I will share our
+<a href="http://www.forbes.com/pictures/ekij45gdh/learnings/#gallerycontent">learnings</a> and
+give some helpful references to the <a href="https://developers.google.com/appengine/docs/">App Engine
+documentation</a>.</p>
+<p>Check out the <a href="http://blog.bossylobster.com/2012/08/last-to-cross-finish-line-part-two.html">previous
+post</a> if
+you haven't already. In this section, we'll define the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">PopulateBatch</span> function
+and explore the <a href="https://developers.google.com/appengine/docs/python/ndb/">ndb
+models</a> and <a href="https://developers.google.com/appengine/docs/python/taskqueue/">Task
+Queue</a> operations
+that make it work.</p>
+<h2><span style="font-size: large;">Imports</span></h2>
+<p>Before defining the
+<a href="https://developers.google.com/appengine/docs/python/ndb/">models</a> and
+helper functions in <a href="http://code.google.com/p/gae-last-across-the-finish-line/source/browse/models.py"><span
+style="color: lime; font-family: Courier New, Courier, monospace;">models.py</span></a>,
+let's first review the imports:</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+import jsonfrom google.appengine.api import channelfrom google.appengine.ext.deferred import deferfrom google.appengine.ext import ndb</p>
+<div class="highlight"><pre><span class="n">Again</span><span class="p">,</span> <span class="n">we</span> <span class="n">import</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">json</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//docs.python.org/library/json.html)</span>
+<span class="n">and</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">channel</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="k">for</span> <span class="n">serialization</span> <span class="n">and</span> <span class="n">message</span> <span class="n">passing</span><span class="p">.</span> <span class="n">We</span> <span class="n">import</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">defer</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="err"> </span><span class="n">function</span>
+<span class="n">from</span> <span class="n">the</span> <span class="p">[</span><span class="n">deferred</span>
+<span class="n">library</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/articles/deferred) to</span>
+<span class="n">abstract</span> <span class="n">away</span> <span class="n">task</span> <span class="n">creation</span> <span class="n">and</span> <span class="n">take</span> <span class="n">advantage</span> <span class="n">of</span> <span class="n">the</span> <span class="n">ability</span> <span class="n">to</span> <span class="s">&quot;defer&quot;</span>
+<span class="n">a</span> <span class="n">function</span> <span class="n">call</span> <span class="n">to</span> <span class="n">another</span> <span class="kr">thread</span> <span class="n">of</span> <span class="n">execution</span><span class="p">.</span> <span class="n">Finally</span><span class="p">,</span> <span class="n">we</span> <span class="n">import</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">ndb</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">as</span> <span class="n">a</span> <span class="n">means</span> <span class="k">for</span> <span class="n">interacting</span> <span class="n">with</span> <span class="n">the</span> <span class="n">App</span> <span class="n">Engine</span>
+<span class="p">[</span><span class="n">Datastore</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/datastore/overview).</span>
+
+
+<span class="o">&lt;</span><span class="n">span</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;font-size: large;&quot;</span><span class="o">&gt;</span><span class="n">Method</span> <span class="n">Wrapper</span> <span class="n">Built</span> <span class="k">for</span> <span class="n">Tasks</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="o">---------------------------------------------------------------------</span>
+
+<span class="n">As</span> <span class="n">we</span> <span class="n">saw</span> <span class="k">in</span> <span class="n">the</span><span class="err"> </span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">BeginWork</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="err"> </span><span class="n">handler</span>
+<span class="k">in</span> <span class="p">[</span><span class="n">part</span>
+<span class="n">two</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//blog.bossylobster.com/2012/08/last-to-cross-finish-line-part-two.html),</span>
+<span class="n">units</span> <span class="n">of</span> <span class="n">work</span> <span class="n">are</span> <span class="n">passed</span> <span class="n">to</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">PopulateBatch</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">as</span> <span class="mi">3</span><span class="o">-</span><span class="n">tuples</span> <span class="n">containing</span> <span class="n">a</span> <span class="n">method</span><span class="p">,</span> <span class="n">the</span> <span class="n">positional</span> <span class="n">arguments</span> <span class="n">and</span> <span class="n">the</span>
+<span class="n">keyword</span> <span class="n">arguments</span> <span class="n">to</span> <span class="n">that</span> <span class="n">method</span><span class="p">.</span>
+
+<span class="n">In</span> <span class="n">order</span> <span class="n">to</span> <span class="n">keep</span> <span class="n">our</span> <span class="n">task</span> <span class="n">from</span> <span class="n">hanging</span> <span class="n">indefinitely</span> <span class="n">due</span> <span class="n">to</span> <span class="n">unseen</span> <span class="n">errors</span>
+<span class="n">and</span> <span class="n">to</span> <span class="n">implicitly</span> <span class="n">include</span> <span class="n">the</span> <span class="n">work</span> <span class="n">unit</span> <span class="k">in</span> <span class="n">the</span> <span class="n">batch</span><span class="p">,</span> <span class="n">we</span> <span class="n">define</span> <span class="n">a</span>
+<span class="n">wrapper</span> <span class="n">around</span> <span class="n">these</span> <span class="n">method</span> <span class="n">calls</span><span class="o">:</span>
+
+<span class="o">~~~~</span> <span class="p">{.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="n">def</span> <span class="n">AlwaysComplete</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">:</span>  <span class="n">try</span><span class="o">:</span>    <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="n">except</span><span class="o">:</span>  <span class="err">#</span> <span class="n">TODO</span><span class="o">:</span> <span class="n">Consider</span> <span class="n">failing</span> <span class="n">differently</span><span class="p">.</span>    <span class="n">pass</span>  <span class="n">finally</span><span class="o">:</span>    <span class="n">defer</span><span class="p">(</span><span class="n">task</span><span class="p">.</span><span class="n">Complete</span><span class="p">)</span>
+</pre></div>
+
+
+<p>As you can see, we catch any and all errors thrown by our method and
+don't retry the method if it fails. In our example, if the call <span
+style="color: lime; font-family: Courier New, Courier, monospace;">method(*args,
+**kwargs)</span> fails, the data won’t be sent through the channel and
+the given square will not show up in the quilt. However, since we catch
+these exceptions, the batch will complete and the spinner will disappear
+with this square still missing.</p>
+<p>This part is likely going to be customized to the specific work
+involved, but for our case, we didn't want individual failures to cause
+the whole batch to fail. In addition, we implicitly link the work unit
+with a special type of task object in the datastore.</p>
+<p>In the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">finally</span>
+section of the error catch, we defer the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">Complete</span>
+method on the task corresponding to this work unit. We defer the call to
+this complete method in order to avoid any errors (possibly from a
+failed datastore action) that the method may cause. If it were to throw
+an error, since <span
+style="color: lime; font-family: Courier New, Courier, monospace;">AlwaysComplete</span>
+is called in a deferred task, the task would retry and our worker unit
+would execute (or fail) again, which is bad if our user interface is not
+<a href="http://en.wikipedia.org/wiki/Idempotence#Computer_science_meaning">idempotent</a>.</p>
+<h2><span style="font-size: large;">Task Model</span></h2>
+<p>As we saw above, we need a datastore model to represent tasks within a
+batch. We start out initially with a model having only one attribute — a
+boolean representing whether or not the task has completed.</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+class BatchTask(ndb.Model):  # Very important that the default value True of <code>indexed</code> is used here  # since we need to query on BatchTask.completed  completed = ndb.BooleanProperty(default=False)</p>
+<div class="highlight"><pre><span class="nx">As</span> <span class="nx">we</span> <span class="nx">know</span><span class="p">,</span> <span class="nx">we</span><span class="s1">&#39;ll need to define a &lt;span</span>
+<span class="s1">style=&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;&gt;Complete&lt;/span&gt;</span>
+<span class="s1">method in order to use the task in &lt;span</span>
+<span class="s1">style=&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;&gt;AlwaysComplete&lt;/span&gt;,</span>
+<span class="s1">but before doing so, we&#39;</span><span class="nx">ll</span> <span class="kd">define</span> <span class="nf">another</span> <span class="nb">method</span> <span class="nx">which</span> <span class="nx">will</span> <span class="nx">put</span> <span class="nx">the</span> <span class="nx">task</span>
+<span class="n">object</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">datastore</span> <span class="ow">and</span> <span class="nb">pass</span> <span class="nx">a</span> <span class="nx">unit</span> <span class="nx">of</span> <span class="nx">work</span> <span class="k">to</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">AlwaysComplete</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">:</span>
+
+<span class="err">~~~~</span> <span class="p">{</span><span class="bp">.</span><span class="nx">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;background-color: white;&quot;</span><span class="p">}</span>
+  <span class="p">@</span><span class="nx">ndb.transactional</span>  <span class="nx">def</span> <span class="nx">Populate</span><span class="p">(</span><span class="na">self</span><span class="p">,</span> <span class="na">method</span><span class="p">,</span> <span class="o">*</span><span class="na">args</span><span class="p">,</span> <span class="o">**</span><span class="na">kwargs</span><span class="p">):</span>    <span class="bp">self.</span><span class="nx">put</span><span class="p">()</span>    <span class="nx">kwargs</span><span class="err">[</span><span class="s1">&#39;_transactional&#39;</span><span class="cp">]</span> = True    defer(AlwaysComplete, self.key, method, *args, **kwargs)
+</pre></div>
+
+
+<p>In this <span
+style="color: lime; font-family: Courier New, Courier, monospace;">Populate</span>
+method, we first put the object in the datastore
+<a href="https://developers.google.com/appengine/docs/python/datastore/transactions">transactionally</a> by
+using the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">ndb.transactional</span>
+decorator. By adding the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">_transactional</span>
+keyword to the keyword arguments, <span
+style="color: lime; font-family: Courier New, Courier, monospace;">defer</span>
+<a href="http://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/ext/deferred/deferred.py?r=277#250">strips
+away</a>
+the underscore and creates a <a href="https://developers.google.com/appengine/docs/python/taskqueue/overview#Tasks_within_Transactions">transactional
+task</a>.
+By doing this</p>
+<blockquote>
+<p>"the task is only enqueued — and guaranteed to be enqueued — if the
+transaction is committed successfully."</p>
+</blockquote>
+<p>We need this deferred task to be enqueued transactionally for
+consistency of the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">completed</span>
+boolean attribute. The datastore put in <span
+style="color: lime; font-family: Courier New, Courier, monospace;">Populate</span>
+uses the default value of <span
+style="color: lime; font-family: Courier New, Courier, monospace;">False</span>,
+but after <span
+style="color: lime; font-family: Courier New, Courier, monospace;">Complete</span>
+is called we want to set this boolean to <span
+style="color: lime; font-family: Courier New, Courier, monospace;">True</span>.
+If this value was not
+<a href="https://developers.google.com/appengine/docs/python/datastore/transactions#Isolation_and_Consistency">consistent</a>,
+we may have a race condition that resulted in a completed task in the
+datastore being marked as incomplete. As we'll see later, we rely on
+this consistency for a query that will help us determine if our batch is
+done.</p>
+<p>To signal that a unit of work has completed, we define the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">Complete</span>
+method on the task object:</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+  @ndb.transactional  def Complete(self):    self.completed = True    self.put()    batcher_parent = self.key.parent().get()    defer(batcher_parent.CheckComplete, _transactional=True)</p>
+<div class="highlight"><pre><span class="n">It</span> <span class="n">performs</span> <span class="n">two</span> <span class="n">functions</span><span class="p">.</span> <span class="n">First</span><span class="p">,</span> <span class="n">it</span> <span class="n">sets</span><span class="err"> </span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">completed</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">to</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">True</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="k">in</span> <span class="n">a</span> <span class="n">transaction</span><span class="p">.</span> <span class="n">Second</span><span class="p">,</span> <span class="n">it</span> <span class="n">retrieves</span> <span class="n">the</span> <span class="n">parent</span>
+<span class="p">[</span><span class="n">entity</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/ndb/entities)</span>
+<span class="n">of</span> <span class="n">the</span> <span class="n">task</span> <span class="n">object</span> <span class="n">and</span> <span class="n">defers</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">CheckComplete</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">method</span> <span class="n">on</span> <span class="n">this</span> <span class="n">parent</span><span class="p">.</span> <span class="n">As</span> <span class="n">we</span> <span class="n">will</span> <span class="n">see</span> <span class="k">in</span> <span class="n">more</span> <span class="n">depth</span> <span class="k">in</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">PopulateBatch</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">function</span><span class="p">,</span> <span class="n">we</span> <span class="n">use</span> <span class="n">a</span> <span class="n">special</span> <span class="n">type</span> <span class="n">of</span> <span class="n">batch</span> <span class="n">parent</span> <span class="n">object</span> <span class="n">to</span> <span class="n">create</span> <span class="n">an</span>
+<span class="p">[</span><span class="n">entity</span>
+<span class="n">group</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/datastore/entities#Transactions_and_Entity_Groups)</span>
+<span class="n">containing</span> <span class="n">all</span> <span class="n">the</span> <span class="n">worker</span> <span class="n">tasks</span> <span class="k">for</span> <span class="n">the</span> <span class="n">batch</span><span class="p">.</span> <span class="n">We</span> <span class="n">don</span><span class="err">&#39;</span><span class="n">t</span> <span class="n">want</span> <span class="n">to</span> <span class="n">check</span> <span class="k">if</span>
+<span class="n">the</span> <span class="n">batch</span> <span class="n">has</span> <span class="n">completed</span> <span class="n">until</span> <span class="n">the</span> <span class="n">datastore</span> <span class="n">put</span> <span class="n">has</span> <span class="n">succeeded</span><span class="p">,</span> <span class="n">so</span> <span class="n">we</span>
+<span class="n">defer</span> <span class="n">the</span> <span class="n">call</span> <span class="n">to</span> <span class="n">call</span> <span class="n">to</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">CheckComplete</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">transactionally</span><span class="p">,</span> <span class="n">just</span> <span class="n">as</span> <span class="n">we</span> <span class="n">did</span> <span class="n">with</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">AlwaysComplete</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="k">in</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">Populate</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">method</span><span class="p">.</span>
+
+<span class="o">**</span><span class="n">Note</span><span class="o">**:</span><span class="err"> </span><span class="o">*</span><span class="n">It</span> <span class="n">may</span> <span class="n">seem</span> <span class="n">that</span> <span class="n">these</span><span class="o">*&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">get</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;*</span><span class="n">calls</span>
+<span class="n">to</span> <span class="n">retrieve</span> <span class="n">the</span> <span class="n">parent</span> <span class="n">via</span><span class="err"> </span><span class="o">*&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">self</span><span class="p">.</span><span class="n">key</span><span class="p">.</span><span class="n">parent</span><span class="p">().</span><span class="n">get</span><span class="p">()</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;*</span><span class="err"> </span><span class="n">are</span>
+<span class="n">using</span> <span class="n">more</span> <span class="n">bandwidth</span> <span class="n">than</span> <span class="n">necessary</span><span class="p">.</span> <span class="n">However</span><span class="p">,</span> <span class="n">we</span> <span class="n">are</span> <span class="n">relying</span> <span class="n">here</span> <span class="n">on</span> <span class="n">the</span>
+<span class="n">power</span> <span class="n">of</span><span class="o">*&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">ndb</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;*</span><span class="p">.</span>
+<span class="n">Using</span> <span class="n">a</span> <span class="n">combination</span> <span class="n">of</span> <span class="n">instance</span> <span class="n">caching</span> <span class="n">and</span>
+<span class="p">[</span><span class="n">memcache</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/memcache/overview),</span>
+<span class="n">most</span> <span class="p">(</span><span class="k">if</span> <span class="n">not</span> <span class="n">all</span><span class="p">)</span> <span class="n">of</span> <span class="n">these</span> <span class="n">gets</span> <span class="n">will</span> <span class="n">use</span> <span class="n">the</span> <span class="n">cache</span> <span class="n">and</span> <span class="n">will</span> <span class="n">not</span> <span class="n">incur</span>
+<span class="n">the</span> <span class="n">cost</span> <span class="n">of</span> <span class="n">a</span> <span class="n">round</span><span class="o">-</span><span class="n">trip</span> <span class="n">to</span> <span class="n">the</span> <span class="n">datastore</span><span class="p">.</span><span class="o">*</span>
+
+<span class="o">&lt;</span><span class="n">span</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;font-size: large;&quot;</span><span class="o">&gt;</span><span class="n">Batch</span> <span class="n">Parent</span> <span class="n">Model</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="o">---------------------------------------------------------</span>
+
+<span class="n">Given</span> <span class="n">what</span> <span class="n">we</span> <span class="n">rely</span> <span class="n">on</span> <span class="k">in</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">BatchTask</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="n">we</span> <span class="n">need</span> <span class="n">to</span> <span class="n">define</span> <span class="n">a</span> <span class="n">special</span> <span class="n">type</span> <span class="n">of</span> <span class="n">datastore</span> <span class="n">object</span> <span class="n">that</span> <span class="n">will</span> <span class="n">act</span> <span class="n">as</span>
+<span class="n">the</span> <span class="n">parent</span> <span class="n">entity</span> <span class="k">for</span> <span class="n">a</span> <span class="n">batch</span><span class="p">.</span> <span class="n">Since</span> <span class="n">we</span> <span class="n">are</span> <span class="n">going</span> <span class="n">to</span> <span class="n">use</span> <span class="n">it</span> <span class="n">to</span> <span class="n">check</span>
+<span class="n">when</span> <span class="n">a</span> <span class="n">batch</span> <span class="n">is</span> <span class="n">complete</span><span class="p">,</span> <span class="n">we</span> <span class="n">define</span> <span class="n">the</span> <span class="n">boolean</span> <span class="n">attribute</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">all</span><span class="err">\</span><span class="n">_tasks</span><span class="err">\</span><span class="n">_loaded</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">to</span> <span class="n">signal</span> <span class="n">whether</span> <span class="n">or</span> <span class="n">not</span> <span class="n">all</span> <span class="n">worker</span> <span class="n">tasks</span> <span class="n">from</span> <span class="n">the</span> <span class="n">batch</span> <span class="n">have</span> <span class="n">begun</span><span class="p">.</span> <span class="n">We</span>
+<span class="n">can</span> <span class="n">use</span> <span class="n">this</span> <span class="n">as</span> <span class="n">a</span> <span class="kt">short</span> <span class="n">circuit</span> <span class="k">in</span> <span class="n">our</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">CheckComplete</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">method</span> <span class="p">(</span><span class="n">or</span> <span class="n">as</span> <span class="n">a</span> <span class="n">guard</span> <span class="n">against</span> <span class="n">premature</span> <span class="n">completion</span><span class="p">).</span>
+
+<span class="o">~~~~</span> <span class="p">{.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="n">class</span> <span class="n">TaskBatcher</span><span class="p">(</span><span class="n">ndb</span><span class="p">.</span><span class="n">Model</span><span class="p">)</span><span class="o">:</span>  <span class="n">all_tasks_loaded</span> <span class="o">=</span> <span class="n">ndb</span><span class="p">.</span><span class="n">BooleanProperty</span><span class="p">(</span><span class="k">default</span><span class="o">=</span><span class="n">False</span><span class="p">,</span> <span class="n">indexed</span><span class="o">=</span><span class="n">False</span><span class="p">)</span>
+</pre></div>
+
+
+<p>To check if a batch is complete, we first determine if all tasks have
+loaded. If that is the case, we perform an <a href="https://developers.google.com/appengine/docs/python/datastore/queries#Ancestor_Queries">ancestor
+query</a>
+that simply attempts to fetch the first worker task in the entity group
+which has not yet completed. If such a task does not exist, we know the
+batch has completed, and so start to clean up the task and batch parent
+objects from the datastore.</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+  def CheckComplete(self):    # Does not need to be transactional since it doesn't change data    session_id = self.key.id()    if self.all_tasks_loaded:      incomplete = BatchTask.query(BatchTask.completed == False,                                   ancestor=self.key).fetch(1)      if len(incomplete) == 0:        channel.send_message(session_id, json.dumps({'status': 'complete'}))        self.CleanUp()        return    channel.send_message(session_id, json.dumps({'status': 'incomplete'}))</p>
+<div class="highlight"><pre><span class="n">We</span> <span class="n">again</span> <span class="k">do</span> <span class="n">the</span> <span class="n">utmost</span> <span class="n">at</span> <span class="n">this</span> <span class="n">step</span> <span class="n">to</span> <span class="n">ensure</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="kt">id</span><span class="o">=</span><span class="s">&quot;goog_842417011&quot;</span><span class="o">&gt;&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="n">consistency</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="kt">id</span><span class="o">=</span><span class="s">&quot;goog_842417012&quot;</span><span class="o">&gt;&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//www.blogger.com/) by using an</span>
+<span class="n">ancestor</span> <span class="n">query</span><span class="o">:</span>
+
+<span class="o">&gt;</span> <span class="s">&quot;There are scenarios in which any pending modifications are guaranteed</span>
+<span class="o">&gt;</span> <span class="n">to</span> <span class="n">be</span> <span class="n">completely</span> <span class="n">applied</span><span class="p">...</span><span class="n">any</span> <span class="n">ancestor</span> <span class="n">queries</span> <span class="k">in</span> <span class="n">the</span> <span class="n">High</span>
+<span class="o">&gt;</span> <span class="n">Replication</span> <span class="n">datastore</span><span class="p">.</span> <span class="n">In</span> <span class="n">both</span> <span class="n">cases</span><span class="p">,</span> <span class="n">query</span> <span class="n">results</span> <span class="n">will</span> <span class="n">always</span> <span class="n">be</span>
+<span class="o">&gt;</span> <span class="n">current</span> <span class="n">and</span> <span class="n">consistent</span><span class="p">.</span><span class="s">&quot;</span>
+
+<span class="n">After</span> <span class="n">checking</span> <span class="k">if</span> <span class="n">a</span> <span class="n">batch</span> <span class="n">is</span> <span class="n">complete</span><span class="p">,</span> <span class="n">we</span> <span class="n">need</span> <span class="n">to</span> <span class="n">communicate</span> <span class="n">the</span> <span class="n">status</span>
+<span class="n">back</span> <span class="n">to</span> <span class="n">the</span> <span class="n">client</span><span class="p">.</span> <span class="n">We</span><span class="err">&#39;</span><span class="n">ll</span> <span class="n">rely</span> <span class="n">on</span><span class="err"> </span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">PopulateBatch</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="err"> </span><span class="n">to</span>
+<span class="n">create</span> <span class="n">instances</span> <span class="n">of</span><span class="err"> </span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">TaskBatcher</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="err"> </span><span class="n">with</span>
+<span class="n">the</span> <span class="n">ID</span> <span class="n">of</span> <span class="n">the</span> <span class="n">session</span> <span class="n">corresponding</span> <span class="n">to</span> <span class="n">the</span> <span class="n">batch</span> <span class="n">as</span> <span class="n">the</span> <span class="n">datastore</span>
+<span class="n">key</span><span class="p">.</span><span class="err"> </span><span class="n">We</span> <span class="n">send</span> <span class="n">a</span> <span class="n">status</span> <span class="n">complete</span> <span class="n">or</span> <span class="n">incomplete</span> <span class="n">message</span> <span class="n">to</span> <span class="n">the</span> <span class="n">client</span> <span class="n">using</span>
+<span class="n">the</span> <span class="n">session</span> <span class="n">ID</span> <span class="k">for</span> <span class="n">the</span> <span class="n">channel</span><span class="p">.</span> <span class="n">In</span> <span class="n">order</span> <span class="n">to</span> <span class="n">correctly</span> <span class="n">handle</span> <span class="n">these</span>
+<span class="n">messages</span> <span class="n">on</span> <span class="n">the</span> <span class="n">client</span><span class="p">,</span> <span class="n">we</span><span class="err">&#39;</span><span class="n">ll</span> <span class="n">need</span> <span class="n">to</span> <span class="n">update</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">onmessage</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">handler</span> <span class="p">(</span><span class="n">defined</span> <span class="k">in</span> <span class="p">[</span><span class="n">part</span>
+<span class="n">two</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//blog.bossylobster.com/2012/08/last-to-cross-finish-line-part-two.html))</span>
+<span class="n">to</span> <span class="n">account</span> <span class="k">for</span> <span class="n">status</span> <span class="n">updates</span><span class="o">:</span>
+
+<span class="o">~~~~</span> <span class="p">{.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="n">socket</span><span class="p">.</span><span class="n">onmessage</span> <span class="o">=</span> <span class="n">function</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="p">{</span>  <span class="n">var</span> <span class="n">response</span> <span class="o">=</span> <span class="n">JSON</span><span class="p">.</span><span class="n">parse</span><span class="p">(</span><span class="n">msg</span><span class="p">.</span><span class="n">data</span><span class="p">);</span>  <span class="k">if</span> <span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">status</span> <span class="o">!==</span> <span class="n">undefined</span><span class="p">)</span> <span class="p">{</span>    <span class="n">setStatus</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">status</span><span class="p">);</span>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>    <span class="n">var</span> <span class="n">squareIndex</span> <span class="o">=</span> <span class="mi">8</span><span class="o">*</span><span class="n">response</span><span class="p">.</span><span class="n">row</span> <span class="o">+</span> <span class="n">response</span><span class="p">.</span><span class="n">column</span><span class="p">;</span>    <span class="n">var</span> <span class="n">squareId</span> <span class="o">=</span> <span class="err">&#39;#</span><span class="n">square</span><span class="err">&#39;</span> <span class="o">+</span> <span class="n">squareIndex</span><span class="p">.</span><span class="n">toString</span><span class="p">();</span>    <span class="err">$</span><span class="p">(</span><span class="n">squareId</span><span class="p">).</span><span class="n">css</span><span class="p">(</span><span class="err">&#39;</span><span class="n">background</span><span class="o">-</span><span class="n">color</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">response</span><span class="p">.</span><span class="n">color</span><span class="p">);</span>  <span class="p">}}</span>
+</pre></div>
+
+
+<p>Just as the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">setStatus</span>
+method revealed the progress spinner when work began, it will remove the
+spinner when the status is complete.</p>
+<p>We'll next define the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">CleanUp</span>
+method that is called when the batch is complete:</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+  def CleanUp(self):    children = BatchTask.query(ancestor=self.key).iter(keys_only=True)    ndb.delete_multi(children)    self.key.delete()</p>
+<div class="highlight"><pre><span class="nx">This</span> <span class="nb">method</span> <span class="nx">uses</span> <span class="nx">the</span> <span class="nb">key</span> <span class="nb">from</span> <span class="nx">the</span> <span class="nx">batch</span> <span class="k">parent</span> <span class="k">to</span> <span class="nb">perform</span> <span class="nx">another</span>
+<span class="nx">ancestor</span> <span class="nx">query</span> <span class="ow">and</span> <span class="nx">creates</span> <span class="nx">an</span> <span class="nb">object</span> <span class="nx">which</span> <span class="nx">can</span> <span class="err">[</span><span class="k">iterate</span> <span class="nx">over</span> <span class="kc">all</span> <span class="nx">the</span>
+<span class="nb">keys</span><span class="cp">]</span>(https://developers.google.com/appengine/docs/python/ndb/queries#iterators)
+of the tasks in the batch. By using the <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>delete\_multi<span class="nt">&lt;/span&gt;</span> function
+provided by <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>ndb<span class="nt">&lt;/span&gt;</span>,
+we are able to delete these in parallel rather than waiting for each to
+complete. After deleting all the tasks, the batcher deletes itself and
+clean up is done. Since the <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>TaskBatcher.CheckComplete<span class="nt">&lt;/span&gt;</span>
+spawns <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>CleanUp<span class="nt">&lt;/span&gt;</span> in
+a deferred task, if the deletes time out, the task will try again until
+all tasks in the batch are deleted.
+
+As a final method on <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>TaskBatcher<span class="nt">&lt;/span&gt;</span>,
+we define something similar to <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>BatchTask.Populate<span class="nt">&lt;/span&gt;</span>
+that is triggered after all workers in the batch have been added:
+
+~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
+  @ndb.transactional  def Ready(self):    self.all_tasks_loaded = True    self.put()    self.CheckComplete()
+</pre></div>
+
+
+<p>This simply signals that all tasks from the batch have loaded by setting
+<span
+style="color: lime; font-family: Courier New, Courier, monospace;">all_tasks_loaded</span>
+to <span
+style="color: lime; font-family: Courier New, Courier, monospace;">True</span>
+and calls <span
+style="color: lime; font-family: Courier New, Courier, monospace;">CheckComplete</span>
+in case all the tasks in the batch have already completed. This check is
+necessary because if all worker tasks complete before <span
+style="color: lime; font-family: Courier New, Courier, monospace;">all_tasks_loaded</span>
+is <span
+style="color: lime; font-family: Courier New, Courier, monospace;">True</span>,
+then none of the checks initiated by those tasks would signal
+completion. We use a transaction to avoid a race condition with the
+initial datastore put — a put which is a signal that all tasks have
+<strong><em>not</em></strong> loaded.</p>
+<h2><span style="font-size: large;">Populating a Batch</span></h2>
+<p>With our two models in hand, we are finally ready to define the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">PopulateBatch</span>
+function used (in <a href="http://blog.bossylobster.com/2012/08/last-to-cross-finish-line-part-two.html">part
+two</a>)
+by the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">BeginWork</span>
+handler. We want users of this function to be able to call it directly,
+but don't want it to block the process they call it in, so we wrap the
+real function in a function that will simply defer the work:</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+def PopulateBatch(session_id, work):  defer(_PopulateBatch, session_id, work)</p>
+<div class="highlight"><pre><span class="k">In</span> <span class="nx">the</span> <span class="nx">actual</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">we</span> <span class="nb">first</span> <span class="nb">create</span> <span class="nx">a</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">TaskBatcher</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
+<span class="nb">object</span> <span class="nx">using</span> <span class="nx">the</span> <span class="nx">session</span> <span class="nb">ID</span> <span class="nx">as</span> <span class="nx">the</span> <span class="nb">key</span> <span class="ow">and</span> <span class="nx">put</span> <span class="nx">it</span> <span class="k">into</span> <span class="n">the</span> <span class="nx">datastore</span>
+<span class="nx">using</span> <span class="nx">the</span> <span class="nb">default</span> <span class="nb">value</span> <span class="nx">of</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="kc">False</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
+<span class="nb">for</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="kc">all</span><span class="o">\</span><span class="nx">_tasks</span><span class="o">\</span><span class="nx">_loaded</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">.</span>
+<span class="nx">Since</span> <span class="nx">this</span> <span class="nx">is</span> <span class="nx">a</span> <span class="nx">single</span> <span class="nx">synchronous</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">put</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span><span class="err"> </span><span class="nx">it</span>
+<span class="nx">blocks</span> <span class="nx">the</span> <span class="k">thread</span> <span class="nx">of</span> <span class="nx">execution</span> <span class="ow">and</span> <span class="nx">we</span> <span class="nx">can</span> <span class="nx">be</span> <span class="nx">sure</span> <span class="nx">our</span> <span class="k">parent</span> <span class="n">is</span> <span class="k">in</span> <span class="nx">the</span>
+<span class="nx">datastore</span> <span class="nx">before</span> <span class="nb">members</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">entity</span> <span class="k">group</span> <span class="p">(</span><span class="nx">the</span> <span class="nx">task</span> <span class="nb">objects</span><span class="p">)</span> <span class="nx">are</span>
+<span class="nx">created.</span>
+
+<span class="err">~~~~</span> <span class="p">{</span><span class="bp">.</span><span class="nx">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="nx">def</span> <span class="nx">_PopulateBatch</span><span class="p">(</span><span class="nb">session_id</span><span class="p">,</span> <span class="nx">work</span><span class="p">):</span>  <span class="n">batcher_key</span> <span class="o">=</span> <span class="nx">ndb.Key</span><span class="p">(</span><span class="nx">TaskBatcher</span><span class="p">,</span> <span class="nb">session_id</span><span class="p">)</span>  <span class="n">batcher</span> <span class="o">=</span> <span class="nx">TaskBatcher</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="nx">batcher_key</span><span class="p">)</span>  <span class="nx">batcher.put</span><span class="p">()</span>
+</pre></div>
+
+
+<p>After doing this, we loop through all the 3-tuples in the passed in
+batch of <span
+style="color: lime; font-family: Courier New, Courier, monospace;">work</span>.
+For each unit of work, we create a task using the batcher as parent and
+then call the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">Populate</span>
+method on the task using the method, positional arguments and keyword
+arguments provided in the unit of work.</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+  for method, args, kwargs in work:    task = BatchTask(parent=batcher_key)    task.Populate(method, <em>args, </em>*kwargs)</p>
+<div class="highlight"><pre><span class="nx">Finally</span><span class="p">,</span> <span class="k">to</span> <span class="nb">signal</span> <span class="nx">that</span> <span class="kc">all</span> <span class="n">tasks</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">batch</span> <span class="nx">have</span> <span class="nx">been</span> <span class="nx">added</span><span class="p">,</span> <span class="nx">we</span> <span class="nb">call</span>
+<span class="nx">the</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">Ready</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
+<span class="nb">method</span> <span class="k">on</span> <span class="nx">the</span> <span class="nx">batch</span> <span class="k">parent</span><span class="p">:</span>
+
+<span class="err">~~~~</span> <span class="p">{</span><span class="bp">.</span><span class="nx">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;background-color: white;&quot;</span><span class="p">}</span>
+  <span class="nx">batcher.Ready</span><span class="p">()</span>
+</pre></div>
+
+
+<p><strong>Note:</strong> <em>This approach can cause performance issues as the number of
+tasks grows, since contentious puts within the entity group can cause
+task completions to stall or retry. I (or my colleagues) will be
+following up with two posts on the following topics:</em></p>
+<ul>
+<li>using task tagging and pull queues to achieve a similar result, but
+    reducing contention</li>
+<li>exploring ways to extend this model to a hierarchical model where
+    tasks may have subtasks</li>
+</ul>
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2012-09-10T00:00:00-07:00" pubdate>Sep 10, 2012</time>  <span class="categories">
+    <a class="category" href="/tag/appengine.html">AppEngine</a>
+    <a class="category" href="/tag/deferred-library.html">Deferred Library</a>
+    <a class="category" href="/tag/google-app-engine.html">Google App Engine</a>
+    <a class="category" href="/tag/google-codesite.html">Google Codesite</a>
+    <a class="category" href="/tag/javascript.html">Javascript</a>
+    <a class="category" href="/tag/jquery.html">jQuery</a>
+    <a class="category" href="/tag/python.html">Python</a>
+    <a class="category" href="/tag/task-queue-api.html">Task Queue API</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2012/09/last-to-cross-finish-line-part-three.html" data-via="bossylobster" data-counturl="/2012/09/last-to-cross-finish-line-part-three.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

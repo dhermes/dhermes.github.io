@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Finding (Fibonacci) Golden Nuggets Part 1</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Finding (Fibonacci) Golden Nuggets Part 1</h1>
+      <p class="meta"><time datetime="2011-08-28T00:00:00-07:00" pubdate>Aug 28, 2011</time></p>
+</header>
+
+  <div class="entry-content"><p>As I mentioned in my last set of posts, the content would go somewhere
+and this post will be the first to deliver on that. In fact this is the
+<em>all math, no code</em> first half of a two part post that will deliver. If
+you see words like topograph, river, and base and you aren't sure what I
+mean, you may want to read that last <a href="http://blog.bossylobster.com/2011/08/conways-topograph-part-3.html">set of
+posts</a>.</p>
+<p>In this post, I outline a solution to Project Euler <a href="http://projecteuler.net/index.php?section=problems&amp;id=137">problem
+137</a>, so stop
+reading now if you don't want to be spoiled. There is no code here, but
+the <a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets-part-2.html">second
+half</a> of
+this post has a pretty useful abstraction.</p>
+<p>The problems asks us to consider \[A_F(z) = z F_1 + z\^2 F_2 + z\^3
+F_3 + \ldots,\] the generating polynomial for the Fibonacci
+sequence<a href="http://www.blogger.com/post-edit.g?blogID=1697307561385480651&amp;postID=8793933354039507148#footnote">*</a>.
+The problem defines (without stating so), a sequence
+\(\left\{z_n\right\}_{n > 0}\) where \(A_F(z_n) = n\) and
+asks us to find the values \(n\) for which \(z_n\) is rational.
+Such a value \(n\) is called a <em>golden nugget</em>. As noted in the
+problem statement, \(A_F(\frac{1}{2}) = 2\), hence \(z_2 =
+\frac{1}{2}\) is rational and \(2\) is the first golden nugget.</p>
+<p>As a first step, we determine a criterion for \(n\) to be a golden
+nugget by analyzing the equation \(A_F(z) = n\). With the recurrence
+relation given by the Fibonacci sequence as inspiration, we consider
+\begin{align*}(z + z\^2)A_F(z) = z\^2 F_1 &amp;+  z\^3 F_2 + z\^4 F_3
++ \ldots \\ &amp;+ z\^3 F_1 + z\^4 F_2 + z\^5 F_3 + \ldots.
+\end{align*}Due to the fact that \(F_2 = F_1 = 1\) and the nature
+of the recurrence relation, we have \[(z +z\^2)A_F(z) = z\^2 F_2 +
+z\^3 F_3 + z\^4 F_4 + \ldots = A_F(z) -z\] which implies \[A_F(z)
+= \frac{z}{1 - z - z\^2}.\] Now solving \(A_F(z) = n\), we have
+\[z = n - n z - n z\^2 \Rightarrow n z\^2 + (n + 1)z - n = 0.\] In
+order for \(n\) to be a golden nugget, we must have the solutions
+\(z\) rational. This only occurs if the discriminant \[(n + 1)\^2 -
+4(n)(-n) = 5 n\^2 + 2 n + 1\] in the quadratic is the square of a
+rational.</p>
+<p>So we now positive seek values \(n\) such that \(5 n\^2 + 2 n + 1 =
+m\^2\) for some integer \(m\) (the value \(m\) must be an integer
+since a rational square root of an integer can only be an integer.) This
+equation is equivalent to \[25n\^2 + 10n + 5 = 5m\^2\] which is
+equivalent to \[5m\^2 - (5 n + 1)\^2 = 4.\] This is where Conway's
+topograph comes in. We'll use the topograph with the quadratic form
+\(f(x, y) = 5 x\^2 - y\^2\) to find our solutions. First note, a
+solution is only valuable if \(y \equiv 1 \bmod{5}\) since \(y = 5
+n + 1\) must hold. Also, since \(\sqrt{5}\) is irrational, \(f\)
+can never take the value \(0\), but \(f(1, 0) = 5\) and \(f(0, 1) =
+-1\), hence there is a river on the topograph and the values of \(f\)
+occur in a periodic fashion. Finally, since we take pairs \((x, y)\)
+that occur on the topograph, we know \(x\) and \(y\) share no
+factors. Hence solutions \(f(x, y) = 4\) can come either come from
+pairs on the topograph or by taking a pair which satisfies \(f(x, y) =
+1\) and scaling up by a factor of \(2\) (we will have \(f(2x, 2y) =
+2\^2 \cdot 1 = 4\) due to the homogeneity of \(f\)).</p>
+<p>Starting from the trivial base \(u = (1, 0)\) and \(v = (0, 1)\),
+the full period of the river has length \(8\) as seen below:</p>
+<div class="separator" style="clear: both; text-align: center;">
+
+[![](http://www.bossylobster.com/images/blog/golden_nugget.png)](http://www.bossylobster.com/images/blog/golden_nugget.png)
+
+</div>
+
+<p>(<em><strong>Note</strong>: in the above, the values denoted as combinations of \(u\)
+and \(v\) are the vectors for each face on the topograph while the
+numbers are the values of \(f\) on these vectors.</em>) Since every edge
+protruding from the river on the positive side has a value of \(4\) on
+a side (the value pairs are \((5, 4)\), \((4, 1)\), \((1, 4)\),
+and \((4, 5)\)), by the climbing lemma, we know all values above those
+on the river have value greater than \(4\). Thus, the only solutions
+we are concerned with -- \(f(x, y) = 1\) or \(4\) -- must appear on
+the river. Notice on the river, the trivial base \((u, v)\) is
+replaced by the base \((9 u + 20 v, 4 u + 9 v)\). This actually gives
+us a concrete recurrence for the river and with it we can get a complete
+understanding of our solution set.</p>
+<p>When we start from the trivial base, we only need consider moving to the
+right (orientation provided by the above picture) along the river since
+we only care about the absolute value of the coordinates (\(n\) comes
+from \(y\), so it must be positive). As such, we have a sequence of
+bases \(\left\{(u_k, v_k)\right\}_{k \geq 0}\) with \(u_0 =
+(1, 0)\), \(v_0 = (0, 1)\) and recurrence \begin{align*}u_{k + 1}
+&amp;= 9 u_k + 20 v_k \\ v_{k + 1} &amp;= 4 u_k + 9 v_k. \end{align*}
+This implies that both \(\left\{u_k\right\}\)
+and \(\left\{v_k\right\}\) satisfy the same
+relation \begin{align*}u_{k + 2} - 9 u_{k + 1} - 9(u_{k + 1} - 9
+u_k) &amp;= 20 v_{k + 1} - 9(20 v_k) = 20(4 u_k) \\ v_{k + 2} - 9
+v_{k + 1} - 9(v_{k + 1} - 9 v_k) &amp;= 4 u_{k + 1} - 9(4 u_k) = 4(20
+v_k). \end{align*} With these recurrences, you can take the three
+base solutions on the river and quickly find each successive golden
+nugget. Since each value is a coordinate in a vector, it satisfies the
+same linear recurrence as the vector. Also, since each of the solution
+vectors occur as linear combinations of \(u_k\) and \(v_k\), they
+must satisfy the same recurrence as well.</p>
+<p>Since the recurrence is degree two, we need the first two values to
+determine the entire sequence. For the first solution we start with
+\(u_0 + v_0 = (1, 1)\) and \(u_1 + v_1 = (13, 29)\); for the
+second solution we start with \(u_0 + 2 v_0) = (2, 4)\) and \(u_1
++ 2 v_1 = (17, 38)\); and for the third solution we start with \(5
+u_0 + 11 v_0 = (5, 11)\) and \(5 u_1 + 11 v_1 = (89, 199)\). For
+the second solution, since \(f(1, 2) = 1\), we use homogeneity to
+scale up to \((2, 4)\) and \((34, 76)\) to start us off. With these
+values, we take the second coordinate along the recurrence and get the
+following values:</p>
+<p><center>
+<table border="1" style="border-collapse: collapse;">
+<tbody>
+<tr>
+<th>
+n</p>
+<p></th>
+<th>
+First</p>
+<p></th>
+<th>
+Second</p>
+<p></th>
+<th>
+Third</p>
+<p></th>
+</tr>
+<tr>
+<td>
+0</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>1</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>4</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>11</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+1</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>29</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>76</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>199</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+2</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>521</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>1364</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>3571</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+3</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>9349</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>24476</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>64079</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+4</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>167761</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>439204</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>1149851</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+5</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>3010349</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>7881196</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>20633239</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+6</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>54018521</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>141422324</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>370248451</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+7</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>969323029</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>2537720636</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>6643838879</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+8</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>17393796001</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>45537549124</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>119218851371</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+9</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>312119004989</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>817138163596</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>2139295485799</p>
+</div>
+
+<p></td>
+</tr>
+<tr>
+<td>
+10</p>
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>5600748293801</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>14662949395604</p>
+</div>
+
+<p></td>
+<td>
+<div style="text-align: center;"></p>
+<p>38388099893011</p>
+</div>
+
+<p></td>
+</tr>
+</tbody>
+</table>
+</center></p>
+<p>We don't get our fifteenth golden nugget candidate (value must be one
+more than a multiple of \(5\)) until \(5600748293801\), which yields
+\(\boxed{n = 1120149658760}\). By no means did I do this by hand in
+real life; I didn't make a pretty representation of the river either. I
+just wanted to make the idea clear without any code. To get to the code
+(and the way you should approach this stuff), move on to the <a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets-part-2.html">second
+half</a>
+of this post.</p>
+<div id="footnote">
+
+*\*The Fibonacci sequence is given by \\(F\_0 = 0\\), \\(F\_1 =
+1\\), and \\(F\_{n} = F\_{n - 1} + F\_{n - 2}\\).*
+
+</div>
+
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2011-08-28T00:00:00-07:00" pubdate>Aug 28, 2011</time>  <span class="categories">
+    <a class="category" href="/tag/binary-quadratic-form.html">Binary Quadratic Form</a>
+    <a class="category" href="/tag/conway.html">Conway</a>
+    <a class="category" href="/tag/conways-topograph.html">Conway's Topograph</a>
+    <a class="category" href="/tag/math.html">Math</a>
+    <a class="category" href="/tag/number-theory.html">Number Theory</a>
+    <a class="category" href="/tag/project-euler.html">Project Euler</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2011/08/finding-fibonacci-golden-nuggets.html" data-via="bossylobster" data-counturl="/2011/08/finding-fibonacci-golden-nuggets.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

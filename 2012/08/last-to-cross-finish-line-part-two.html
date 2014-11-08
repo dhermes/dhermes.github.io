@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Last to Cross the Finish Line: Part Two</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Last to Cross the Finish Line: Part Two</h1>
+      <p class="meta"><time datetime="2012-08-29T00:00:00-07:00" pubdate>Aug 29, 2012</time></p>
+</header>
+
+  <div class="entry-content"><p>Recently, my colleague <a href="https://plus.google.com/115640166224745944209">+Fred
+Sauer</a> and I gave a tech
+talk called "Last Across the Finish Line:
+Asynchronous <a href="https://developers.google.com/appengine/docs/python/taskqueue/overview">Tasks</a> with <a href="https://appengine.google.com/">App
+Engine</a>". This is part two in a three
+part series where I will share
+our <a href="http://www.forbes.com/pictures/ekij45gdh/learnings/#gallerycontent">learnings</a> and
+give some helpful references to the <a href="https://developers.google.com/appengine/docs/">App Engine
+documentation</a>.</p>
+<p>Check out the <a href="http://blog.bossylobster.com/2012/08/last-to-cross-finish-line-part-one.html">previous
+post</a>
+if you haven't already. In this section, we'll cover the two <a href="https://developers.google.com/appengine/docs/python/tools/webapp/running">WSGI
+handlers</a> in
+<a href="http://code.google.com/p/gae-last-across-the-finish-line/source/browse/main.py"><span
+style="color: lime; font-family: Courier New, Courier, monospace;">main.py</span></a>
+serving requests for our application and the client side code that
+communicates with our application.</p>
+<h2><span style="font-size: large;">Imports</span></h2>
+<p>Before defining the handlers, let's first review the imports:</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+import jsonfrom google.appengine.api import channelfrom google.appengine.api import usersfrom google.appengine.ext.webapp.util import login_requiredimport webapp2from webapp2_extras import jinja2from display import RandomRowColumnOrderingfrom display import SendColorfrom models import PopulateBatch</p>
+<div class="highlight"><pre><span class="n">We</span> <span class="n">import</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">json</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//docs.python.org/library/json.html)</span>
+<span class="k">for</span> <span class="n">serialization</span> <span class="n">of</span> <span class="n">messages</span><span class="p">.</span> <span class="n">Specific</span> <span class="n">to</span> <span class="n">App</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">we</span> <span class="n">import</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">channel</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">to</span> <span class="n">use</span> <span class="n">the</span> <span class="p">[</span><span class="n">Channel</span>
+<span class="n">API</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/channel/),</span>
+<span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">users</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/users/)</span>
+<span class="n">and</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">login</span><span class="err">\</span><span class="n">_required</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/tools/webapp/utilmodule)</span>
+<span class="k">for</span> <span class="n">authenticating</span> <span class="n">users</span> <span class="n">within</span> <span class="n">a</span> <span class="n">request</span><span class="p">,</span><span class="err"> </span><span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">webapp2</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/gettingstartedpython27/usingwebapp) for</span>
+<span class="n">creating</span> <span class="p">[</span><span class="n">WSGI</span>
+<span class="n">Handlers</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//webapp-improved.appspot.com/guide/app.html) and [&lt;span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">jinja2</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//developers.google.com/appengine/docs/python/gettingstartedpython27/templates)</span>
+<span class="k">for</span> <span class="n">templating</span><span class="p">.</span>
+
+<span class="n">Finally</span><span class="p">,</span> <span class="n">we</span> <span class="n">import</span> <span class="n">four</span> <span class="n">functions</span> <span class="n">from</span> <span class="n">the</span> <span class="n">two</span> <span class="n">other</span> <span class="n">modules</span> <span class="n">defined</span>
+<span class="n">within</span> <span class="n">our</span> <span class="n">project</span><span class="p">.</span> <span class="n">From</span> <span class="n">the</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">display</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//code.google.com/p/gae-last-across-the-finish-line/source/browse/display.py)</span>
+<span class="n">module</span><span class="p">,</span> <span class="n">we</span> <span class="n">import</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">SendColor</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="err"> </span><span class="n">function</span>
+<span class="n">that</span> <span class="n">we</span> <span class="n">explored</span> <span class="k">in</span> <span class="n">part</span> <span class="n">one</span><span class="err"> </span><span class="n">and</span> <span class="n">the</span><span class="err"> </span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">RandomRowColumnOrdering</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="err"> </span><span class="n">function</span><span class="p">,</span>
+<span class="n">which</span><span class="err"> </span><span class="n">generates</span> <span class="n">all</span> <span class="n">possible</span> <span class="n">row</span><span class="p">,</span> <span class="n">column</span> <span class="n">pairs</span> <span class="k">in</span> <span class="n">a</span> <span class="n">random</span> <span class="n">order</span><span class="p">.</span> <span class="n">From</span>
+<span class="n">the</span> <span class="n">as</span> <span class="n">of</span> <span class="n">yet</span> <span class="n">undiscussed</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">models</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//code.google.com/p/gae-last-across-the-finish-line/source/browse/models.py)</span>
+<span class="n">module</span> <span class="n">we</span> <span class="n">import</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">PopulateBatch</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">function</span><span class="p">,</span> <span class="n">which</span> <span class="n">takes</span> <span class="n">a</span> <span class="n">session</span> <span class="n">ID</span> <span class="n">and</span> <span class="n">a</span> <span class="n">batch</span> <span class="n">of</span> <span class="n">work</span> <span class="n">to</span> <span class="n">be</span> <span class="n">done</span> <span class="n">and</span>
+<span class="n">spawns</span> <span class="n">workers</span> <span class="n">to</span> <span class="n">carry</span> <span class="n">out</span> <span class="n">the</span> <span class="n">batch</span> <span class="n">of</span> <span class="n">work</span><span class="p">.</span>
+
+<span class="o">&lt;</span><span class="n">span</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;font-size: large;&quot;</span><span class="o">&gt;</span><span class="n">Handlers</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="o">-----------------------------------------------</span>
+
+<span class="n">This</span> <span class="n">module</span> <span class="n">defines</span> <span class="n">two</span> <span class="n">handlers</span><span class="o">:</span> <span class="n">the</span> <span class="n">main</span> <span class="n">page</span> <span class="k">for</span> <span class="n">the</span> <span class="n">user</span> <span class="n">interface</span>
+<span class="n">and</span> <span class="n">an</span> <span class="p">[</span><span class="n">AJAX</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//en.wikipedia.org/wiki/Ajax_(programming)) handler</span>
+<span class="n">which</span> <span class="n">will</span> <span class="n">begin</span> <span class="n">spawning</span> <span class="n">the</span> <span class="n">workers</span><span class="p">.</span>
+
+<span class="n">For</span> <span class="n">the</span> <span class="n">main</span> <span class="n">page</span> <span class="n">we</span> <span class="n">use</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">jinja2</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">templates</span> <span class="n">to</span> <span class="n">render</span> <span class="n">from</span> <span class="n">the</span> <span class="n">template</span> <span class="p">[</span><span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">main</span><span class="p">.</span><span class="n">html</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//code.google.com/p/gae-last-across-the-finish-line/source/browse/templates/main.html)</span>
+<span class="k">in</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">templates</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="nl">folder:</span>
+
+<span class="o">~~~~</span> <span class="p">{.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="n">class</span> <span class="n">MainPage</span><span class="p">(</span><span class="n">webapp2</span><span class="p">.</span><span class="n">RequestHandler</span><span class="p">)</span><span class="o">:</span>  <span class="n">def</span> <span class="n">RenderResponse</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="o">**</span><span class="n">context</span><span class="p">)</span><span class="o">:</span>    <span class="n">jinja2_renderer</span> <span class="o">=</span> <span class="n">jinja2</span><span class="p">.</span><span class="n">get_jinja2</span><span class="p">(</span><span class="n">app</span><span class="o">=</span><span class="n">self</span><span class="p">.</span><span class="n">app</span><span class="p">)</span>    <span class="n">rendered_value</span> <span class="o">=</span> <span class="n">jinja2_renderer</span><span class="p">.</span><span class="n">render_template</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="o">**</span><span class="n">context</span><span class="p">)</span>    <span class="n">self</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">rendered_value</span><span class="p">)</span>  <span class="err">@</span><span class="n">login_required</span>  <span class="n">def</span> <span class="n">get</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>    <span class="n">user_id</span> <span class="o">=</span> <span class="n">users</span><span class="p">.</span><span class="n">get_current_user</span><span class="p">().</span><span class="n">user_id</span><span class="p">()</span>    <span class="n">token</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="n">create_channel</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>    <span class="n">self</span><span class="p">.</span><span class="n">RenderResponse</span><span class="p">(</span><span class="err">&#39;</span><span class="n">main</span><span class="p">.</span><span class="n">html</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">token</span><span class="p">,</span> <span class="n">table_id</span><span class="o">=</span><span class="err">&#39;</span><span class="n">pixels</span><span class="err">&#39;</span><span class="p">,</span>                        <span class="n">rows</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+
+
+<p>In <span
+style="color: lime; font-family: Courier New, Courier, monospace;">get</span>
+— the actual handler serving the
+<a href="http://en.wikipedia.org/wiki/GET_(HTTP)#Request_methods">GET</a> request
+from the browser — we use the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">login_required</span>
+decorator to make sure the user is signed in, and then create a channel
+for message passing using the ID of the signed in user. The template
+takes an HTML ID, rows and columns to create an HTML table as the
+"quilt" that the user will see. We pass the created token for the
+channel, an HTML ID for the table and the rows and columns to the
+template by simply specifying them as keyword arguments.</p>
+<p>For the handler which will spawn the workers, we use <span
+style="color: lime; font-family: Courier New, Courier, monospace;">RandomRowColumnOrdering</span>
+to generate row, column pairs. Using each pair along with the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">SendColor</span>
+function and the user ID (as a proxy for session ID) for message
+passing, we add a unit of work to the batch</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+class BeginWork(webapp2.RequestHandler):  # Can't use login_required decorator here because it is not  # supported for POST requests  def post(self):    response = {'batch_populated': False}    try:      # Will raise an AttributeError if no current user      user_id = users.get_current_user().user_id()      # TODO: return 400 if not logged in       work = []      for row, column in RandomRowColumnOrdering(8, 8):        args = (row, column, user_id)        work.append((SendColor, args, {}))  # No keyword args      PopulateBatch(user_id, work)      response['batch_populated'] = True    except:      # TODO: Consider logging traceback.format_exception(*sys.exc_info()) here      pass    self.response.write(json.dumps(response))</p>
+<div class="highlight"><pre><span class="n">Finally</span><span class="p">,</span> <span class="k">for</span> <span class="n">routing</span> <span class="n">applications</span> <span class="n">within</span> <span class="n">our</span> <span class="n">app</span><span class="p">,</span> <span class="n">we</span> <span class="n">define</span><span class="o">:</span>
+
+<span class="o">~~~~</span> <span class="p">{.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">webapp2</span><span class="p">.</span><span class="n">WSGIApplication</span><span class="p">([(</span><span class="err">&#39;</span><span class="o">/</span><span class="n">begin</span><span class="o">-</span><span class="n">work</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">BeginWork</span><span class="p">),</span>                               <span class="p">(</span><span class="sc">&#39;/&#39;</span><span class="p">,</span> <span class="n">MainPage</span><span class="p">)],</span>                              <span class="n">debug</span><span class="o">=</span><span class="n">True</span><span class="p">)</span>
+</pre></div>
+
+
+<p>and specify</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+handlers:- url: /.*  script: main.app</p>
+<div class="highlight"><pre><span class="k">in</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">app.yaml</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="k">to</span> <span class="nx">use</span> <span class="nx">WSGI</span> <span class="nx">apps</span><span class="p">,</span> <span class="nx">the</span> <span class="nx">App</span> <span class="nx">Engine</span> <span class="nx">runtime</span> <span class="nx">must</span> <span class="nx">be</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">python27</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">.</span>
+
+
+<span class="o">&lt;</span><span class="nx">span</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;font-size: large;&quot;</span><span class="o">&gt;</span><span class="nx">Client</span> <span class="nx">Side</span> <span class="nb">Javascript</span> <span class="ow">and</span> <span class="nx">jQuery</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
+<span class="o">------------------------------------------------------------------------</span>
+
+<span class="k">In</span> <span class="nx">the</span><span class="err"> </span><span class="nx">template</span><span class="err"> [</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">main.html</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="cp">]</span>(http://code.google.com/p/gae-last-across-the-finish-line/source/browse/templates/main.html) we
+use <span class="cp">[</span><span class="nx">jQuery</span><span class="cp">]</span>(http://jquery.com/) to make AJAX requests and manage the
+CSS for each square in our &quot;quilt&quot;. We also define some other Javascript
+functions for interacting with the App Engine Channel API. In the
+HTML <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>\<span class="nt">&lt;head</span><span class="err">\</span><span class="nt">&gt;&lt;/span&gt;</span> element
+we load the <span class="cp">[</span><span class="nx">Channel</span> <span class="nb">Javascript</span>
+<span class="nx">API</span><span class="cp">]</span>(https://developers.google.com/appengine/docs/python/channel/javascript),
+and in the <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>\<span class="nt">&lt;body</span><span class="err">\</span><span class="nt">&gt;&lt;/span&gt;</span> element
+we open a channel using the <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>{{
+token }}<span class="nt">&lt;/span&gt;</span> passed in to the template:
+
+~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
+<span class="nt">&lt;head&gt;</span>  <span class="nt">&lt;script</span> <span class="na">src=</span><span class="s">&quot;/_ah/channel/jsapi&quot;</span><span class="nt">&gt;&lt;/script&gt;&lt;/head&gt;&lt;body&gt;</span>  <span class="nt">&lt;script</span> <span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span><span class="nt">&gt;</span>    channel = new goog.appengine.Channel(&#39;{{ token }}&#39;);    socket = channel.open();    socket.onerror = function() { console.log(&#39;Socket error&#39;); };    socket.onclose = function() { console.log(&#39;Socket closed&#39;); };  <span class="nt">&lt;/script&gt;&lt;/body&gt;</span>
+</pre></div>
+
+
+<p>In addition to <span
+style="color: lime; font-family: Courier New, Courier, monospace;">onerror</span>
+and <span
+style="color: lime; font-family: Courier New, Courier, monospace;">onclose</span>,
+we define more complex functions for the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">onopen</span>
+and <span
+style="color: lime; font-family: Courier New, Courier, monospace;">onmessage</span>
+callbacks.</p>
+<p>First, when the socket has been opened, we send a POST request to <span
+style="color: lime; font-family: Courier New, Courier, monospace;">/begin-work</span>
+to signal that the channel is ready for communication. If the response
+indicates that the batch of workers has been initialized successfully,
+we call a method <span
+style="color: lime; font-family: Courier New, Courier, monospace;">setStatus</span>
+which will reveal the progress spinner:</p>
+<p>~~~~ {.prettyprint style="background-color: white;"}
+socket.onopen = function() {  $.post('/begin-work', function(data) {    var response = JSON.parse(data);    if (response.batch_populated) {      setStatus('Loading began');    }  });}</p>
+<div class="highlight"><pre><span class="nx">As</span> <span class="nx">we</span> <span class="n">defined</span> <span class="k">in</span> <span class="nx">part</span> <span class="nx">one</span><span class="p">,</span> <span class="nb">each</span> <span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">SendColor</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
+<span class="nx">worker</span> <span class="nx">sends</span> <span class="nb">back</span> <span class="nx">a</span>
+<span class="err">[</span><span class="nx">message</span><span class="cp">]</span>(https://developers.google.com/appengine/docs/python/channel/overview#Life_of_a_Typical_Channel_Message)
+along the channel representing a row, column pair and a color. On
+message receipt, we use these messages to set the background color of
+the corresponding square to the color provided:
+
+~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
+socket.onmessage = function(msg) {  var response = JSON.parse(msg.data);  var squareIndex = 8*response.row + response.column;  var squareId = &#39;#square&#39; + squareIndex.toString();  $(squareId).css(&#39;background-color&#39;, response.color);}
+</pre></div>
+
+
+<p>As you can see from <span
+style="color: lime; font-family: Courier New, Courier, monospace;">squareId</span>,
+each square in the table generated by the template has an HMTL ID so we
+can specifically target it.</p>
+<h2><span style="font-size: large;">Next...</span></h2>
+<p>In the <a href="http://blog.bossylobster.com/2012/09/last-to-cross-finish-line-part-three.html">final
+post</a>,
+we'll define the <span
+style="color: lime; font-family: Courier New, Courier, monospace;">PopulateBatch</span>
+function and explore the <a href="https://developers.google.com/appengine/docs/python/ndb/">ndb
+models</a> and
+<a href="https://developers.google.com/appengine/docs/python/taskqueue/">Task
+Queue</a>
+operations that make it work.</p>
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2012-08-29T00:00:00-07:00" pubdate>Aug 29, 2012</time>  <span class="categories">
+    <a class="category" href="/tag/appengine.html">AppEngine</a>
+    <a class="category" href="/tag/deferred-library.html">Deferred Library</a>
+    <a class="category" href="/tag/google-app-engine.html">Google App Engine</a>
+    <a class="category" href="/tag/google-codesite.html">Google Codesite</a>
+    <a class="category" href="/tag/javascript.html">Javascript</a>
+    <a class="category" href="/tag/jquery.html">jQuery</a>
+    <a class="category" href="/tag/python.html">Python</a>
+    <a class="category" href="/tag/task-queue-api.html">Task Queue API</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2012/08/last-to-cross-finish-line-part-two.html" data-via="bossylobster" data-counturl="/2012/08/last-to-cross-finish-line-part-two.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

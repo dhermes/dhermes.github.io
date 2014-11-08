@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Conway's Topograph Part 1</title>
+  <meta name="author" content="Danny Hermes">
+
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="/favicon.png" rel="icon">
+  <link href="/theme/css/katex.min.css" rel="stylesheet" type="text/css"/>
+  <script src="/theme/js/katex.min.js" type="text/javascript"></script>
+  <link href="/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+  <script src="/theme/js/modernizr-2.0.js"></script>
+  <script src="/theme/js/ender.js"></script>
+  <script src="/theme/js/octopress.js" type="text/javascript"></script>
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bossylobster Blog</a></h1>
+    <h2>Musings on humor/tech/mathematics/sports from the bossiest lobster</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+</ul>
+
+
+<form action="//google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+
+<ul class="main-navigation">
+    <li><a href="/archive.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub Profile</a></li>
+    <li><a href="http://math.berkeley.edu/~dhermes/">Berkeley Page</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <h1 class="entry-title">Conway's Topograph Part 1</h1>
+      <p class="meta"><time datetime="2011-08-23T00:00:00-07:00" pubdate>Aug 23, 2011</time></p>
+</header>
+
+  <div class="entry-content"><p>This is the first in a series of three blog posts. In the following
+we'll investigate a few properties of an object called Conway’s
+topograph. <a href="http://en.wikipedia.org/wiki/John_Horton_Conway">John
+Conway</a> conjured up a
+way to understand a binary quadratic form – a very important algebraic
+object – in a geometric context. This is by no means original work, just
+my interpretation of some key points from his <a href="http://www.amazon.com/Sensual-Quadratic-Carus-Mathematical-Monographs/dp/0883850303">The Sensual (Quadratic)
+Form</a> that
+I'll need for some other posts.</p>
+<hr />
+<div class="p1">
+
+</div>
+
+<div class="p1">
+
+**Definition**: A binary quadratic form \\(f\\) is an equation of the
+form:
+
+</div>
+
+<div class="p1">
+
+\\[f(x, y) = A x\^2 + H x y + B y\^2.\\]
+
+</div>
+
+<div class="p1">
+
+That is, a function of two variables which is homogeneous of degree two.
+The coefficients \\(A\\), \\(H\\), and \\(B\\) and variables \\(x\\) and
+\\(y\\) are often real numbers, rational numbers or integers. <span
+class="Apple-style-span">\\(\\Box\\)</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">
+</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span"></span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">When we require the coefficients \\(A\\),
+\\(H\\), and \\(B\\) as well as the variables \\(x, y\\) to be integers,
+we get an integer--valued form. In his *Disquisitiones Arithmeticae*,
+Gauss asked (and largely answered) the fundamental question: what
+integer values can each form take? For example, you may have seen the
+form</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">\\[f(x, y) = x\^2 + y\^2,\\]</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">where it was determined that the only
+primes (Gaussian primes) occuring were \\(2\\) and those odd primes
+congruent to 1 modulo 4.</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">
+</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">As each form \\(f\\) is homogenous degree
+two, \\(f(\\lambda x, \\lambda y) = \\lambda\^2 f(x, y)\\). As a result,
+if we can understand the values of \\(f\\) for pairs \\((x, y)\\) which
+don't share any factors, we can understand the entire set of values that
+\\(f\\) takes. Also, letting \\(\\lambda = -1\\), there is no change in
+the value of \\(f\\) since \\(\\lambda\^2 = 1\\), hence it suffices to
+think of \\(v = (x, y)\\) as \\(\\pm v\\), i.e. \\(\\left\\{(x, y), (-x,
+-y)\\right\\}\\).</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">
+</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">For integers \\(x\\) and \\(y\\), any
+point \\((x, y)\\) can be expressed as an integral linear combination of
+the vectors \\(e\_1 = (1, 0)\\) and \\(e\_2 = (0, 1)\\). So if we like,
+we can express all relevant inputs for \\(f\\) in terms of two vectors.
+However, instead considering \\(e\_2 = (1, 1)\\), we have</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">\\[(x - y) \\cdot e\_1 + y \\cdot e\_2 =
+(x, y)\\]</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">and realize a different pair \\(e\_1,
+e\_2\\) which again yield all possible integer valued vectors as
+integral linear combinations.</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">
+</span>
+
+</div>
+
+<div class="p1">
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">**Definition**: A *strict base* is an
+ordered pair \\((e\_1, e\_2)\\) whose integral linear combinations are
+exactly all vectors with integer coordinates. A *lax base* is a set
+\\(\\left\\{\\pm e\_1, \\pm e\_2\\right\\}\\) obtained from a strict
+base. \\(\\Box\\)</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">
+</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">**Definition**: A *strict superbase* is
+an ordered triple \\((e\_1, e\_2, e\_3)\\), for which \\(e\_1 + e\_2 +
+e\_3 = (0, 0)\\) and \\((e\_1, e\_2)\\) is a strict base (i.e., with
+strict vectors), and a *lax superbase* is a set \\(\\langle\\pm e\_1,
+\\pm e\_2, \\pm e\_3\\rangle\\) where \\((e\_1, e\_2, e\_3)\\) is a
+strict superbase. \\(\\Box\\)</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">
+</span>
+
+</div>
+
+<div class="p1">
+
+<span class="Apple-style-span">For our (and Conway's) purposes, it is
+useful to consider the lax notions and leave the strict notions as an
+afterthought since a binary quadratic form is unchanged given a sign
+change. From here forward, for a vector \\(v\\), we use the notation
+\\(v\\) interchangeably with \\(\\pm v\\) and when referring to a
+base/superbase, we are referring to the lax equivalent of these
+notions.</span>
+
+Follow along to [Part
+2](http://blog.bossylobster.com/2011/08/conways-topograph-part-2.html).
+
+**Update**: *This material is intentionally aimed at an intermediate
+(think college freshman/high school senior) audience. One can go deeper
+with it, and I'd love to get more technical off the post.*
+
+</div>
+
+<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2011-08-23T00:00:00-07:00" pubdate>Aug 23, 2011</time>  <span class="categories">
+    <a class="category" href="/tag/algebra.html">Algebra</a>
+    <a class="category" href="/tag/binary-quadratic-form.html">Binary Quadratic Form</a>
+    <a class="category" href="/tag/conway.html">Conway</a>
+    <a class="category" href="/tag/conways-topograph.html">Conway's Topograph</a>
+    <a class="category" href="/tag/math.html">Math</a>
+    <a class="category" href="/tag/number-theory.html">Number Theory</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="/2011/08/conways-topograph-part-1.html" data-via="bossylobster" data-counturl="/2011/08/conways-topograph-part-1.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+</div>
+<aside class="sidebar">
+  <section>
+    <img src="/images/bossy_lobster_200_alpha.png" alt="" width=""/>
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+      </li>
+      <li class="post">
+          <a href="/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+      </li>
+      <li class="post">
+          <a href="/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/bayes-law-primer.html">Bayes' Law Primer</a>
+      </li>
+      <li class="post">
+          <a href="/2014/07/conditional-probabilities-in-thinking.html">Conditional Probabilities in "Thinking Fast and Slow"</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011-2014  - Danny Hermes -
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>
