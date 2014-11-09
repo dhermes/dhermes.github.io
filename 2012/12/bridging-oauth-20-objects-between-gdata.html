@@ -71,7 +71,7 @@
 </header>
 
   <div class="entry-content"><p>My colleague <a href="http://plus.google.com/110554344789668969711">+Takashi
-Matsuo</a> and I recently
+Matsuo</a>and I recently
 gave a <a href="http://www.youtube.com/watch?v=HoUdWBzUZ-M">talk</a> about using
 <span
 style="color: lime; font-family: Courier New, Courier, monospace;">OAuth2Decorator</span>
@@ -82,7 +82,7 @@ request handlers in<a href="https://developers.google.com/appengine/">Google App
 Engine</a>. Shortly after, a
 <a href="http://stackoverflow.com/questions/13981641">Stack Overflow question</a>
 sprung up asking about the right way to use the decorator and, as a
-follow up,  if the decorator could be used with the <a href="https://developers.google.com/google-apps/provisioning/">Google Apps
+follow up, if the decorator could be used with the <a href="https://developers.google.com/google-apps/provisioning/">Google Apps
 Provisioning
 API</a>. As I
 mentioned in my answer,</p>
@@ -107,28 +107,28 @@ took was that the token subclass should be 100% based on an <span
 style="color: lime; font-family: Courier New, Courier, monospace;">OAuth2Credentials</span>
 object:</p>
 <ul>
-<li>the token constructor simply takes an <span
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span> object</li>
-<li>the token refresh updates the <span
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span> object
+<li>the token constructor simply takes an<span
+    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object</li>
+<li>the token refresh updatesthe<span
+    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object
     set on the token</li>
-<li>values of the current token can be updated directly from the <span
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span> object
+<li>values of the current tokencan be updated directly from the<span
+    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object
     set on the token</li>
 </ul>
 <p>Starting from the top, we'll use two imports:</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}
 import httplib2from gdata.gauth import OAuth2Token</p>
-<div class="highlight"><pre><span class="nx">The</span> <span class="nb">first</span> <span class="nx">is</span> <span class="nx">needed</span> <span class="k">to</span> <span class="nb">refresh</span> <span class="nx">an</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="nb">object</span>
-<span class="nx">using</span> <span class="nx">the</span> <span class="nx">mechanics</span> <span class="nx">native</span> <span class="k">to</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
+<div class="highlight"><pre><span class="nx">The</span> <span class="nb">first</span> <span class="nx">is</span> <span class="nx">needed</span> <span class="k">to</span> <span class="nb">refresh</span> <span class="nx">an</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nb">object</span>
+<span class="nx">using</span> <span class="nx">the</span> <span class="nx">mechanics</span> <span class="nx">native</span> <span class="k">to</span><span class="o">&lt;</span><span class="nx">span</span>
 <span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">google</span><span class="na">-api-python-client</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span>
-<span class="ow">and</span> <span class="nx">the</span> <span class="nb">second</span> <span class="nx">is</span> <span class="nx">needed</span> <span class="nx">so</span> <span class="nx">we</span> <span class="nx">may</span> <span class="nx">subclass</span> <span class="nx">the</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">gdata</span><span class="na">-python-client</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="nx">native</span>
+<span class="ow">and</span> <span class="nx">the</span> <span class="nb">second</span> <span class="nx">is</span> <span class="nx">needed</span> <span class="nx">so</span> <span class="nx">we</span> <span class="nx">may</span> <span class="nx">subclass</span> <span class="nx">the</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">gdata</span><span class="na">-python-client</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">native</span>
 <span class="nb">token</span> <span class="nx">class.</span>
 
-<span class="nx">As</span> <span class="nx">I</span> <span class="nx">mentioned</span><span class="p">,</span> <span class="nx">the</span> <span class="nb">values</span> <span class="nx">should</span> <span class="nx">be</span> <span class="nx">updated</span> <span class="nx">directly</span> <span class="nb">from</span> <span class="nx">an</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="nb">object</span><span class="p">,</span>
+<span class="nx">As</span> <span class="nx">I</span> <span class="nx">mentioned</span><span class="p">,</span> <span class="nx">the</span> <span class="nb">values</span> <span class="nx">should</span> <span class="nx">be</span> <span class="nx">updated</span> <span class="nx">directly</span> <span class="nb">from</span> <span class="nx">an</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nb">object</span><span class="p">,</span>
 <span class="n">so</span> <span class="k">in</span> <span class="nx">our</span> <span class="nx">constructor</span><span class="p">,</span> <span class="nx">we</span> <span class="nb">first</span> <span class="nb">initialize</span> <span class="nx">the</span> <span class="nb">values</span> <span class="k">to</span> <span class="o">&lt;</span><span class="nx">span</span>
 <span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="kc">None</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
 <span class="ow">and</span> <span class="nx">then</span> <span class="nb">call</span> <span class="nx">our</span> <span class="nx">update</span> <span class="nb">method</span> <span class="k">to</span> <span class="nx">actual</span> <span class="nb">set</span> <span class="nx">the</span> <span class="nx">values.</span> <span class="nx">This</span> <span class="nx">allows</span> <span class="nx">us</span>
@@ -145,30 +145,30 @@ class OAuth2TokenFromCredentials(OAuth2Token):  def __init__(self, credentials):
 style="color: lime; font-family: Courier New, Courier, monospace;">None</span>s
 to the superclass constructor, as it only has four positional arguments:
 <span
-style="color: lime; font-family: Courier New, Courier, monospace;">client_id</span>, <span
+style="color: lime; font-family: Courier New, Courier, monospace;">client_id</span>,<span
 style="color: lime; font-family: 'Courier New', Courier, monospace;">client_secret</span>,
 <span
 style="color: lime; font-family: Courier New, Courier, monospace;">scope</span>,
- and <span
+and <span
 style="color: lime; font-family: Courier New, Courier, monospace;">user_agent</span>.
-Three of those have equivalents on the <span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span> object,
-but there is no place for <span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">scope</span> because that
+Three of those have equivalents on the<span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object,
+but there is no place for<span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">scope</span>becausethat
 part of the token exchange handled elsewhere (<span
-style="color: lime; font-family: Courier New, Courier, monospace;">OAuth2WebServerFlow</span>) in
-the <span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">google-api-python-client</span> library.</p>
+style="color: lime; font-family: Courier New, Courier, monospace;">OAuth2WebServerFlow</span>)in
+the<span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">google-api-python-client</span>library.</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}
   def UpdateFromCredentials(self):    self.client_id = self.credentials.client_id    self.client_secret = self.credentials.client_secret    self.user_agent = self.credentials.user_agent    ...</p>
-<div class="highlight"><pre><span class="nx">Similarly</span><span class="p">,</span> <span class="nx">the</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="nb">object</span>
+<div class="highlight"><pre><span class="nx">Similarly</span><span class="p">,</span> <span class="nx">the</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nb">object</span>
 <span class="nx">only</span> <span class="nx">implements</span> <span class="nx">the</span> <span class="nb">refresh</span> <span class="nx">part</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">OAuth</span> <span class="mf">2.0</span> <span class="nx">flow</span><span class="p">,</span> <span class="nx">so</span> <span class="nx">only</span> <span class="nx">has</span> <span class="nx">the</span>
-<span class="nb">token</span> <span class="nx">URI</span><span class="p">,</span> <span class="nx">hence</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">auth</span><span class="o">\</span><span class="nx">_uri</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">revoke</span><span class="o">\</span><span class="nx">_uri</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="ow">and</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="nb">token</span> <span class="nx">URI</span><span class="p">,</span> <span class="nx">hence</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">auth</span><span class="o">\</span><span class="nx">_uri</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">revoke</span><span class="o">\</span><span class="nx">_uri</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="ow">and</span><span class="o">&lt;</span><span class="nx">span</span>
 <span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">redirect</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;\</span><span class="nx">_uri</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="nx">will</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;\</span><span class="nx">_uri</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">will</span>
 <span class="ow">not</span> <span class="nx">be</span> <span class="nb">set</span> <span class="nx">either.</span> <span class="nx">However</span><span class="p">,</span> <span class="nx">the</span> <span class="nb">token</span> <span class="nx">URI</span> <span class="ow">and</span> <span class="nx">the</span> <span class="nb">token</span> <span class="kd">data</span> <span class="nx">are</span> <span class="nx">the</span>
 <span class="nx">same</span> <span class="nb">for</span> <span class="nx">both.</span>
 
@@ -181,11 +181,11 @@ style="color: lime; font-family: 'Courier New', Courier, monospace;">google-api-
 constructor:</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}
     ...    self.token_expiry = self.credentials.token_expiry    self._invalid = self.credentials.invalid</p>
-<div class="highlight"><pre><span class="nx">Since</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="nx">doesn</span><span class="s1">&#39;t</span>
+<div class="highlight"><pre><span class="nx">Since</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">doesn</span><span class="s1">&#39;t</span>
 <span class="s1">deal with all parts of the OAuth 2.0 process, we disable those methods</span>
-<span class="s1">from &lt;span</span>
-<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;OAuth2Token&lt;/span&gt; that</span>
+<span class="s1">from&lt;span</span>
+<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;OAuth2Token&lt;/span&gt;that</span>
 <span class="s1">do.</span>
 
 <span class="s1">~~~~ {.prettyprint style=&quot;background-color: white;&quot;}</span>
@@ -195,16 +195,16 @@ constructor:</p>
 
 <p>Finally, the last method which needs to be implemented is <span
 style="color: lime; font-family: Courier New, Courier, monospace;">_refresh</span>,
-which should refresh the <span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span> object
+which should refresh the<span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object
 and then update the current GData token after the refresh. Instead of
 using the passed in request object, we use one from <span
 style="color: lime; font-family: Courier New, Courier, monospace;">httplib2</span>
 as we mentioned in imports.</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}
   def _refresh(self, unused_request):    self.credentials._refresh(httplib2.Http().request)    self.UpdateFromCredentials()</p>
-<div class="highlight"><pre><span class="nx">After</span> <span class="nx">refreshing</span> <span class="nx">the</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="nb">object</span><span class="p">,</span>
+<div class="highlight"><pre><span class="nx">After</span> <span class="nx">refreshing</span> <span class="nx">the</span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">OAuth2Credentials</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nb">object</span><span class="p">,</span>
 <span class="nx">we</span> <span class="nx">can</span> <span class="nx">update</span> <span class="nx">the</span> <span class="nx">current</span> <span class="nb">token</span> <span class="nx">using</span> <span class="nx">the</span> <span class="nx">same</span> <span class="nb">method</span> <span class="n">called</span> <span class="k">in</span> <span class="nx">the</span>
 <span class="nx">constructor.</span>
 

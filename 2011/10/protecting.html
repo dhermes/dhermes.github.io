@@ -72,7 +72,7 @@
 
   <div class="entry-content"><p>On the (much too early) bus to work this morning, I was reading my
 Twitter feed and saw an <a href="https://twitter.com/#!/robhawkes/status/121593545202216960">interesting
-question</a> from
+question</a>from
 <a href="https://twitter.com/#!/robhawkes">Rob Hawkes</a>:</p>
 <p><center>
 <div id="post-container"></p>
@@ -137,18 +137,18 @@ I also wanted to share this with the interwebs.</p>
 <p><span class="Apple-style-span">Anyhow, this is quick and dirty. First,
 create <span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span>
-and <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js </span>in
+and<span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>in
 the root directory of your git repository (the same directory that <span
 class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">.git</span>
-lives in). I intend </span><span class="Apple-style-span"
+lives in). I intend</span><span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span><span
-class="Apple-style-span"> to be the local copy with my actual passwords
-and keys and </span><span class="Apple-style-span"
+class="Apple-style-span">to be the local copy with my actual passwords
+and keys and</span><span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>to
 hold the master contents that actually show up in the public repo. For
-example, the contents of <span class="Apple-style-span"
+example, the contents of<span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js
 are</span>:</p>
 <div style="text-align: center;">
@@ -159,8 +159,8 @@ SECRET = 'Nnkrndkmn978489MDkjw';</span>
 
 </div>
 
-<p>and the contents of <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js </span>are:</p>
+<p>and the contents of<span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>are:</p>
 <div style="text-align: center;">
 
 <span class="Apple-style-span"
@@ -172,44 +172,44 @@ SECRET = 'SECRET';</span>
 <p>Since I <strong><em>don't</em></strong> want a duplicate in my repo, I put a rule in my
 <span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">.gitignore</span>
-<a href="http://progit.org/book/ch2-2.html#ignoring_files">file</a> to ignore <span
+<a href="http://progit.org/book/ch2-2.html#ignoring_files">file</a>to ignore<span
 class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>.
-(For those unfamiliar, this can be done just by including <span
+(For those unfamiliar, this can be done just by including<span
 class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js </span>on
-its own line in the <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">.gitignore </span>file.)
+style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>on
+its own line in the<span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">.gitignore</span>file.)
 After doing so, I set up two <a href="http://progit.org/book/ch7-3.html">git
 hooks</a>, a pre-commit and post-commit
 hook.</p>
-<p>To "<em>install</em>" the hooks, just add the files <span
+<p>To "<em>install</em>" the hooks, just add the files<span
 class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">pre-commit </span>and <span
+style="color: lime; font-family: 'Courier New', Courier, monospace;">pre-commit</span>and<span
 class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">post-commit </span>to
+style="color: lime; font-family: 'Courier New', Courier, monospace;">post-commit</span>to
 the <span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">.git/hooks</span>
-subdirectory in your repo. They are nearly identical files, with a
-one-line difference. Both files simply swap the contents of <span
+subdirectory in your repo.They are nearly identical files, with a
+one-line difference. Both files simply swap the contents of<span
 class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span><span
 class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"> </span>and <span
+style="color: lime; font-family: 'Courier New', Courier, monospace;"></span>and<span
 class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>,
-while <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">pre-commit </span>also
-adds <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span> to
-the changelist. First I'll give you the contents of <span
+while<span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">pre-commit</span>also
+adds<span class="Apple-style-span"
+style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span>to
+the changelist. First I'll give you the contents of<span
 class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">pre-commit</span>,
 and then explain why it's cool/safe:</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}</p>
 <h1>!/usr/bin/env pythonimport oshooks_dir = os.path.dirname(os.path.abspath(<strong>file</strong>))relative_dir = os.path.join(hooks_dir, '../..')project_root = os.path.abspath(relative_dir)git_included_config = os.path.join(project_root, 'config.js')confidential_config = os.path.join(project_root, '_config.js')with open(git_included_config, 'rU') as fh:  git_included_contents = fh.read()with open(confidential_config, 'rU') as fh:  confidential_contents = fh.read()with open(git_included_config, 'w') as fh:  fh.write(confidential_contents)with open(confidential_config, 'w') as fh:  fh.write(git_included_contents)os.system('git add %s' % git_included_config)</h1>
-<div class="highlight"><pre><span class="p">(</span><span class="nx">Also</span> <span class="nx">note</span> <span class="nx">the</span> <span class="nb">contents</span> <span class="nx">of</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">post</span><span class="na">-commit</span><span class="err"> </span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">are</span>
+<div class="highlight"><pre><span class="p">(</span><span class="nx">Also</span> <span class="nx">note</span> <span class="nx">the</span> <span class="nb">contents</span> <span class="nx">of</span><span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">post</span><span class="na">-commit</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">are</span>
 <span class="nx">exactly</span> <span class="nx">the</span> <span class="nx">same</span><span class="p">,</span> <span class="nx">except</span> <span class="nx">without</span> <span class="nx">the</span> <span class="nx">final</span> <span class="nb">statement</span><span class="p">:</span> <span class="o">&lt;</span><span class="nx">span</span>
 <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
 <span class="n">style</span><span class="o">=</span><span class="s2">&quot;background-color: white; color: purple; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">os.system</span><span class="p">(</span><span class="s1">&#39;git</span>
@@ -225,40 +225,40 @@ and then explain why it's cool/safe:</p>
 <span class="mi">2</span><span class="nx">.</span>  <span class="nx">Determines</span> <span class="nx">the</span> <span class="nx">two</span> <span class="nx">files</span> <span class="nx">which</span> <span class="nx">need</span> <span class="k">to</span> <span class="nx">swap</span> <span class="nb">contents</span>
 <span class="mi">3</span><span class="nx">.</span>  <span class="nx">Loads</span> <span class="nx">the</span> <span class="nb">contents</span> <span class="k">into</span> <span class="n">string</span> <span class="nb">variables</span> <span class="ow">and</span> <span class="nx">then</span> <span class="nx">writes</span> <span class="nx">them</span> <span class="k">to</span> <span class="nx">the</span>
     <span class="nx">opposite</span> <span class="nx">files</span>
-<span class="mi">4</span><span class="nx">.</span>  <span class="p">(</span><span class="n">only</span> <span class="k">in</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
+<span class="mi">4</span><span class="nx">.</span>  <span class="p">(</span><span class="n">only</span> <span class="k">in</span><span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
     <span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">pre</span><span class="na">-commit</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">)</span>
     <span class="nx">Adds</span> <span class="nx">the</span> <span class="nx">included</span> <span class="nb">file</span> <span class="k">to</span> <span class="nx">the</span> <span class="nx">changelist</span> <span class="nx">before</span> <span class="nx">the</span> <span class="nx">commit</span> <span class="nx">occurs.</span>
 
 <span class="nb">Step</span> <span class="mi">4</span> <span class="nx">is</span> <span class="nx">actually</span> <span class="nx">the</span> <span class="nx">secret</span> <span class="nx">sauce.</span> <span class="nx">It</span> <span class="nx">puts</span> <span class="nx">cleaned</span><span class="p">,</span> <span class="nx">non</span><span class="na">-sensitive</span> <span class="kd">data</span>
-<span class="k">into</span> <span class="n">the</span> <span class="n">checked</span> <span class="k">in</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">config.js</span><span class="err"> </span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nb">file</span>
+<span class="k">into</span> <span class="n">the</span> <span class="n">checked</span> <span class="k">in</span><span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">config.js</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nb">file</span>
 <span class="ow">and</span> <span class="nx">then</span> <span class="nx">updates</span> <span class="nx">the</span> <span class="nx">changelist</span> <span class="nx">before</span> <span class="nx">making</span> <span class="nx">a</span> <span class="nx">commit</span><span class="p">,</span> <span class="k">to</span> <span class="nx">ensure</span> <span class="nx">only</span>
 <span class="nx">the</span> <span class="nx">non</span><span class="na">-sensitive</span> <span class="kd">data</span> <span class="n">goes</span> <span class="k">in</span><span class="nx">.</span> <span class="nx">Though</span> <span class="nx">you</span> <span class="nx">could</span> <span class="k">do</span> <span class="nx">this</span> <span class="nx">yourself</span> <span class="k">by</span>
-<span class="nx">making</span> <span class="nx">an</span> <span class="nx">initial</span> <span class="nx">commit</span> <span class="k">with</span> <span class="nx">clean</span> <span class="kd">data</span> <span class="ow">and</span> <span class="nx">then</span> <span class="nx">never</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="nx">making</span> <span class="nx">an</span> <span class="nx">initial</span> <span class="nx">commit</span> <span class="k">with</span> <span class="nx">clean</span> <span class="kd">data</span> <span class="ow">and</span> <span class="nx">then</span> <span class="nx">never</span><span class="o">&lt;</span><span class="nx">span</span>
 <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
 <span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">git</span>
 <span class="nb">add</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">ing</span> <span class="nx">the</span> <span class="nb">file</span> <span class="k">with</span> <span class="nx">your</span> <span class="nx">actual</span> <span class="kd">data</span><span class="p">,</span> <span class="nx">these</span> <span class="nx">hooks</span> <span class="nx">prevent</span> <span class="nx">an</span>
-<span class="nx">accident</span> <span class="ow">and</span> <span class="nx">allow</span> <span class="nx">you</span> <span class="k">to</span> <span class="nx">update</span> <span class="nx">your</span> <span class="kd">local</span><span class="err"> </span><span class="o">&lt;</span><span class="nx">span</span>
+<span class="nx">accident</span> <span class="ow">and</span> <span class="nx">allow</span> <span class="nx">you</span> <span class="k">to</span> <span class="nx">update</span> <span class="nx">your</span> <span class="kd">local</span><span class="o">&lt;</span><span class="nx">span</span>
 <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;\</span><span class="nx">_config.js</span><span class="err"> </span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nb">file</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;\</span><span class="nx">_config.js</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nb">file</span>
 <span class="k">with</span> <span class="nx">more</span> <span class="nx">fields</span> <span class="nx">as</span> <span class="nx">your</span> <span class="nx">config</span> <span class="nx">spec</span> <span class="nx">changes.</span>
 
 <span class="nx">But</span> <span class="nb">wait</span> <span class="nx">bossylobster</span><span class="p">,</span> <span class="nx">you</span> <span class="nx">say</span><span class="p">,</span> <span class="nx">what</span> <span class="k">if</span> <span class="nx">one</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">hooks</span> <span class="nx">doesn</span><span class="s1">&#39;t occur?</span>
-<span class="s1">You are right! As  &lt;span class=&quot;Apple-style-span&quot;</span>
-<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;pre-commit &lt;/span&gt;stands</span>
+<span class="s1">You are right! As&lt;span class=&quot;Apple-style-span&quot;</span>
+<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;pre-commit&lt;/span&gt;stands</span>
 <span class="s1">above, if the changelist is empty we have problems. Since the pre-commit</span>
-<span class="s1">hook changes  &lt;span class=&quot;Apple-style-span&quot;</span>
-<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;config.js&lt;/span&gt; to</span>
+<span class="s1">hook changes&lt;span class=&quot;Apple-style-span&quot;</span>
+<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;config.js&lt;/span&gt;to</span>
 <span class="s1">the same value in HEAD, git will tell us either &quot;***nothing to</span>
 <span class="s1">commit***&quot; or &quot;***no changes added to commit***&quot;. In this case, the</span>
 <span class="s1">commit will exit and the post-commit hook will never occur. **&lt;span</span>
 <span class="s1">class=&quot;Apple-style-span&quot; style=&quot;font-size: large;&quot;&gt;This is very</span>
-<span class="s1">bad&lt;/span&gt;**, since the contents of &lt;span class=&quot;Apple-style-span&quot;</span>
-<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;config.js &lt;/span&gt;and &lt;span</span>
+<span class="s1">bad&lt;/span&gt;**, since the contents of&lt;span class=&quot;Apple-style-span&quot;</span>
+<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;config.js&lt;/span&gt;and&lt;span</span>
 <span class="s1">class=&quot;Apple-style-span&quot;</span>
-<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;\_config.js &lt;/span&gt;will</span>
+<span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;\_config.js&lt;/span&gt;will</span>
 <span class="s1">be switched but not switched back. So, to account for this, we need to</span>
-<span class="s1">append the following code to the end of &lt;span class=&quot;Apple-style-span&quot;</span>
+<span class="s1">append the following code to the end of&lt;span class=&quot;Apple-style-span&quot;</span>
 <span class="s1">style=&quot;color: lime; font-family: &#39;</span><span class="nx">Courier</span> <span class="nb">New</span><span class="s1">&#39;, Courier, monospace;&quot;&gt;pre-commit&lt;/span&gt;:</span>
 
 <span class="s1">~~~~ {.prettyprint style=&quot;background-color: white;&quot;}</span>
@@ -267,24 +267,24 @@ and then explain why it's cool/safe:</p>
 
 
 <p>For final versions see
-the <a href="http://www.bossylobster.com/scripts/pre-commit">pre-commit</a> and
-<a href="http://www.bossylobster.com/scripts/post-commit">post-commit</a> files.
-Thanks again to <a href="https://twitter.com/#!/robhawkes">Rob Hawkes</a> for the
+the<a href="http://www.bossylobster.com/scripts/pre-commit">pre-commit</a> and
+<a href="http://www.bossylobster.com/scripts/post-commit">post-commit</a>files.
+Thanks again to<a href="https://twitter.com/#!/robhawkes">Rob Hawkes</a>for the
 idea/work break over lunch!</p>
 <p><strong>Update</strong>: <em>One of Rob's followers, <a href="https://twitter.com/#!/nrocy">Paul
 King</a>, found and
 <a href="https://twitter.com/#!/nrocy/status/124468167086051328">tweeted</a> a very
 different alternative that is also pretty cool. Check out the
-<a href="http://archive.robwilkerson.org/2010/03/02/git-tip-ignore-changes-to-tracked-files/">post</a> he
+<a href="http://archive.robwilkerson.org/2010/03/02/git-tip-ignore-changes-to-tracked-files/">post</a>he
 found by <a href="https://twitter.com/#!/robwilkerson">Rob Wilkerson</a>.</em></p>
-<p><strong>Update</strong>: <em>I swapped out a screen shot of the tweet for a CSS-ified
+<p><strong>Update</strong>:<em>I swapped out a screen shot of the tweet for a CSS-ified
 version, inspired by and based on a design used on Mashable.</em></p>
-<p><strong>Update</strong>: <em>Some change in git causes empty commits to be allowed. I
+<p><strong>Update</strong>: <em>Some change in gitcauses empty commits to be allowed.I
 either didn't notice this before or it just showed up in git. So I
 added</em><span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">sys.exit(1)</span><em>to
 force the pre-commit script to fail when nothing is changed and added a
-check for the phrase </em><span class="Apple-style-span"
+check for the phrase</em><span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">nothing
 added to commit</span><em>as well.</em></p>
 <p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>

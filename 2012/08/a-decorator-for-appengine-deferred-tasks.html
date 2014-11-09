@@ -95,7 +95,7 @@ deferred task.</p>
 <p>Initially I thought I was lost, since any
 <a href="http://docs.python.org/library/pickle.html">pickled</a> method wouldn't
 directly have access to the <a href="https://developers.google.com/appengine/docs/python/taskqueue/overview-push#Task_Request_Headers">task queue specific
-headers</a> from
+headers</a>from
 the request. But luckily, many of these headers persist as <a href="http://en.wikipedia.org/wiki/Environment_variable">environment
 variables</a>, so can be
 accessed via <span
@@ -122,7 +122,7 @@ import functoolsimport osfrom google.appengine.ext.deferred import deferfrom goo
 <span class="nx">is</span> <span class="nb">checked</span> <span class="nx">against</span> <span class="nx">the</span> <span class="nb">name</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nb">default</span> <span class="nb">queue</span><span class="p">:</span> <span class="o">&lt;</span><span class="nx">span</span>
 <span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">default</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">.</span>
 <span class="nx">Again</span><span class="p">,</span> <span class="k">if</span> <span class="nx">this</span> <span class="nx">is</span> <span class="nx">incorrect</span> <span class="ow">or</span> <span class="nx">unset</span><span class="p">,</span> <span class="nx">an</span> <span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">EnvironmentError</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="err"> </span><span class="nx">is</span>
+<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">EnvironmentError</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">is</span>
 <span class="nx">raised.</span> <span class="k">If</span> <span class="nx">both</span> <span class="nx">these</span> <span class="nx">checks</span> <span class="nb">pass</span><span class="p">,</span> <span class="nx">the</span> <span class="nx">decorated</span> <span class="nb">method</span> <span class="nx">is</span> <span class="nx">called</span> <span class="k">with</span>
 <span class="nx">its</span> <span class="nb">arguments</span> <span class="ow">and</span> <span class="nx">the</span> <span class="nb">value</span> <span class="nx">is</span> <span class="nx">returned.</span>
 
@@ -139,7 +139,7 @@ variables:</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}
 HTTP_X_APPENGINE_TASKRETRYCOUNTHTTP_X_APPENGINE_QUEUENAMEHTTP_X_APPENGINE_TASKNAMEHTTP_X_APPENGINE_TASKEXECUTIONCOUNTHTTP_X_APPENGINE_TASKETAHTTP_X_APPENGINE_COUNTRYHTTP_X_APPENGINE_CURRENT_NAMESPACEPATH_INFO
 ~~~~</p>
-<p>*<strong>Specialized Worker</strong>: <em>I had two different reasons to raise a</em><span
+<p>*<strong>Specialized Worker</strong>:<em>I had two different reasons to raise a</em><span
 style="color: lime; font-family: Courier New, Courier, monospace;">SingularTaskFailure</span><em>in
 my worker. First, I was polling for resources that may not have been
 online, so wanted the task to sleep and then restart (after raising the

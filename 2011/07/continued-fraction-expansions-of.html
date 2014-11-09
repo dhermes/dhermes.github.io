@@ -75,16 +75,16 @@ proof of the fact that the continued fraction expansion of
 \(\sqrt{D}\) is periodic whenever \(D\) is not a perfect square.
 But have no fear, I found out about something called a <em>reduced
 quadratic irrational</em> and now have a proof. Here we go.</p>
-<p><strong>Definition</strong>: An irrational root \(\alpha\) of a quadratic equation
+<p><strong>Definition</strong>:An irrational root \(\alpha\) of a quadratic equation
 with integer coefficients is called <em>reduced</em> if \(\alpha > 1\) and
-its conjugate \(\tilde{\alpha}\) satisfies \(-1 \&lt; \tilde{\alpha}
-\&lt; 0\). \(\Box\)</p>
+its conjugate\(\tilde{\alpha}\) satisfies \(-1 \&lt; \tilde{\alpha}
+\&lt; 0\).\(\Box\)</p>
 <p>Solutions (since assumed real) of such quadratics can be written
-as \$\$\alpha = \frac{\sqrt{D} + P}{Q}\$\$ where \(D, P, Q \in
+as\$\$\alpha = \frac{\sqrt{D} + P}{Q}\$\$ where \(D, P, Q \in
 \mathbf{Z}\) and \(D, Q > 0\). It is also possible (though not
 required) to ensure that \(Q\) divides \(D - P\^2\). This is
 actually a necessary assumption for some of the stuff I do, is
-mentioned <a href="http://en.wikipedia.org/wiki/Periodic_continued_fraction#Relation_to_quadratic_irrationals">here</a> and
+mentioned<a href="http://en.wikipedia.org/wiki/Periodic_continued_fraction#Relation_to_quadratic_irrationals">here</a>and
 generally frustrated the heck out of me, so that. As an example for some
 enlightenment, notice \$\$\alpha = \frac{2 + \sqrt{7}}{4}\$\$ is
 reduced but \(4\) does not divide \(7 - 2\^2\). However, if we write
@@ -92,47 +92,47 @@ this as \(\frac{8 + \sqrt{112}}{16}\), we have our desired
 condition.</p>
 <p><strong>Definition</strong>: We say a reduced quadratic irrational \(\alpha\) is
 <em>associated</em> to \(D\) if we can write \$\$\alpha = \frac{P +
-\sqrt{D}}{Q}\$\$ and \(Q\) divides \(D - P\^2\). \(\Box\)
+\sqrt{D}}{Q}\$\$ and \(Q\) divides \(D - P\^2\).\(\Box\)
 <strong>
 </strong>
 <strong>Lemma 1</strong>: Transforming a reduced irrational root \(\alpha\)
-associated to \(D\) into its integer part and fractional part via
+associated to \(D\) into its integer part and fractional partvia
 \$\$\alpha = \lfloor \alpha \rfloor + \frac{1}{\alpha'},\$\$ the
-resulting quadratic irrational \(\alpha'\) is reduced and associated
-to \(D\) as well. (This is what one does during continued fraction
-expansion, and as I did with \(\sqrt{2}\) during my <a href="http://blog.bossylobster.com/2011/07/continued-fractions-for-greater-good.html">last
+resulting quadratic irrational \(\alpha'\) is reduced andassociated
+to \(D\)as well.(This is what one does during continued fraction
+expansion, and as I did with \(\sqrt{2}\) during my<a href="http://blog.bossylobster.com/2011/07/continued-fractions-for-greater-good.html">last
 post</a>.)</p>
 <p><strong>Proof</strong>: Letting \$\$\alpha = \frac{\sqrt{D} + P}{Q}\$\$ and \(X
-= \lfloor \alpha \rfloor\), we have \$\$\frac{1}{\alpha'} =
+=\lfloor \alpha \rfloor\), we have \$\$\frac{1}{\alpha'} =
 \frac{\sqrt{D} - (QX - P)}{Q}.\$\$</p>
 <ul>
 <li>Since \(\sqrt{D}\) is irrational, we must have
     \(\frac{1}{\alpha'} > 0\) and since \(\frac{1}{\alpha'}\)
-    is the fractional part we know \$\$0 \&lt; \frac{1}{\alpha'} \&lt; 1
-    \Rightarrow \alpha' > 1.\$\$ </li>
+    is the fractional part we know \$\$0 \&lt;\frac{1}{\alpha'} \&lt; 1
+    \Rightarrow\alpha' > 1.\$\$</li>
 <li>Transforming \$\$\alpha' = \frac{Q}{\sqrt{D} - (QX - P)}
-    \cdot \frac{\sqrt{D} + (QX - P)}{\sqrt{D} + (QX - P)}
-    = \frac{\sqrt{D} + (QX - P)}{\frac{1}{Q}\left(D - (QX -
-    P)\^2\right)},\$\$ we have \(P' = QX - P\) and \(Q'
-    = \frac{1}{Q}\left(D - (QX - P)\^2\right)\) and need to show
-    \(Q' \in \mathbf{Z}\). But \(D - (QX - P)\^2 \equiv D - P\^2
+    \cdot\frac{\sqrt{D} + (QX - P)}{\sqrt{D} + (QX - P)}
+    =\frac{\sqrt{D} + (QX - P)}{\frac{1}{Q}\left(D - (QX -
+    P)\^2\right)},\$\$ we have \(P' = QX - P\) and\(Q'
+    =\frac{1}{Q}\left(D - (QX - P)\^2\right)\) and need to show
+    \(Q' \in \mathbf{Z}\).But \(D - (QX - P)\^2 \equiv D - P\^2
     \bmod{Q}\) and since \(\alpha\) is associated to \(D\),
     \(Q\) must divide this quantity, hence \(Q'\) is an integer.</li>
 <li>Since \(X = \lfloor\frac{\sqrt{D} + P}{Q}\rfloor\) is an
-    integer and \(\alpha\) is irrational, we know \(X \&lt;
+    integer and \(\alpha\) is irrational, we know\(X \&lt;
     \frac{\sqrt{D} + P}{Q}\) hence \(P' = QX - P \&lt; \sqrt{D}\)
     forcing \(\tilde{\alpha}' \&lt; 0\).</li>
 <li>Since \(\alpha > 1\) we know \(X \geq 1 \Leftrightarrow 0
     \leq X - 1\). Thus \begin{align*}\tilde{\alpha} = \frac{P -
     \sqrt{D}}{Q} &amp;\&lt; 0 \leq X - 1 \\ \Rightarrow Q &amp;\&lt; \sqrt{D} +
-    (QX - P) \\ \Rightarrow Q(\sqrt{D} - (QX - P)) &amp;\&lt; D - (QX -
-    P)\^2 \\ \Rightarrow -\tilde{\alpha}' = \frac{\sqrt{D} - (QX<ul>
+    (QX - P) \\\Rightarrow Q(\sqrt{D} - (QX - P))&amp;\&lt; D - (QX -
+    P)\^2 \\\Rightarrow -\tilde{\alpha}' = \frac{\sqrt{D} - (QX<ul>
 <li>P)}{\frac{1}{Q}\left(D - (QX - P)\^2\right)} &amp;\&lt;
-1 \end{align*} hence \(\tilde{\alpha}' > -1\) and
+1\end{align*} hence \(\tilde{\alpha}' > -1\) and
 \(\alpha'\) is reduced.</li>
 </ul>
 </li>
-<li>Since \(Q' = \frac{1}{Q}\left(D - (P')\^2\right)\), we know
+<li>Since\(Q' =\frac{1}{Q}\left(D - (P')\^2\right)\), we know
     \$\$D - (P')\^2 \equiv Q Q' \equiv 0 \bmod{Q'}\$\$ hence
     \(\alpha'\) is associated to \(D\).</li>
 </ul>
@@ -144,8 +144,8 @@ post</a>.)</p>
 <strong>Lemma 2</strong>: There are finitely many reduced quadratic irrationals
 associated to a fixed \(D\).</p>
 <p><strong>Proof</strong>: As above write an arbitrary reduced irrational as \(\alpha
-= \frac{\sqrt{D} + P}{Q}\).  Since \(\alpha > 1\)
-and \(\tilde{\alpha} > -1\), we know \(\alpha + \tilde{\alpha}
+= \frac{\sqrt{D} + P}{Q}\). Since \(\alpha > 1\)
+and\(\tilde{\alpha} > -1\), we know \(\alpha + \tilde{\alpha}
 = \frac{2P}{Q} > 0\) hence with the assumption \(Q > 0\) we have
 \(P > 0\). Since \(\tilde{\alpha} \&lt; 0\) we also have \(P \&lt;
 \sqrt{D}\). Also, since \(\alpha > 1\) by assumption we have \(Q
@@ -153,7 +153,7 @@ and \(\tilde{\alpha} > -1\), we know \(\alpha + \tilde{\alpha}
 for both \(P\) and \(Q\), forcing finitely many reduced quadratic
 irrationals associated to a fixed \(D\) (this amount is strictly
 bounded above by \(2D\)). \(\Box\)</p>
-<p><strong>Claim</strong>: The continued fraction expansion of \(\sqrt{D}\) is
+<p><strong>Claim</strong>:The continued fraction expansion of \(\sqrt{D}\) is
 periodic whenever \(D\) is not a perfect square.</p>
 <p><strong>Proof</strong>: We'll use Lemma 1 to establish a series of reduced quadratic
 irrationals associated to \(D\) and then use Lemma 2 to assert this
@@ -166,20 +166,20 @@ irrationals.</p>
     \(D\).</li>
 <li>By defining \(a_{i+1} = \lfloor \alpha_i \rfloor\) and
     \(\alpha_i = a_{i + 1} + \frac{1}{\alpha_{i +
-    1}}\), \(\alpha_{i + 1}\) is also a reduced quadratic
+    1}}\),\(\alpha_{i + 1}\) is also a reduced quadratic
     irrational associated to \(D\) (assuming all \(\alpha\) up
     until \(i\) are as well).</li>
 </ul>
 <p>Since \(\frac{1}{\alpha_0}\) is the fractional part of the
-irrational \(\sqrt{D}\), we have \$\$0 \&lt; \frac{1}{\alpha_0} \&lt; 1
-\Rightarrow \alpha_0 > 1.\$\$ By simple algebra, we have
+irrational \(\sqrt{D}\), we have\$\$0 \&lt; \frac{1}{\alpha_0} \&lt; 1
+\Rightarrow \alpha_0 > 1.\$\$By simple algebra, we have
 \$\$\alpha_0 = \frac{a_0 + \sqrt{D}}{D - a_0\^2}, \qquad
 \tilde{\alpha_0} = \frac{a_0 - \sqrt{D}}{D - a_0\^2}.\$\$ Since
 \(a_0\) is the floor, we know \(a_0 - \sqrt{D} \&lt; 0
-\Rightarrow \tilde{\alpha_0} \&lt; 0\). Since \(D \in \mathbf{Z}
+\Rightarrow\tilde{\alpha_0} \&lt; 0\). Since \(D \in \mathbf{Z}
 \Rightarrow \sqrt{D} > 1\) and \(\sqrt{D} > a_0\), we have
-\$\$1 \&lt; \sqrt{D} + a_0 \Rightarrow \sqrt{D} - a_0 \&lt; D -
-a_0\^2 \Rightarrow a_0 - \sqrt{D} > -(D - a_0\^2) \Rightarrow
+\$\$1 \&lt; \sqrt{D} + a_0 \Rightarrow\sqrt{D} - a_0 \&lt; D -
+a_0\^2\Rightarrow a_0 - \sqrt{D} > -(D - a_0\^2)\Rightarrow
 \tilde{\alpha_0} > -1.\$\$ Thus \(\alpha_0\) is a reduced
 quadratic irrational. Since \(P_0 = a_0\) and \(Q_0 = D - a_0\^2
 = D - P_0\^2\), \(Q_0\) clearly divides \(D - P_0\^2\) so
@@ -195,7 +195,7 @@ by \(\alpha_i\) we will then have \(\alpha_{k + j} =
 periodic. Similarly, as the \(a_i\) for \(i > 0\) are determined
 completely by \(\alpha_{i - 1}\), the \(a_i\) must be periodic as
 well, forcing the continued fraction expansion \$\$\sqrt{D} = a_0 +
-\cfrac{1}{a_1 + \cfrac{1}{a_2 + \ddots}}\$\$ to be
+\cfrac{1}{a_1 +\cfrac{1}{a_2 +\ddots}}\$\$ to be
 periodic.\(\Box\)</p>
 <p><strong>Update:</strong> I
 <a href="http://www.proofwiki.org/wiki/Continued_Fraction_Expansion_of_Irrational_Square_Root">posted this</a>

@@ -70,17 +70,17 @@
       <p class="meta"><time datetime="2011-08-29T00:00:00-07:00" pubdate>Aug 29, 2011</time></p>
 </header>
 
-  <div class="entry-content"><p>This is the <em>mostly code</em> second half of a <a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets.html">two part
+  <div class="entry-content"><p>This is the<em>mostly code</em>second half of a <a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets.html">two part
 post</a>
 that delivers on a promise of meaningful uses of some theory I
-overviewed in my last set of posts. If you see words like topograph,
+overviewed in my last set of posts.If you see words like topograph,
 river, and base and you aren't sure what I mean, you may want to read
-that last <a href="http://blog.bossylobster.com/2011/08/conways-topograph-part-3.html">set of
+that last<a href="http://blog.bossylobster.com/2011/08/conways-topograph-part-3.html">set of
 posts</a>.</p>
 <p>In the first half of this post, I outlined a solution to Project Euler
 <a href="http://projecteuler.net/index.php?section=problems&amp;id=137">problem
-137</a> and will
-continue with the solution here. Stop reading now if you don't want to
+137</a>and will
+continue with the solution here.Stop reading now if you don't want to
 be spoiled. There was no code in the first post, so this post will be
 mostly code, providing a pretty useful abstraction for dealing with
 binary quadratic forms.</p>
@@ -89,9 +89,9 @@ completely classify all integer solutions to the equation \(5 x\^2 -
 y\^2 = 4\) due to some dumb luck. In the solution, we were able to use
 "Since every edge protruding from the river on the positive side has a
 value of 4 on a side...by the climbing lemma, we know all values above
-those on the river have value greater than 4," but this is no help when
+those on the river have value greater than 4," butthis is no help when
 trying to find solutions to \(5 x\^2 - y\^2 = 9\), for example.</p>
-<p>To answer the question \(5 x\^2 - y\^2 = 9\), we'll use the same
+<p>To answer the question\(5 x\^2 - y\^2 = 9\), we'll use the same
 pretty picture, but emphasize different parts of it. As you can see
 below, to classify all the values, we only need to travel from the
 initial base</p>
@@ -109,16 +109,16 @@ indicate below:</p>
 
 </div>
 
-<p>As noted above, for problem 137, we luckily were concerned about finding
+<p>As noted above,for problem 137, we luckily were concerned about finding
 values \(4\) or \(1\), and the climbing lemma saved us from leaving
 the river. However, as I've noted above with <span
 class="Apple-style-span" style="color: #6fa8dc;">#1</span>,<span
-class="Apple-style-span" style="color: #6fa8dc;"> #2</span>,<span
-class="Apple-style-span" style="color: #6fa8dc;"> #3</span>, and <span
+class="Apple-style-span" style="color: #6fa8dc;">#2</span>,<span
+class="Apple-style-span" style="color: #6fa8dc;">#3</span>, and<span
 class="Apple-style-span" style="color: #6fa8dc;">#4</span>, there are
-four <em>tributaries</em> coming from the river where we can consider larger
-values. Using the <em>Arithmetic Progression Rule</em>, we find values
-\(19\), \(11\), \(11\), and \(19\) as the first set of values
+four <em>tributaries</em>coming from the river where we can consider larger
+values. Using the<em>Arithmetic Progression Rule</em>, we find values
+\(19\),\(11\),\(11\), and\(19\) as the first set of values
 above the river. From this point, we can stop checking for solutions to
 \(f(x, y) = 9\) since the climbing lemma says all further values above
 the tributaries will be \(11\) or greater. Thus, the only solutions
@@ -137,21 +137,21 @@ organize a juncture as a tuple \((B, P, N, F)\), (in that order)</p>
 
 </div>
 
-<p>where \(P\) and \(N\) form a base straddling the river, with \(P\)
- taking the positive value and \(N\) negative, as well as \(B\) the
-face "back" according to our orientation and \(F\)  the face
+<p>where \(P\) and\(N\) form a base straddling the river, with \(P\)
+taking the positive value and \(N\) negative, as well as \(B\) the
+face "back" according to our orientation and \(F\) the face
 "forward". Note, depending on the value of the form at \(F\), the
 river may "turn left" or "turn right" at the superbase formed by
 \(P\), \(N\) and \(F\).</p>
 <p>To move "along the river until we arrive at an identical base", we need
-a way to move "forward" (according to our imposed orientation) to the
-next juncture on the river. Moving along the river, we'll often come to
+a way to move "forward" (according to our imposed orientation)to the
+next juncture on the river.Moving along the river, we'll often come to
 superbases \((B, N, P)\) and need to calculate the forward face
 \(F\). To calculate \(F\), assume we have <a href="http://code.google.com/p/dhermes-project-euler/source/browse/python_code/conway_topograph.py#33">already
 written</a>
 a <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">plus</span> function that
-determines the vector at \(F\) by adding the vectors from \(P\) and
+style="color: lime; font-family: 'Courier New', Courier, monospace;">plus</span>functionthat
+determines the vector at \(F\)by adding the vectors from \(P\) and
 \(N\) and determines the value at \(F\) by using the arithmetic
 progression rule with the values at all three faces in the superbase.
 Using this helper function, we can define a way to get the next juncture
@@ -173,7 +173,7 @@ the positive faces on the river to generalize the solution of \(f(x, y)
 = z\). For both of these problems, we impose a simplification for the
 sake of illustration. We will only be considering quadratic forms
 \[f(x, y) = a x\^2 + b y\^2\] where \(a > 0\), \(b \&lt; 0\) and
-\(\sqrt{\left|\frac{a}{b}\right|}\) is not rational. This
+\(\sqrt{\left|\frac{a}{b}\right|}\) is not rational.This
 guarantees the existence of a river. We will pass such forms as an
 argument <span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">form=(a,
@@ -189,13 +189,13 @@ by the trivial base \((1, 0), (0, 1)\)
 an identical juncture where the trivial base is replaced by the base
 \((p, q), (r, s)\). Using the same terminology as in <a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets.html">part
 one</a>,
-let the base vectors define a sequence \(\left\{(u_k,
-v_k)\right\}_{k \geq 0}\) with \(u_0 = (1, 0)\) and \(v_0 =
-(0, 1)\), then we have a recurrence \begin{align*}u_{k + 1} &amp;= p
+let the base vectors define a sequence\(\left\{(u_k,
+v_k)\right\}_{k \geq 0}\) with \(u_0 = (1, 0)\) and\(v_0 =
+(0, 1)\), then we have a recurrence\begin{align*}u_{k + 1} &amp;= p
 u_k + q v_k \\ v_{k + 1} &amp;= r u_k + s v_k. \end{align*} Using
 this -- \(u_{k + 2} - p u_{k + 1} - s(u_{k + 1} - p u_k) = q v_{k
 + 1} - s (q v_k) = q(r u_k)\) -- hence \(u\) satisfies the
-recurrence \(u_{k + 2} = (r q - p s)u_k + (p + s)u_{k + 1}\). (You
+recurrence\(u_{k + 2} = (r q - p s)u_k + (p + s)u_{k + 1}\). (You
 can check that \(v\) satisfies this as well.) Hence our function to
 spit out the recurrence coefficients is:
 ~~~~ {.prettyprint style="background-color: white;"}
@@ -203,7 +203,7 @@ def get_recurrence(form):    a, b = form    B = ((1, -1), a + b)    P = ((1, 0),
 <div class="highlight"><pre><span class="nb">For</span> <span class="nx">solving</span> <span class="o">\\</span><span class="p">(</span><span class="nb">f</span><span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">)</span> <span class="o">=</span> <span class="nb">z</span><span class="o">\\</span><span class="p">),</span> <span class="p">(</span><span class="o">\\</span><span class="p">(</span><span class="nb">z</span><span class="o">\\</span><span class="p">)</span> <span class="nx">positive</span><span class="p">)</span> <span class="nx">we</span> <span class="nx">need</span> <span class="k">to</span> <span class="nx">consider</span>
 <span class="kc">all</span> <span class="nx">the</span> <span class="nx">positive</span> <span class="nx">tributaries</span> <span class="nx">coming</span> <span class="nb">out</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">river</span> <span class="ow">and</span> <span class="k">let</span> <span class="n">them</span> <span class="nx">grow</span>
 <span class="ow">and</span> <span class="nx">grow</span> <span class="nx">until</span> <span class="nx">the</span> <span class="nx">climbing</span> <span class="nx">lemma</span> <span class="nx">tells</span> <span class="nx">us</span> <span class="nx">we</span> <span class="nx">no</span> <span class="nx">longer</span> <span class="nx">need</span> <span class="k">to</span> <span class="nx">consider</span>
-<span class="nb">values</span> <span class="nx">larger</span> <span class="nx">than</span> <span class="o">\\</span><span class="p">(</span><span class="nb">z</span><span class="o">\\</span><span class="p">)</span><span class="nx">.</span><span class="err"> </span><span class="k">In</span> <span class="k">order</span> <span class="k">to</span> <span class="nx">consider</span> <span class="nx">tributaries</span><span class="p">,</span> <span class="nx">we</span>
+<span class="nb">values</span> <span class="nx">larger</span> <span class="nx">than</span> <span class="o">\\</span><span class="p">(</span><span class="nb">z</span><span class="o">\\</span><span class="p">)</span><span class="bp">.</span><span class="nb">In</span> <span class="k">order</span> <span class="k">to</span> <span class="nx">consider</span> <span class="nx">tributaries</span><span class="p">,</span> <span class="nx">we</span>
 <span class="nb">describe</span> <span class="nx">a</span> <span class="nb">new</span> <span class="nx">kind</span> <span class="nx">of</span> <span class="nx">juncture.</span> <span class="nx">Instead</span> <span class="nx">of</span> <span class="nx">having</span> <span class="nx">a</span> <span class="nx">positive</span><span class="p">/</span><span class="nx">negative</span>
 <span class="n">base</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">center</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nx">juncture</span><span class="p">,</span> <span class="nx">we</span> <span class="nx">have</span> <span class="nx">two</span> <span class="nx">consecutive</span> <span class="nx">faces</span> <span class="nb">from</span>
 <span class="nx">the</span> <span class="nx">positive</span> <span class="nx">side</span>
@@ -240,14 +240,14 @@ def seek_up_to_val(juncture, max_value):    N, P_1, P_2, P_F = juncture    if P_
 
 <p>Combining <span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">all_values_on_form</span>
-with <span class="Apple-style-span"
+with<span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">get_recurrence</span>,
 we can parameterize every existing solution!</p>
 <p>As far as Project Euler is concerned, in addition to Problem 137, I was
 able to write lightning fast solutions to <a href="http://projecteuler.net/index.php?section=problems&amp;id=66">Problem
 66</a>, <a href="http://projecteuler.net/index.php?section=problems&amp;id=94">Problem
-94</a>, <a href="http://projecteuler.net/index.php?section=problems&amp;id=100">Problem 100</a>, <a href="http://projecteuler.net/index.php?section=problems&amp;id=138">Problem 138</a>
-and <a href="http://projecteuler.net/index.php?section=problems&amp;id=140">Problem 140</a> using
+94</a>,<a href="http://projecteuler.net/index.php?section=problems&amp;id=100">Problem100</a>,<a href="http://projecteuler.net/index.php?section=problems&amp;id=138">Problem138</a>
+and<a href="http://projecteuler.net/index.php?section=problems&amp;id=140">Problem140</a>using
 tools based on the above -- a general purpose library for solving binary
 quadratic forms over integers!</p>
 </div>
