@@ -91,17 +91,17 @@ a bunch of code is about to happen. See the necessary
 at the bottom of the post.)</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}
 class ExtendedHandler(RequestHandler):    def handle_exception(self, exception, debug_mode):        traceback_info = ''.join(format_exception(*sys.exc_info()))        email_admins(traceback_info, defer_now=True)        serve_500(self)</p>
-<div class="highlight"><pre><span class="nx">Awesome</span><span class="o">!</span> <span class="k">By</span> <span class="nx">making</span> <span class="kc">all</span> <span class="nx">my</span> <span class="nx">handlers</span> <span class="nx">inherit</span> <span class="nb">from</span> <span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">ExtendedHandler</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span>
-<span class="nx">I</span> <span class="nx">can</span> <span class="nx">use</span> <span class="nx">the</span> <span class="nx">native</span> <span class="nx">Python</span> <span class="nx">modules</span> <span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">traceback</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
-<span class="ow">and</span> <span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">sys</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="k">to</span>
-<span class="nb">get</span> <span class="nx">the</span> <span class="nx">traceback</span> <span class="ow">and</span> <span class="nx">my</span> <span class="nx">handy</span> <span class="nx">dandy</span>
+<div class="highlight"><pre>Awesome! By making all my handlers inherit from <span class="nt">&lt;span</span>
+<span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>ExtendedHandler<span class="nt">&lt;/span&gt;</span>,
+I can use the native Python modules <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>traceback<span class="nt">&lt;/span&gt;</span>
+and <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>sys<span class="nt">&lt;/span&gt;</span>to
+get the traceback and my handy dandy
 
-<span class="err">~~~~</span> <span class="p">{</span><span class="bp">.</span><span class="nx">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;background-color: white;&quot;</span><span class="p">}</span>
-<span class="nx">def</span> <span class="nx">email_admins</span><span class="p">(</span><span class="nb">error_msg</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>    <span class="k">if</span> <span class="nx">defer_now</span><span class="p">:</span>        <span class="nb">defer</span><span class="p">(</span><span class="nx">email_admins</span><span class="p">,</span> <span class="nb">error_msg</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>        <span class="k">return</span>    <span class="n">sender</span> <span class="o">=</span> <span class="s1">&#39;YOUR APP Errors &lt;errors@your_app_id_here.appspotmail.com&gt;&#39;</span>    <span class="k">to</span> <span class="o">=</span> <span class="s1">&#39;Robert Admin &lt;bob@example.com&gt;, James Nekbehrd &lt;jim@example.com&gt;&#39;</span>    <span class="n">subject</span> <span class="o">=</span> <span class="s1">&#39;YOUR APP Error: Admin Notify&#39;</span>    <span class="n">body</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="bp">.</span><span class="nb">join</span><span class="p">(</span><span class="err">[</span><span class="s1">&#39;Dearest Admin,&#39;</span><span class="p">,</span>                      <span class="s1">&#39;&#39;</span><span class="p">,</span>                      <span class="s1">&#39;An error has occurred in YOUR APP:&#39;</span><span class="p">,</span>                      <span class="nb">error_msg</span><span class="p">,</span>                      <span class="s1">&#39;&#39;</span><span class="cp">]</span>)    mail.send_mail(sender=sender, to=to,                   subject=subject, body=body)
+~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
+def email_admins(error_msg, defer_now=False):    if defer_now:        defer(email_admins, error_msg, defer_now=False)        return    sender = &#39;YOUR APP Errors <span class="nt">&lt;errors</span><span class="err">@your_app_id_here.appspotmail.com</span><span class="nt">&gt;</span>&#39;    to = &#39;Robert Admin <span class="nt">&lt;bob</span><span class="err">@example.com</span><span class="nt">&gt;</span>, James Nekbehrd <span class="nt">&lt;jim</span><span class="err">@example.com</span><span class="nt">&gt;</span>&#39;    subject = &#39;YOUR APP Error: Admin Notify&#39;    body = &#39;\n&#39;.join([&#39;Dearest Admin,&#39;,                      &#39;&#39;,                      &#39;An error has occurred in YOUR APP:&#39;,                      error_msg,                      &#39;&#39;])    mail.send_mail(sender=sender, to=to,                   subject=subject, body=body)
 </pre></div>
 
 
@@ -157,8 +157,7 @@ your</em><span class="Apple-style-span"
 style="background-color: white; color: purple; font-family: 'Courier New', Courier, monospace;">app.yaml</span><em>by
 using</em><span class="Apple-style-span"
 style="color: lime; font-family: 'Courier New', Courier, monospace;">deferred:
-on</span><em>in your builtins.</em></p>
-<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+on</span><em>in your builtins.</em></p></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">

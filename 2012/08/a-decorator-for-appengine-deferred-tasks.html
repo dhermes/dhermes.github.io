@@ -110,26 +110,26 @@ and let the function do it's own work in peace.</p>
 about it, so here it is:</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}
 import functoolsimport osfrom google.appengine.ext.deferred import deferfrom google.appengine.ext.deferred.deferred import _DEFAULT_QUEUE as DEFAULT_QUEUEfrom google.appengine.ext.deferred.deferred import _DEFAULT_URL as DEFERRED_URLQUEUE_KEY = 'HTTP_X_APPENGINE_QUEUENAME'URL_KEY = 'PATH_INFO'def DeferredWorkerDecorator(method):  @functools.wraps(method)  def DeferredOnlyMethod(*args, <strong>kwargs):    path_info = os.environ.get(URL_KEY, '')    if path_info != DEFERRED_URL:      raise EnvironmentError('Wrong path of execution: {}'.format(path_info))    queue_name = os.environ.get(QUEUE_KEY, '')    if queue_name != DEFAULT_QUEUE:      raise EnvironmentError('Wrong queue name: {}'.format(queue_name))    return method(*args, </strong>kwargs)  return DeferredOnlyMethod</p>
-<div class="highlight"><pre><span class="nx">This</span> <span class="nx">decorator</span> <span class="nb">first</span> <span class="nx">checks</span> <span class="k">if</span> <span class="nx">the</span> <span class="nx">environment</span> <span class="kd">variable</span> <span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">PATH</span><span class="o">\</span><span class="nx">_INFO</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
-<span class="nx">is</span> <span class="nb">set</span> <span class="k">to</span> <span class="nx">the</span> <span class="nb">default</span> <span class="nb">value</span> <span class="nb">for</span> <span class="nx">the</span> <span class="nx">deferred</span> <span class="nb">queue</span><span class="p">:</span> <span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;/\</span><span class="nx">_ah</span><span class="p">/</span><span class="nb">queue</span><span class="p">/</span><span class="nx">deferred</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">.</span>
-<span class="k">If</span> <span class="nx">this</span> <span class="nx">is</span> <span class="ow">not</span> <span class="nx">the</span> <span class="k">case</span> <span class="p">(</span><span class="ow">or</span> <span class="k">if</span> <span class="nx">the</span> <span class="nx">environment</span> <span class="kd">variable</span> <span class="nx">is</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">),</span> <span class="nx">an</span>
-<span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">EnvironmentError</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
-<span class="nx">is</span> <span class="nx">raised.</span> <span class="nx">Then</span> <span class="nx">the</span> <span class="nx">environment</span> <span class="kd">variable</span> <span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">HTTP</span><span class="o">\</span><span class="nx">_X</span><span class="o">\</span><span class="nx">_APPENGINE</span><span class="o">\</span><span class="nx">_QUEUENAME</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
-<span class="nx">is</span> <span class="nb">checked</span> <span class="nx">against</span> <span class="nx">the</span> <span class="nb">name</span> <span class="nx">of</span> <span class="nx">the</span> <span class="nb">default</span> <span class="nb">queue</span><span class="p">:</span> <span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nb">default</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">.</span>
-<span class="nx">Again</span><span class="p">,</span> <span class="k">if</span> <span class="nx">this</span> <span class="nx">is</span> <span class="nx">incorrect</span> <span class="ow">or</span> <span class="nx">unset</span><span class="p">,</span> <span class="nx">an</span> <span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">EnvironmentError</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="nx">is</span>
-<span class="nx">raised.</span> <span class="k">If</span> <span class="nx">both</span> <span class="nx">these</span> <span class="nx">checks</span> <span class="nb">pass</span><span class="p">,</span> <span class="nx">the</span> <span class="nx">decorated</span> <span class="nb">method</span> <span class="nx">is</span> <span class="nx">called</span> <span class="k">with</span>
-<span class="nx">its</span> <span class="nb">arguments</span> <span class="ow">and</span> <span class="nx">the</span> <span class="nb">value</span> <span class="nx">is</span> <span class="nx">returned.</span>
+<div class="highlight"><pre>This decorator first checks if the environment variable <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>PATH\_INFO<span class="nt">&lt;/span&gt;</span>
+is set to the default value for the deferred queue: <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>/\_ah/queue/deferred<span class="nt">&lt;/span&gt;</span>.
+If this is not the case (or if the environment variable is not set), an
+<span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>EnvironmentError<span class="nt">&lt;/span&gt;</span>
+is raised. Then the environment variable <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>HTTP\_X\_APPENGINE\_QUEUENAME<span class="nt">&lt;/span&gt;</span>
+is checked against the name of the default queue: <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>default<span class="nt">&lt;/span&gt;</span>.
+Again, if this is incorrect or unset, an <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>EnvironmentError<span class="nt">&lt;/span&gt;</span>is
+raised. If both these checks pass, the decorated method is called with
+its arguments and the value is returned.
 
-<span class="k">To</span> <span class="nx">use</span> <span class="nx">this</span> <span class="nx">decorator</span><span class="p">:</span>
+To use this decorator:
 
-<span class="err">~~~~</span> <span class="p">{</span><span class="bp">.</span><span class="nx">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;background-color: white;&quot;</span><span class="p">}</span>
-<span class="k">import</span> <span class="nx">timefrom</span> <span class="nx">google.appengine.ext.deferred</span> <span class="k">import</span> <span class="nx">SingularTaskFailure</span><span class="p">@</span><span class="nx">DeferredWorkerDecoratordef</span> <span class="nx">WorkerMethod</span><span class="p">():</span>  <span class="k">if</span> <span class="nx">too_busy</span><span class="p">():</span>    <span class="nx">time.sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>    <span class="nx">raise</span> <span class="nx">SingularTaskFailure</span>   <span class="err">#</span> <span class="k">do</span> <span class="nx">workWorkerMethod</span><span class="p">()</span>  <span class="err">#</span> <span class="nx">This</span> <span class="nx">will</span> <span class="nb">fail</span> <span class="k">with</span> <span class="nx">an</span> <span class="nx">EnvironmentErrordefer</span><span class="p">(</span><span class="nx">WorkerMethod</span><span class="p">)</span>  <span class="err">#</span> <span class="nx">This</span> <span class="nx">will</span> <span class="nb">perform</span> <span class="nx">the</span> <span class="nx">work</span><span class="p">,</span> <span class="n">but</span> <span class="k">in</span> <span class="nx">it</span><span class="s1">&#39;s own task</span>
+~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
+import timefrom google.appengine.ext.deferred import SingularTaskFailure@DeferredWorkerDecoratordef WorkerMethod():  if too_busy():    time.sleep(30)    raise SingularTaskFailure   # do workWorkerMethod()  # This will fail with an EnvironmentErrordefer(WorkerMethod)  # This will perform the work, but in it&#39;s own task
 </pre></div>
 
 
@@ -146,8 +146,7 @@ online, so wanted the task to sleep and then restart (after raising the
 one time failure). Second, I was using a special sentinel in the
 datastore to determine if the current user had any other job in
 progress. Again, I wanted to sleep and try again until the current
-user's other job had completed.</em></p>
-<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+user's other job had completed.</em></p></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">

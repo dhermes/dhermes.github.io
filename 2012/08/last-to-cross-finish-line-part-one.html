@@ -119,37 +119,37 @@ compute task.</p>
 a simple structure:</p>
 <p>~~~~ {.prettyprint style="background-color: white;"}
 gae-last-across-the-finish-line/|-- app.yaml|-- display.py|-- main.py|-- models.py+-- templates/       +-- main.html</p>
-<div class="highlight"><pre><span class="nx">We</span><span class="s1">&#39;ll inspect each of the Python modules &lt;span</span>
-<span class="s1">style=&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;&gt;display.py&lt;/span&gt;,</span>
-<span class="s1">&lt;span</span>
-<span class="s1">style=&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;&gt;main.py&lt;/span&gt;</span>
-<span class="s1">and &lt;span</span>
-<span class="s1">style=&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;&gt;models.py&lt;/span&gt;individually</span>
-<span class="s1">and explore how they interact with one another. In addition to this,</span>
-<span class="s1">we&#39;</span><span class="nx">ll</span> <span class="nx">briefly</span> <span class="nx">inspect</span> <span class="nx">the</span> <span class="nx">HTML</span> <span class="ow">and</span> <span class="nb">Javascript</span> <span class="n">contained</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">template</span>
-<span class="o">&lt;</span><span class="nx">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">main.html</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span><span class="p">,</span>
-<span class="k">to</span> <span class="nx">understand</span> <span class="nx">how</span> <span class="nx">the</span> <span class="nb">workers</span> <span class="nb">pass</span> <span class="nx">messages</span> <span class="nb">back</span> <span class="k">to</span> <span class="nx">the</span> <span class="n">client.</span>
+<div class="highlight"><pre>We&#39;ll inspect each of the Python modules <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>display.py<span class="nt">&lt;/span&gt;</span>,
+<span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>main.py<span class="nt">&lt;/span&gt;</span>
+and <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>models.py<span class="nt">&lt;/span&gt;</span>individually
+and explore how they interact with one another. In addition to this,
+we&#39;ll briefly inspect the HTML and Javascript contained in the template
+<span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>main.html<span class="nt">&lt;/span&gt;</span>,
+to understand how the workers pass messages back to the client.
 
-<span class="k">In</span> <span class="nx">this</span> <span class="nx">post</span><span class="p">,</span> <span class="nx">I</span> <span class="nx">will</span> <span class="nx">explain</span> <span class="nx">the</span> <span class="nx">actual</span> <span class="nx">background</span> <span class="nx">work</span> <span class="nx">we</span> <span class="nx">did</span> <span class="ow">and</span>
-<span class="nx">briefly</span> <span class="nb">touch</span> <span class="k">on</span> <span class="nx">the</span> <span class="nx">methods</span> <span class="nb">for</span> <span class="nx">communicating</span> <span class="k">with</span> <span class="nx">the</span> <span class="nx">client</span><span class="p">,</span> <span class="nx">but</span>
-<span class="nx">won</span><span class="s1">&#39;t get into client side code or the generic code for running the</span>
-<span class="s1">workers and watching them all as they cross the finish line. In the</span>
-<span class="s1">second post, we&#39;</span><span class="nx">ll</span> <span class="nx">examine</span> <span class="nx">the</span> <span class="nx">client</span> <span class="nx">side</span> <span class="nb">code</span> <span class="n">and</span> <span class="k">in</span> <span class="nx">the</span> <span class="nx">third</span><span class="p">,</span> <span class="nx">we</span><span class="s1">&#39;ll</span>
-<span class="s1">discuss the models that orchestrate the work.</span>
+In this post, I will explain the actual background work we did and
+briefly touch on the methods for communicating with the client, but
+won&#39;t get into client side code or the generic code for running the
+workers and watching them all as they cross the finish line. In the
+second post, we&#39;ll examine the client side code and in the third, we&#39;ll
+discuss the models that orchestrate the work.
 
-<span class="s1">&lt;span style=&quot;font-size: large;&quot;&gt;Workers&lt;/span&gt;</span>
-<span class="s1">----------------------------------------------</span>
+<span class="nt">&lt;span</span> <span class="na">style=</span><span class="s">&quot;font-size: large;&quot;</span><span class="nt">&gt;</span>Workers<span class="nt">&lt;/span&gt;</span>
+----------------------------------------------
 
-<span class="s1">These worker methods are defined in[&lt;span</span>
-<span class="s1">style=&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;&gt;display.py&lt;/span&gt;](http://code.google.com/p/gae-last-across-the-finish-line/source/browse/display.py).</span>
-<span class="s1">To generate the random colors, we simply choose a hexadecimal digit six</span>
-<span class="s1">different times and throw a &lt;span</span>
-<span class="s1">style=&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;&gt;\#&lt;/span&gt;</span>
-<span class="s1">on at the beginning:</span>
+These worker methods are defined in[<span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>display.py<span class="nt">&lt;/span&gt;</span>](http://code.google.com/p/gae-last-across-the-finish-line/source/browse/display.py).
+To generate the random colors, we simply choose a hexadecimal digit six
+different times and throw a <span class="nt">&lt;span</span>
+<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>\#<span class="nt">&lt;/span&gt;</span>
+on at the beginning:
 
-<span class="s1">~~~~ {.prettyprint style=&quot;background-color: white;&quot;}</span>
-<span class="s1">import randomHEX_DIGITS = &#39;</span><span class="mi">0123456789</span><span class="nx">ABCDEF</span><span class="s1">&#39;def RandHexColor(length=6):  result = [random.choice(HEX_DIGITS) for _ in range(length)]  return &#39;</span><span class="err">#</span><span class="s1">&#39; + &#39;&#39;.join(result)</span>
+~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
+import randomHEX_DIGITS = &#39;0123456789ABCDEF&#39;def RandHexColor(length=6):  result = [random.choice(HEX_DIGITS) for _ in range(length)]  return &#39;#&#39; + &#39;&#39;.join(result)
 </pre></div>
 
 
@@ -173,8 +173,7 @@ post</a>,
 we'll explore the <a href="https://developers.google.com/appengine/docs/python/tools/webapp/running">WSGI
 handlers</a>
 that run the application and the client side code that handles the
-messages from the workers.</p>
-<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+messages from the workers.</p></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">

@@ -149,12 +149,12 @@ to:</li>
 </ol>
 <p>~~~~ {.prettyprint style="background-color: white;"}
 from django.conf.urls.defaults import patternsfrom django.conf.urls.defaults import urlurlpatterns = patterns('', url(r'^$', 'bossylobster_django.views.index', name='home'),)</p>
-<div class="highlight"><pre><span class="mi">5</span><span class="nx">.</span> <span class="nx">Change</span> <span class="nx">the</span> <span class="nb">file</span> <span class="o">&lt;</span><span class="nx">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s2">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="nx">bossylobster</span><span class="o">\</span><span class="nx">_django</span><span class="p">/</span><span class="nx">views.py</span><span class="o">&lt;/</span><span class="nx">span</span><span class="o">&gt;</span>
-<span class="k">to</span><span class="p">:</span>
+<div class="highlight"><pre><span class="mf">5.</span> <span class="n">Change</span> <span class="n">the</span> <span class="nb">file</span> <span class="o">&lt;</span><span class="n">span</span> <span class="n">class</span><span class="o">=</span><span class="s">&quot;Apple-style-span&quot;</span>
+<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">bossylobster</span>\<span class="n">_django</span><span class="o">/</span><span class="n">views</span><span class="o">.</span><span class="n">py</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="n">to</span><span class="p">:</span>
 
-<span class="err">~~~~</span> <span class="p">{</span><span class="bp">.</span><span class="nx">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;background-color: white;&quot;</span><span class="p">}</span>
-<span class="nb">from</span> <span class="nx">django.http</span> <span class="k">import</span> <span class="nx">HttpResponsedef</span> <span class="nb">index</span><span class="p">(</span><span class="nx">request</span><span class="p">):</span> <span class="n">content</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="bp">.</span><span class="nb">join</span><span class="p">(</span><span class="err">[</span><span class="s1">&#39;&lt;html&gt;&#39;</span><span class="p">,</span>  <span class="s1">&#39; &lt;head&gt;&#39;</span><span class="p">,</span>  <span class="s1">&#39;  &lt;meta name=&quot;google-site-verification&quot; content=&quot;XXXX&quot; /&gt;&#39;</span><span class="p">,</span>  <span class="s1">&#39; &lt;/head&gt;&#39;</span><span class="p">,</span>  <span class="s1">&#39; &lt;body&gt;&#39;</span><span class="p">,</span>  <span class="s1">&#39;  Hello world!&#39;</span><span class="p">,</span>  <span class="s1">&#39; &lt;/body&gt;&#39;</span><span class="p">,</span>  <span class="s1">&#39; &lt;/html&gt;&#39;</span><span class="cp">]</span>)  return HttpResponse(content)
+<span class="o">~~~~</span> <span class="p">{</span><span class="o">.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponsedef</span> <span class="n">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span> <span class="n">content</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;&lt;html&gt;&#39;</span><span class="p">,</span>  <span class="s">&#39; &lt;head&gt;&#39;</span><span class="p">,</span>  <span class="s">&#39;  &lt;meta name=&quot;google-site-verification&quot; content=&quot;XXXX&quot; /&gt;&#39;</span><span class="p">,</span>  <span class="s">&#39; &lt;/head&gt;&#39;</span><span class="p">,</span>  <span class="s">&#39; &lt;body&gt;&#39;</span><span class="p">,</span>  <span class="s">&#39;  Hello world!&#39;</span><span class="p">,</span>  <span class="s">&#39; &lt;/body&gt;&#39;</span><span class="p">,</span>  <span class="s">&#39; &lt;/html&gt;&#39;</span><span class="p">])</span>  <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
 </pre></div>
 
 
@@ -185,8 +185,7 @@ your change has propagated to DNS servers worldwide (wait until it has)
 and verify via the meta tag</p>
 <div style="text-align: center;">
 <p><img alt="Verify Ownership Success" src="/images/verify1and1_screenshot3.png" /></p>
-</div>
-<p><a href="https://profiles.google.com/114760865724135687241" rel="author" style="display: none;">About Bossy Lobster</a></p></div>
+</div></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">
