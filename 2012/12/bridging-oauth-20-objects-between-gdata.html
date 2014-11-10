@@ -70,150 +70,138 @@
       <p class="meta"><time datetime="2012-12-24T00:00:00-08:00" pubdate>Dec 24, 2012</time></p>
 </header>
 
-  <div class="entry-content"><p>My colleague <a href="http://plus.google.com/110554344789668969711">+Takashi
-Matsuo</a>and I recently
+  <div class="entry-content"><p>My colleague
+<a href="http://plus.google.com/110554344789668969711">+Takashi Matsuo</a> and I recently
 gave a <a href="http://www.youtube.com/watch?v=HoUdWBzUZ-M">talk</a> about using
-<span
-style="color: lime; font-family: Courier New, Courier, monospace;">OAuth2Decorator</span>
-(from the <span
-style="color: lime; font-family: Courier New, Courier, monospace;">google-api-python-client</span>
+<code>OAuth2Decorator</code> (from the <code>google-api-python-client</code>
 <a href="http://code.google.com/p/google-api-python-client/">library</a>) with
-request handlers in<a href="https://developers.google.com/appengine/">Google App
-Engine</a>. Shortly after, a
+request handlers in
+<a href="https://developers.google.com/appengine/">Google App Engine</a>. Shortly after, a
 <a href="http://stackoverflow.com/questions/13981641">Stack Overflow question</a>
 sprung up asking about the right way to use the decorator and, as a
-follow up, if the decorator could be used with the <a href="https://developers.google.com/google-apps/provisioning/">Google Apps
-Provisioning
-API</a>. As I
-mentioned in my answer,</p>
+follow up, if the decorator could be used with the
+<a href="https://developers.google.com/google-apps/provisioning/">Google Apps Provisioning API</a>.
+As I mentioned in my answer,</p>
 <blockquote>
-<p>The Google Apps Provisioning API is a <a href="https://developers.google.com/gdata/docs/2.0/reference">Google Data
-API</a>...As a
-result, you'll need to use the <span
-style="color: lime; font-family: Courier New, Courier, monospace;">gdata-python-client</span>
+<p>The Google Apps Provisioning API is a
+<a href="https://developers.google.com/gdata/docs/2.0/reference">Google Data API</a> ...
+As a result, you'll need to use the <code>gdata-python-client</code>
 <a href="http://code.google.com/p/gdata-python-client/">library</a> to use the
-Provisioning API. Unfortunately, you'll need to manually convert from
-a <a href="http://code.google.com/p/google-api-python-client/source/browse/oauth2client/client.py?r=efd0ccd31d6c16ddf9f65ba5c31c7033749be0e1#349"><span
-style="color: lime; font-family: Courier New, Courier, monospace;">oauth2client.client.OAuth2Credentials</span>
-object</a>
-to a <a href="http://code.google.com/p/gdata-python-client/source/browse/src/gdata/gauth.py?r=cf0208e89433800c713495654774f36d84e894b3#1143"><span
-style="color: lime; font-family: Courier New, Courier, monospace;">gdata.gauth.OAuth2Token</span>
-object</a>
+Provisioning API. Unfortunately, you'll need to manually convert from a
+<a href="http://code.google.com/p/google-api-python-client/source/browse/oauth2client/client.py?r=efd0ccd31d6c16ddf9f65ba5c31c7033749be0e1#349"><code>oauth2client.client.OAuth2Credentials</code> object</a>
+to a
+<a href="http://code.google.com/p/gdata-python-client/source/browse/src/gdata/gauth.py?r=cf0208e89433800c713495654774f36d84e894b3#1143"><code>gdata.gauth.OAuth2Token</code> object</a>
 to use the same token for either one.</p>
 </blockquote>
 <p>Instead of making everyone and their brother write their own, I thought
 I'd take a stab at it and write about it here. The general philosophy I
-took was that the token subclass should be 100% based on an <span
-style="color: lime; font-family: Courier New, Courier, monospace;">OAuth2Credentials</span>
-object:</p>
+took was that the token subclass should be 100% based on an
+<code>OAuth2Credentials</code> object:</p>
 <ul>
-<li>the token constructor simply takes an<span
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object</li>
-<li>the token refresh updatesthe<span
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object
-    set on the token</li>
-<li>values of the current tokencan be updated directly from the<span
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object
-    set on the token</li>
+<li>the token constructor simply takes an <code>OAuth2Credentials</code> object</li>
+<li>the token refresh updates the <code>OAuth2Credentials</code> object set on the token</li>
+<li>values of the current tokencan be updated directly from the
+  <code>OAuth2Credentials</code> object set on the token</li>
 </ul>
 <p>Starting from the top, we'll use two imports:</p>
-<p>~~~~ {.prettyprint style="background-color: white;"}
-import httplib2from gdata.gauth import OAuth2Token</p>
-<div class="highlight"><pre>The first is needed to refresh an<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>OAuth2Credentials<span class="nt">&lt;/span&gt;</span>object
-using the mechanics native to<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>google-api-python-client<span class="nt">&lt;/span&gt;</span>,
-and the second is needed so we may subclass the<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>gdata-python-client<span class="nt">&lt;/span&gt;</span>native
-token class.
-
-As I mentioned, the values should be updated directly from an<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>OAuth2Credentials<span class="nt">&lt;/span&gt;</span>object,
-so in our constructor, we first initialize the values to <span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>None<span class="nt">&lt;/span&gt;</span>
-and then call our update method to actual set the values. This allows us
-to write less code, because, [repeating is
-bad](http://en.wikipedia.org/wiki/Don&#39;t_repeat_yourself) (I think
-someone told me that once?).
-
-~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
-class OAuth2TokenFromCredentials(OAuth2Token):  def __init__(self, credentials):    self.credentials = credentials    super(OAuth2TokenFromCredentials, self).__init__(None, None, None, None)    self.UpdateFromCredentials()
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">httplib2</span>
+<span class="kn">from</span> <span class="nn">gdata.gauth</span> <span class="kn">import</span> <span class="n">OAuth2Token</span>
 </pre></div>
 
 
-<p>We can get away with passing four <span
-style="color: lime; font-family: Courier New, Courier, monospace;">None</span>s
-to the superclass constructor, as it only has four positional arguments:
-<span
-style="color: lime; font-family: Courier New, Courier, monospace;">client_id</span>,<span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">client_secret</span>,
-<span
-style="color: lime; font-family: Courier New, Courier, monospace;">scope</span>,
-and <span
-style="color: lime; font-family: Courier New, Courier, monospace;">user_agent</span>.
-Three of those have equivalents on the<span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object,
-but there is no place for<span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">scope</span>becausethat
-part of the token exchange handled elsewhere (<span
-style="color: lime; font-family: Courier New, Courier, monospace;">OAuth2WebServerFlow</span>)in
-the<span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">google-api-python-client</span>library.</p>
-<p>~~~~ {.prettyprint style="background-color: white;"}
-  def UpdateFromCredentials(self):    self.client_id = self.credentials.client_id    self.client_secret = self.credentials.client_secret    self.user_agent = self.credentials.user_agent    ...</p>
-<div class="highlight"><pre>Similarly, the<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>OAuth2Credentials<span class="nt">&lt;/span&gt;</span>object
-only implements the refresh part of the OAuth 2.0 flow, so only has the
-token URI, hence<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>auth\_uri<span class="nt">&lt;/span&gt;</span>,<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>revoke\_uri<span class="nt">&lt;/span&gt;</span>and<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: Courier New, Courier, monospace;&quot;</span><span class="nt">&gt;</span>redirect<span class="nt">&lt;/span&gt;&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>\_uri<span class="nt">&lt;/span&gt;</span>will
-not be set either. However, the token URI and the token data are the
-same for both.
+<p>The first is needed to refresh an <code>OAuth2Credentials</code> object
+using the mechanics native to <code>google-api-python-client</code>,
+and the second is needed so we may subclass the <code>gdata-python-client</code> native
+token class.</p>
+<p>As I mentioned, the values should be updated directly from an
+<code>OAuth2Credentials</code> object, so in our constructor, we first initialize the
+values to <code>None</code> and then call our update method to actually set the values.
+This allows us to write less code, because,
+<a href="http://en.wikipedia.org/wiki/Don't_repeat_yourself">repeating is bad</a>
+(I think someone told me that once?).</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">OAuth2TokenFromCredentials</span><span class="p">(</span><span class="n">OAuth2Token</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">credentials</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="n">credentials</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">OAuth2TokenFromCredentials</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">UpdateFromCredentials</span><span class="p">()</span>
+</pre></div>
 
-~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
-    ...    self.token_uri = self.credentials.token_uri    self.access_token = self.credentials.access_token    self.refresh_token = self.credentials.refresh_token    ...
+
+<p>We can get away with passing four <code>None</code>s to the superclass constructor, as it
+only has four positional arguments: <code>client_id</code>, <code>client_secret</code>, <code>scope</code>,
+and <code>user_agent</code>.</p>
+<p>Three of those have equivalents on the <code>OAuth2Credentials</code> object, but there
+is no place for <code>scope</code> because that part of the token exchange is handled
+<a href="https://code.google.com/p/google-api-python-client/source/browse/oauth2client/client.py?r=efd0ccd31d6c16ddf9f65ba5c31c7033749be0e1#1030">elsewhere</a>
+in the <code>google-api-python-client</code> library.</p>
+<div class="highlight"><pre>  <span class="k">def</span> <span class="nf">UpdateFromCredentials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">client_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">client_id</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">client_secret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">client_secret</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">user_agent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">user_agent</span>
+    <span class="o">...</span>
+</pre></div>
+
+
+<p>Similarly, the <code>OAuth2Credentials</code> object only implements the refresh part of
+the OAuth 2.0 flow, so only has the token URI, hence <code>auth_uri</code>, <code>revoke_uri</code>,
+<code>redirect</code>, and <code>_uri</code> will not be set either. However, the token URI and the
+token data are the same for both.</p>
+<div class="highlight"><pre>    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">token_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">token_uri</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">access_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">access_token</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">refresh_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">refresh_token</span>
+    <span class="o">...</span>
 </pre></div>
 
 
 <p>Finally, we copy the extra fields which may be set outside of a
 constructor:</p>
-<p>~~~~ {.prettyprint style="background-color: white;"}
-    ...    self.token_expiry = self.credentials.token_expiry    self._invalid = self.credentials.invalid</p>
-<div class="highlight"><pre>Since<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>OAuth2Credentials<span class="nt">&lt;/span&gt;</span>doesn&#39;t
-deal with all parts of the OAuth 2.0 process, we disable those methods
-from<span class="nt">&lt;span</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>OAuth2Token<span class="nt">&lt;/span&gt;</span>that
-do.
-
-~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
-  def generate_authorize_url(self, *args, **kwargs): raise NotImplementedError  def get_access_token(self, *args, **kwargs): raise NotImplementedError  def revoke(self, *args, **kwargs): raise NotImplementedError  def _extract_tokens(self, *args, **kwargs): raise NotImplementedError
+<div class="highlight"><pre>    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">token_expiry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">token_expiry</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_invalid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">invalid</span>
 </pre></div>
 
 
-<p>Finally, the last method which needs to be implemented is <span
-style="color: lime; font-family: Courier New, Courier, monospace;">_refresh</span>,
-which should refresh the<span
-style="color: lime; font-family: 'Courier New', Courier, monospace;">OAuth2Credentials</span>object
-and then update the current GData token after the refresh. Instead of
-using the passed in request object, we use one from <span
-style="color: lime; font-family: Courier New, Courier, monospace;">httplib2</span>
-as we mentioned in imports.</p>
-<p>~~~~ {.prettyprint style="background-color: white;"}
-  def _refresh(self, unused_request):    self.credentials._refresh(httplib2.Http().request)    self.UpdateFromCredentials()</p>
-<div class="highlight"><pre><span class="n">After</span> <span class="n">refreshing</span> <span class="n">the</span><span class="o">&lt;</span><span class="n">span</span>
-<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">OAuth2Credentials</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="nb">object</span><span class="p">,</span>
-<span class="n">we</span> <span class="n">can</span> <span class="n">update</span> <span class="n">the</span> <span class="n">current</span> <span class="n">token</span> <span class="n">using</span> <span class="n">the</span> <span class="n">same</span> <span class="n">method</span> <span class="n">called</span> <span class="ow">in</span> <span class="n">the</span>
-<span class="n">constructor</span><span class="o">.</span>
+<p>Since <code>OAuth2Credentials</code> doesn't deal with all parts of the OAuth 2.0
+process, we disable those methods from <code>OAuth2Token</code> that do.</p>
+<div class="highlight"><pre>  <span class="k">def</span> <span class="nf">generate_authorize_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+  <span class="k">def</span> <span class="nf">get_access_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+  <span class="k">def</span> <span class="nf">revoke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+  <span class="k">def</span> <span class="nf">_extract_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</pre></div>
 
-<span class="n">Using</span> <span class="n">this</span> <span class="n">class</span><span class="p">,</span> <span class="n">we</span> <span class="n">can</span> <span class="n">simultaneously</span> <span class="n">call</span> <span class="n">a</span> <span class="p">[</span><span class="n">discovery</span><span class="o">-</span><span class="n">based</span>
-<span class="n">API</span><span class="p">](</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">developers</span><span class="o">.</span><span class="n">google</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">discovery</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="n">getting_started</span><span class="c">#background)</span>
-<span class="ow">and</span> <span class="n">a</span> <span class="n">GData</span> <span class="n">API</span><span class="p">:</span>
 
-<span class="o">~~~~</span> <span class="p">{</span><span class="o">.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
-<span class="kn">from</span> <span class="nn">apiclient.discovery</span> <span class="kn">import</span> <span class="n">buildfrom</span> <span class="n">gdata</span><span class="o">.</span><span class="n">contacts</span><span class="o">.</span><span class="n">client</span> <span class="kn">import</span> <span class="nn">ContactsClientservice</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;calendar&#39;</span><span class="p">,</span> <span class="s">&#39;v3&#39;</span><span class="p">,</span> <span class="n">developerKey</span><span class="o">=</span><span class="s">&#39;...&#39;</span><span class="p">)</span><span class="k">class</span> <span class="nc">MainHandler</span><span class="p">(</span><span class="n">webapp2</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>  <span class="nd">@decorator.oauth_required</span>  <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>    <span class="n">auth_token</span> <span class="o">=</span> <span class="n">OAuth2TokenFromCredentials</span><span class="p">(</span><span class="n">decorator</span><span class="o">.</span><span class="n">credentials</span><span class="p">)</span>    <span class="n">contacts_client</span> <span class="o">=</span> <span class="n">ContactsClient</span><span class="p">()</span>    <span class="n">auth_token</span><span class="o">.</span><span class="n">authorize</span><span class="p">(</span><span class="n">contacts_client</span><span class="p">)</span>    <span class="n">contacts</span> <span class="o">=</span> <span class="n">contacts_client</span><span class="o">.</span><span class="n">get_contacts</span><span class="p">()</span>    <span class="o">...</span>    <span class="n">events</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">events</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">calendarId</span><span class="o">=</span><span class="s">&#39;primary&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>        <span class="n">http</span><span class="o">=</span><span class="n">decorator</span><span class="o">.</span><span class="n">http</span><span class="p">())</span>    <span class="o">...</span>
+<p>Finally, the last method which needs to be implemented is <code>_refresh</code>,
+which should refresh the <code>OAuth2Credentials</code> object and then update the
+current GData token after the refresh. Instead of using the passed in request
+object, we use one from <code>httplib2</code> as we mentioned in imports.</p>
+<div class="highlight"><pre>  <span class="k">def</span> <span class="nf">_refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unused_request</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">_refresh</span><span class="p">(</span><span class="n">httplib2</span><span class="o">.</span><span class="n">Http</span><span class="p">()</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">UpdateFromCredentials</span><span class="p">()</span>
+</pre></div>
+
+
+<p>After refreshing the <code>OAuth2Credentials</code> object, we can update the current
+token using the same method called in the constructor.</p>
+<p>Using this class, we can simultaneously call a
+<a href="https://developers.google.com/discovery/v1/getting_started#background">discovery-based API</a>
+and a GData API:</p>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">apiclient.discovery</span> <span class="kn">import</span> <span class="n">build</span>
+<span class="kn">from</span> <span class="nn">gdata.contacts.client</span> <span class="kn">import</span> <span class="n">ContactsClient</span>
+
+<span class="n">service</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;calendar&#39;</span><span class="p">,</span> <span class="s">&#39;v3&#39;</span><span class="p">,</span> <span class="n">developerKey</span><span class="o">=</span><span class="s">&#39;...&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">MainHandler</span><span class="p">(</span><span class="n">webapp2</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
+  <span class="nd">@decorator.oauth_required</span>
+  <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">auth_token</span> <span class="o">=</span> <span class="n">OAuth2TokenFromCredentials</span><span class="p">(</span><span class="n">decorator</span><span class="o">.</span><span class="n">credentials</span><span class="p">)</span>
+    <span class="n">contacts_client</span> <span class="o">=</span> <span class="n">ContactsClient</span><span class="p">()</span>
+    <span class="n">auth_token</span><span class="o">.</span><span class="n">authorize</span><span class="p">(</span><span class="n">contacts_client</span><span class="p">)</span>
+    <span class="n">contacts</span> <span class="o">=</span> <span class="n">contacts_client</span><span class="o">.</span><span class="n">get_contacts</span><span class="p">()</span>
+    <span class="o">...</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">events</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">calendarId</span><span class="o">=</span><span class="s">&#39;primary&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="n">http</span><span class="o">=</span><span class="n">decorator</span><span class="o">.</span><span class="n">http</span><span class="p">())</span>
+    <span class="o">...</span>
 </pre></div></div>
     <footer>
 <p class="meta">
