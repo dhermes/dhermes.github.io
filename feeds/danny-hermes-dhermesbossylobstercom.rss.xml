@@ -2019,230 +2019,239 @@ would be $665.30. Plugging this into our pipeline:&lt;/p&gt;
 &lt;p&gt;And we see the rate of 7% is approximated quite well!&lt;/p&gt;
 &lt;h2&gt;Bonus: Analyze the function to make sure we are right&lt;/h2&gt;
 &lt;p&gt;Coming soon. We will analyze the derivative and concavity to make sure
-that our guess yield the correct (and unique) zero.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Tue, 15 May 2012 00:00:00 -0700</pubDate><guid>tag:,2012-05-15:2012/05/reverse-calculating-interest-rate.html</guid><category>Finance</category><category>Interest Rate</category><category>Mortgage</category><category>Newton-Raphson Method</category><category>Numerical Analysis</category><category>Python</category></item><item><title>Silly Pranks on your Friends</title><link>/2012/04/silly-pranks-on-your-friends.html</link><description>&lt;p&gt;&lt;span style="font-size: large;"&gt;Disclaimer: These are silly little
-pranks, but I don't encourage messing with someone's computing
-environment without letting them know you have done so.&lt;/span&gt;&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;First Prank:&lt;/strong&gt;&lt;/p&gt;
+that our guess yield the correct (and unique) zero.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Tue, 15 May 2012 00:00:00 -0700</pubDate><guid>tag:,2012-05-15:2012/05/reverse-calculating-interest-rate.html</guid><category>Finance</category><category>Interest Rate</category><category>Mortgage</category><category>Newton-Raphson Method</category><category>Numerical Analysis</category><category>Python</category></item><item><title>Silly Pranks on your Friends</title><link>/2012/04/silly-pranks-on-your-friends.html</link><description>&lt;h2&gt;Disclaimer: These are silly little pranks, but I don't encourage messing with someone's computing environment without letting them know you have done so.&lt;/h2&gt;
+&lt;h3&gt;First Prank:&lt;/h3&gt;
 &lt;p&gt;I have a friend who really likes to read
 &lt;a href="http://people.com/"&gt;people.com&lt;/a&gt;, so I figured I would "enrich" her life
 a bit with another source of daily news :)&lt;/p&gt;
-&lt;p&gt;I decided to play around with her &lt;a href="http://en.wikipedia.org/wiki/Hosts_(file)#Purpose"&gt;hosts
-file&lt;/a&gt;, so that when
-she visited &lt;a href="http://people.com/"&gt;people.com&lt;/a&gt;, she really got the &lt;a href="http://nytimes.com/"&gt;New
-York Times&lt;/a&gt; (the realest news I could think of at
+&lt;p&gt;I decided to play around with her
+&lt;a href="http://en.wikipedia.org/wiki/Hosts_(file)#Purpose"&gt;hosts file&lt;/a&gt;, so that when
+she visited &lt;a href="http://people.com/"&gt;people.com&lt;/a&gt;, she really got the
+&lt;a href="http://nytimes.com/"&gt;New York Times&lt;/a&gt; (the realest news I could think of at
 that time, though there are plenty of fine candidates).&lt;/p&gt;
-&lt;p&gt;To quote the Wikipedia article on hosts files:&lt;/p&gt;
+&lt;p&gt;To quote the Wikipedia article on &lt;code&gt;hosts&lt;/code&gt; files:&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;"The hosts file...assists in addressing network nodes in a computer
+&lt;p&gt;The hosts file...assists in addressing network nodes in a computer
 network. It is a common part of an operating system's Internet
 Protocol (IP) implementation, and serves the function of translating
 human-friendly hostnames into numeric protocol addresses, called IP
-addresses, that identify and locate a host in an IP network."&lt;/p&gt;
+addresses, that identify and locate a host in an IP network.&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;More importantly: "the /etc/hosts file...allows you to add entries that
-traditionally your computer will look up first before trying your server
-DNS."
-(&lt;a href="http://www.justincarmony.com/blog/2011/07/27/mac-os-x-lion-etc-hosts-bugs-and-dns-resolution/"&gt;source&lt;/a&gt;)
-This means that even though the &lt;a href="http://en.wikipedia.org/wiki/Domain_Name_System"&gt;DNS
-Lookup&lt;/a&gt; provided by her
-&lt;a href="http://en.wikipedia.org/wiki/Internet_service_provider"&gt;ISP&lt;/a&gt;could
-resolve people.com, her browser would get an &lt;a href="http://en.wikipedia.org/wiki/IP_address"&gt;IP
-address&lt;/a&gt; from the hosts file
+&lt;p&gt;More &lt;a href="http://www.justincarmony.com/blog/2011/07/27/mac-os-x-lion-etc-hosts-bugs-and-dns-resolution/"&gt;importantly&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;the &lt;code&gt;/etc/hosts&lt;/code&gt; file...allows you to add entries that traditionally
+your computer will look up first before trying your server DNS.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This means that even though the
+&lt;a href="http://en.wikipedia.org/wiki/Domain_Name_System"&gt;DNS Lookup&lt;/a&gt; provided by her
+&lt;a href="http://en.wikipedia.org/wiki/Internet_service_provider"&gt;ISP&lt;/a&gt; could
+resolve &lt;code&gt;people.com&lt;/code&gt;, her browser would get an
+&lt;a href="http://en.wikipedia.org/wiki/IP_address"&gt;IP address&lt;/a&gt; from the hosts file
 first and hence will render the New York Times page for
 &lt;a href="http://people.com/"&gt;people.com&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;The first step to do this was to find the IP address for the replacement
 site:&lt;/p&gt;
-&lt;p&gt;~~~~ {.prettyprint style="background-color: white;"}
-$ ping www.nytimes.comPING www.nytimes.com (199.239.136.200): 56 data bytes64 bytes from 199.239.136.200: icmp_seq=0 ttl=64 time=0.062 ms64 bytes from 199.239.136.200: icmp_seq=1 ttl=64 time=0.054 ms...&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;For the second (and final) step, I just needed to add an entry to the
-hosts file. After
-[locating](http://en.wikipedia.org/wiki/Hosts_(file)#Location_in_the_file_system)
-the file on her Macbook in &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt;
-&lt;span class="na"&gt;style=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;/etc/hosts&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;,
-I updated the contents:
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;ping www.nytimes.com
+PING www.nytimes.com &lt;span class="o"&gt;(&lt;/span&gt;199.239.136.200&lt;span class="o"&gt;)&lt;/span&gt;: &lt;span class="m"&gt;56&lt;/span&gt; data bytes
+&lt;span class="m"&gt;64&lt;/span&gt; bytes from 199.239.136.200: &lt;span class="nv"&gt;icmp_seq&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; &lt;span class="nv"&gt;ttl&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;64&lt;/span&gt; &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0.062 ms
+&lt;span class="m"&gt;64&lt;/span&gt; bytes from 199.239.136.200: &lt;span class="nv"&gt;icmp_seq&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="nv"&gt;ttl&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;64&lt;/span&gt; &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0.054 ms
+...
+&lt;/pre&gt;&lt;/div&gt;
 
-~~~~ {.prettyprint style=&amp;quot;background-color: white;&amp;quot;}
-### Host Database## localhost is used to configure the loopback interface# when the system is booting.  Do not change this entry.##127.0.0.1       localhost255.255.255.255 broadcasthost::1             localhostfe80::1%lo0     localhost199.239.136.200 people.com  # New entry
+
+&lt;p&gt;For the second (and final) step, I just needed to add an entry to the
+&lt;code&gt;hosts&lt;/code&gt; file. After
+&lt;a href="http://en.wikipedia.org/wiki/Hosts_(file)#Location_in_the_file_system"&gt;locating&lt;/a&gt;
+the file on her Macbook in &lt;code&gt;/etc/hosts&lt;/code&gt;, I updated the contents:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting.  Do not change this entry.
+##
+127.0.0.1       localhost
+255.255.255.255 broadcasthost
+::1             localhost
+fe80::1%lo0     localhost
+199.239.136.200 people.com  # New entry
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;Voil&amp;#0224;! With that, the prank was complete and the next time she visited
 &lt;a href="http://people.com/"&gt;people.com&lt;/a&gt;, the got the contents of
 &lt;a href="http://nytimes.com/"&gt;nytimes.com&lt;/a&gt; in her browser.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Second Prank coming soon.&lt;/strong&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Sat, 07 Apr 2012 00:00:00 -0700</pubDate><guid>tag:,2012-04-07:2012/04/silly-pranks-on-your-friends.html</guid><category>DNS</category><category>DNS Lookup</category><category>Domain Name System</category><category>Hosts file</category><category>Internet Protocol</category><category>Internet Service Provider</category><category>IP Address</category><category>ISP</category><category>Macbook</category><category>nytimes.com</category><category>people.com</category><category>Practical Joke</category><category>Prank</category><category>UNIX</category></item><item><title>Where have I been?</title><link>/2012/03/where-have-i-been.html</link><description>&lt;p&gt;Well, it's been a bit crazy and I haven't written a blog post in ages. I
+&lt;h3&gt;Second Prank coming soon.&lt;/h3&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Sat, 07 Apr 2012 00:00:00 -0700</pubDate><guid>tag:,2012-04-07:2012/04/silly-pranks-on-your-friends.html</guid><category>DNS</category><category>DNS Lookup</category><category>Domain Name System</category><category>Hosts file</category><category>Internet Protocol</category><category>Internet Service Provider</category><category>IP Address</category><category>ISP</category><category>Macbook</category><category>nytimes.com</category><category>people.com</category><category>Practical Joke</category><category>Prank</category><category>UNIX</category></item><item><title>Where have I been?</title><link>/2012/03/where-have-i-been.html</link><description>&lt;p&gt;Well, it's been a bit crazy and I haven't written a blog post in ages. I
 have several brewing, but had just been too busy at work (and a ton of
 travel for personal fun) to really have the excess time to write.&lt;/p&gt;
 &lt;p&gt;This return post will not have much content but will announce that I'm a
 big boy now.&lt;/p&gt;
 &lt;p&gt;In the 1.6.3 release of the App Engine SDK (and hence runtime), three
-nifty changes of mine were included. Two of them even made the &lt;a href="http://code.google.com/p/googleappengine/wiki/SdkReleaseNotes#Version_1.6.3_-_February_28,_2012"&gt;Release
-Notes&lt;/a&gt;:&lt;/p&gt;
+nifty changes of mine were included. Two of them even made the
+&lt;a href="http://code.google.com/p/googleappengine/wiki/SdkReleaseNotes#Version_1.6.3_-_February_28,_2012"&gt;Release Notes&lt;/a&gt;:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;
-Code that inherits from the deferred library's &lt;span
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;TaskHandler&lt;/span&gt;
-can now define custom handling of exceptions.
-
-&lt;/li&gt;
--   &lt;http://code.google.com/p/googleappengine/issues/detail?id=6478&gt;
-
-&lt;li&gt;
-Fixed an issue so that a deferred task retries like a push queue task
-when using the &lt;span
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;SingularTaskFailure&lt;/span&gt;
-exception:
-
-&lt;/li&gt;
--   &lt;http://code.google.com/p/googleappengine/issues/detail?id=6412&gt;
-
+&lt;li&gt;Code that inherits from the deferred library's &lt;code&gt;TaskHandler&lt;/code&gt;
+    can now define custom handling of exceptions.&lt;ul&gt;
+&lt;li&gt;See issue &lt;a href="http://code.google.com/p/googleappengine/issues/detail?id=6478"&gt;6478&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-
+&lt;/li&gt;
+&lt;li&gt;Fixed an issue so that a deferred task retries like a push queue task
+    when using the &lt;code&gt;SingularTaskFailure&lt;/code&gt; exception:&lt;ul&gt;
+&lt;li&gt;See issue &lt;a href="http://code.google.com/p/googleappengine/issues/detail?id=6412"&gt;6412&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
 &lt;p&gt;In addition, the one that was most confusing to fix didn't make it into
 any set of Release Notes, but I "closed" the
-&lt;a href="http://stackoverflow.com/questions/8304854/gql-query-with-key-in-list-of-keys"&gt;issue&lt;/a&gt;that
-I originally opened on StackOverflow. Checkout the
-&lt;a href="http://code.google.com/p/googleappengine/source/diff?spec=svn241&amp;amp;r=241&amp;amp;format=side&amp;amp;path=/trunk/python/google/appengine/ext/gql/__init__.py&amp;amp;old_path=/trunk/python/google/appengine/ext/gql/__init__.py"&gt;diff&lt;/a&gt;to
-see the details. I'll follow up with a summary of each of the fixes in a
-later post.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Wed, 28 Mar 2012 00:00:00 -0700</pubDate><guid>tag:,2012-03-28:2012/03/where-have-i-been.html</guid><category>AppEngine</category><category>Google App Engine</category><category>Google Codesite</category><category>Open Source</category><category>Python</category><category>Stack Overflow</category></item><item><title>A Python Metaclass for "extra bad" errors in Google App Engine</title><link>/2011/11/python-metaclass-for-extra-bad-errors.html</link><description>&lt;p&gt;So now here we are, having tried to&lt;a href="http://blog.bossylobster.com/2011/11/handling-errors-in-google-app-engineand.html"&gt;handle errors in Google App
-Engine...and
-failed&lt;/a&gt;all
-because silly&lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;DeadlineExceededError&lt;/span&gt;
-&lt;a href="http://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py#32"&gt;jumps
-over&lt;/a&gt;&lt;span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;Exception&lt;/span&gt;
-in the inheritance chain and goes right for &lt;span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;BaseException&lt;/span&gt;.
+&lt;a href="http://stackoverflow.com/questions/8304854/gql-query-with-key-in-list-of-keys"&gt;issue&lt;/a&gt;
+that I originally opened on StackOverflow. Checkout the
+&lt;a href="http://code.google.com/p/googleappengine/source/diff?spec=svn241&amp;amp;r=241&amp;amp;format=side&amp;amp;path=/trunk/python/google/appengine/ext/gql/__init__.py&amp;amp;old_path=/trunk/python/google/appengine/ext/gql/__init__.py"&gt;diff&lt;/a&gt;
+to see the details. I'll follow up with a summary of each of the fixes in a
+later post.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Wed, 28 Mar 2012 00:00:00 -0700</pubDate><guid>tag:,2012-03-28:2012/03/where-have-i-been.html</guid><category>AppEngine</category><category>Google App Engine</category><category>Google Codesite</category><category>Open Source</category><category>Python</category><category>Stack Overflow</category></item><item><title>A Python Metaclass for "extra bad" errors in Google App Engine</title><link>/2011/11/python-metaclass-for-extra-bad-errors.html</link><description>&lt;p&gt;So now here we are, having tried to
+&lt;a href="/2011/11/handling-errors-in-google-app-engineand.html"&gt;handle errors in Google App Engine...and failed&lt;/a&gt;
+all because silly &lt;code&gt;DeadlineExceededError&lt;/code&gt;
+&lt;a href="https://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py?r=491#33"&gt;jumps over&lt;/a&gt;
+&lt;code&gt;Exception&lt;/code&gt; in the inheritance chain and goes right for &lt;code&gt;BaseException&lt;/code&gt;.
 How can we catch these in our handlers while staying
-&lt;a href="http://docs.python.org/glossary.html#term-pythonic"&gt;Pythonic*&lt;/a&gt;?&lt;/p&gt;
+&lt;a href="http://docs.python.org/glossary.html#term-pythonic"&gt;Pythonic&lt;/a&gt;?&lt;/p&gt;
 &lt;p&gt;First and foremost, in the case of a timeout, we need to explicitly
-catch aDeadlineExceededError. To do so, we can use a
-&lt;a href="http://stackoverflow.com/questions/739654/understanding-python-decorators#1594484"&gt;decorator&lt;/a&gt;(hey,
-that's Pythonic) in each and every handler for each and every HTTP
-verb.(Again, &lt;a href="http://troll.me/images/war-cat/prepare-yourself-for-war.jpg"&gt;prepare
-yourselves&lt;/a&gt;,
-a bunch of code is about to happen. See the necessary
-&lt;a href="http://blog.bossylobster.com/2011/11/python-metaclass-for-extra-bad-errors.html#imports"&gt;imports&lt;/a&gt;
+catch a &lt;code&gt;DeadlineExceededError&lt;/code&gt;. To do so, we can use a
+&lt;a href="http://stackoverflow.com/questions/739654/understanding-python-decorators#1594484"&gt;decorator&lt;/a&gt;
+(hey, that's Pythonic) in each and every handler for each and every HTTP
+verb. (Again,
+&lt;a href="/images/prepare-yourself-for-war.jpg"&gt;prepare yourselves&lt;/a&gt;,
+a bunch of code is about to happen. See the necessary &lt;a href="#imports"&gt;imports&lt;/a&gt;
 at the bottom of the post.)&lt;/p&gt;
-&lt;p&gt;~~~~ {.prettyprint style="background-color: white;"}
-def deadline_decorator(method):    def wrapped_method(self, &lt;em&gt;args, &lt;strong&gt;kwargs):        try:            method(self, *args, &lt;/strong&gt;kwargs)        except DeadlineExceededError:            traceback_info = ''.join(format_exception(&lt;/em&gt;sys.exc_info()))            email_admins(traceback_info, defer_now=True)            serve_500(self)    return wrapped_method&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;Unfortunately&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;having&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;manually&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;deadline_decorator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;method&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
 
-&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;div&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;separator&amp;quot;&lt;/span&gt; &lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;clear: both; text-align: center;&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;wrapped_method&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;method&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;except&lt;/span&gt; &lt;span class="n"&gt;DeadlineExceededError&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;traceback_info&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;format_exception&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exc_info&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;
+            &lt;span class="n"&gt;email_admins&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;traceback_info&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;defer_now&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 
-&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="p"&gt;[](&lt;/span&gt;&lt;span class="nl"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//www.bossylobster.com/images/blog/decorate_all_the_functions.jpg)](http://www.bossylobster.com/images/blog/decorate_all_the_functions.jpg)&lt;/span&gt;
+            &lt;span class="n"&gt;serve_500&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 
-&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="n"&gt;div&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-
-&lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;not&lt;/span&gt; &lt;span class="n"&gt;so&lt;/span&gt; &lt;span class="n"&gt;Pythonic&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="n"&gt;At&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt; &lt;span class="n"&gt;point&lt;/span&gt; &lt;span class="n"&gt;I&lt;/span&gt; &lt;span class="n"&gt;was&lt;/span&gt; &lt;span class="n"&gt;stuck&lt;/span&gt; &lt;span class="n"&gt;and&lt;/span&gt; &lt;span class="n"&gt;wanted&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;give&lt;/span&gt; &lt;span class="n"&gt;up&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;but&lt;/span&gt;
-&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;asked&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;some&lt;/span&gt;
-&lt;span class="n"&gt;advice&lt;/span&gt;&lt;span class="p"&gt;](&lt;/span&gt;&lt;span class="nl"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//plus.google.com/u/0/114760865724135687241/posts/GJjXjq5zXhU)&lt;/span&gt;
-&lt;span class="n"&gt;on&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;G&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="p"&gt;](&lt;/span&gt;&lt;span class="nl"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//www.google.com/+) and actually got what I needed from the&lt;/span&gt;
-&lt;span class="n"&gt;all&lt;/span&gt; &lt;span class="n"&gt;knowing&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;Ali&lt;/span&gt;
-&lt;span class="n"&gt;Afshar&lt;/span&gt;&lt;span class="p"&gt;](&lt;/span&gt;&lt;span class="nl"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//plus.google.com/u/0/118327176775959145936/posts). What&lt;/span&gt;
-&lt;span class="n"&gt;did&lt;/span&gt; &lt;span class="n"&gt;I&lt;/span&gt;
-&lt;span class="n"&gt;need&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;Metaclasses&lt;/span&gt;&lt;span class="p"&gt;](&lt;/span&gt;&lt;span class="nl"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//stackoverflow.com/questions/100003/what-is-a-metaclass-in-python#6581949).&lt;/span&gt;
-
-&lt;span class="n"&gt;Before&lt;/span&gt; &lt;span class="n"&gt;showing&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="nb"&gt;super&lt;/span&gt; &lt;span class="n"&gt;simple&lt;/span&gt; &lt;span class="n"&gt;metaclass&lt;/span&gt; &lt;span class="n"&gt;I&lt;/span&gt; &lt;span class="n"&gt;wrote&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;you&lt;/span&gt; &lt;span class="n"&gt;need&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;know&lt;/span&gt; &lt;span class="n"&gt;one&lt;/span&gt;
-&lt;span class="n"&gt;thing&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;StackOverflow&lt;/span&gt; &lt;span class="n"&gt;user&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;Kevin&lt;/span&gt;
-&lt;span class="n"&gt;Samuel&lt;/span&gt;&lt;span class="p"&gt;](&lt;/span&gt;&lt;span class="nl"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//stackoverflow.com/users/9951/kevin-samuel):&lt;/span&gt;
-
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;The&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt; &lt;span class="n"&gt;purpose&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;metaclass&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;change&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="n"&gt;automatically&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;when&lt;/span&gt; &lt;span class="n"&gt;it&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="n"&gt;created&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-
-&lt;span class="n"&gt;With&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Apple-style-span&amp;quot;&lt;/span&gt;
-&lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_new&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="n"&gt;method&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Apple-style-span&amp;quot;&lt;/span&gt;
-&lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="n"&gt;object&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="n"&gt;Python&lt;/span&gt; &lt;span class="n"&gt;actually&lt;/span&gt; &lt;span class="n"&gt;constructs&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;which&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;also&lt;/span&gt; &lt;span class="n"&gt;an&lt;/span&gt; &lt;span class="n"&gt;object&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="n"&gt;taking&lt;/span&gt; &lt;span class="n"&gt;into&lt;/span&gt; &lt;span class="n"&gt;account&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;parents&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;bases&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;and&lt;/span&gt;
-&lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="n"&gt;attritubutes&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="n"&gt;So&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;we&lt;/span&gt; &lt;span class="n"&gt;can&lt;/span&gt; &lt;span class="n"&gt;make&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;metaclass&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="n"&gt;subclassing&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt;
-&lt;span class="k"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Apple-style-span&amp;quot;&lt;/span&gt;
-&lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;and&lt;/span&gt;
-&lt;span class="n"&gt;overriding&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt; &lt;span class="k"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Apple-style-span&amp;quot;&lt;/span&gt;
-&lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_new&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;:&lt;/span&gt;
-
-&lt;span class="o"&gt;~~~~&lt;/span&gt; &lt;span class="p"&gt;{.&lt;/span&gt;&lt;span class="n"&gt;prettyprint&lt;/span&gt; &lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;background-color: white;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
-&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="n"&gt;DecorateHttpVerbsMetaclass&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;    &lt;span class="n"&gt;def&lt;/span&gt; &lt;span class="n"&gt;__new__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cls&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;bases&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;        &lt;span class="n"&gt;verbs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;put&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;delete&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;verb&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nl"&gt;verbs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;verb&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="n"&gt;cls_attr&lt;/span&gt; &lt;span class="n"&gt;and&lt;/span&gt; &lt;span class="n"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;verb&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;                &lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;verb&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;deadline_decorator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;verb&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;super&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DecorateHttpVerbsMetaclass&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cls&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="n"&gt;__new__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cls&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                                                              &lt;span class="n"&gt;bases&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;wrapped_method&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;In&lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;DecorateHttpVerbsMetaclass&lt;/span&gt;,
+&lt;p&gt;Unfortunately, having to manually&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;[&lt;img alt="Decorate All" src="/images/decorate_all_the_functions.jpg" /&gt;]&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;is not so Pythonic. At this point I was stuck and wanted to give up, but
+&lt;a href="https://plus.google.com/u/0/114760865724135687241/posts/GJjXjq5zXhU"&gt;asked for some advice&lt;/a&gt;
+on &lt;a href="http://www.google.com/+"&gt;G+&lt;/a&gt; and actually got what I needed from the
+all knowing
+&lt;a href="https://plus.google.com/u/0/118327176775959145936/posts"&gt;Ali Afshar&lt;/a&gt;.
+What did I need?&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href="http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python#6581949"&gt;Metaclasses&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Before showing the super simple metaclass I wrote, you need to know one
+thing from StackOverflow user
+&lt;a href="http://stackoverflow.com/users/9951/kevin-samuel"&gt;Kevin Samuel&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The main purpose of a metaclass is to change the class automatically,
+when it's created.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;With the &lt;code&gt;__new__&lt;/code&gt;
+method, the &lt;code&gt;type&lt;/code&gt;
+object in Python actually constructs a class (which is also an object)
+by taking into account the name of the class, the parents (or bases) and
+the class attritubutes. So, we can make a metaclass by subclassing &lt;code&gt;type&lt;/code&gt; and overriding
+&lt;code&gt;__new__&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;DecorateHttpVerbsMetaclass&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;type&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;__new__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cls&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;bases&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;verbs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;get&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;post&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;put&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;delete&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;verb&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;verbs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;verb&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;cls_attr&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="nb"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;verb&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+                &lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;verb&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;deadline_decorator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;verb&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;super&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DecorateHttpVerbsMetaclass&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cls&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;__new__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cls&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                                                              &lt;span class="n"&gt;bases&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cls_attr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In &lt;code&gt;DecorateHttpVerbsMetaclass&lt;/code&gt;,
 we look for four (of the nine) HTTP
 &lt;a href="http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods"&gt;verbs&lt;/a&gt;,
 because heck, only seven are supported in
-&lt;a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html"&gt;RequestHandler&lt;/a&gt;,
+&lt;a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html"&gt;&lt;code&gt;RequestHandler&lt;/code&gt;&lt;/a&gt;,
 and we're not that crazy. If the class has one of the verbs as an
-attribute &lt;strong&gt;&lt;em&gt;andif&lt;/em&gt;&lt;/strong&gt; the attribute is a function, we
-&lt;a href="http://troll.me/images/misc-corrupted-husband/i-try-to-decorate-the-house-he-puts-spiderman-images-everywhere.jpg"&gt;decorate&lt;/a&gt;
-it with &lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;deadline_decorator&lt;/span&gt;.&lt;/p&gt;
-&lt;p&gt;Now, we can rewrite our subclass of &lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;RequestHandler&lt;/span&gt;
+attribute &lt;strong&gt;and if&lt;/strong&gt; the attribute is a function, we
+&lt;a href="/images/try-decorate-spiderman.jpg"&gt;decorate&lt;/a&gt;
+it with &lt;code&gt;deadline_decorator&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Now, we can rewrite our subclass of &lt;code&gt;RequestHandler&lt;/code&gt;
 with one extra line:&lt;/p&gt;
-&lt;p&gt;~~~~ {.prettyprint style="background-color: white;"}
-class ExtendedHandler(RequestHandler):    &lt;strong&gt;metaclass&lt;/strong&gt; = DecorateHttpVerbsMetaclass    def handle_exception(self, exception, debug_mode):        traceback_info = ''.join(format_exception(*sys.exc_info()))        email_admins(traceback_info, defer_now=True)        serve_500(self)&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;By&lt;/span&gt; &lt;span class="n"&gt;doing&lt;/span&gt; &lt;span class="n"&gt;this&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;when&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="o"&gt;***&lt;/span&gt;&lt;span class="n"&gt;class&lt;/span&gt;&lt;span class="o"&gt;***&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt; &lt;span class="n"&gt;class&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Apple-style-span&amp;quot;&lt;/span&gt;
-&lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ExtendedHandler&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;/&lt;/span&gt;&lt;span class="n"&gt;span&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="n"&gt;built&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;an&lt;/span&gt; &lt;span class="o"&gt;***&lt;/span&gt;&lt;span class="nb"&gt;object&lt;/span&gt;&lt;span class="o"&gt;***&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="nb"&gt;all&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;its&lt;/span&gt; &lt;span class="n"&gt;attributes&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="nb"&gt;all&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;its&lt;/span&gt;
-&lt;span class="n"&gt;parent&lt;/span&gt; &lt;span class="n"&gt;classes&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;bases&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;attributes&lt;/span&gt; &lt;span class="n"&gt;are&lt;/span&gt; &lt;span class="n"&gt;checked&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;possibly&lt;/span&gt; &lt;span class="n"&gt;updated&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt;
-&lt;span class="n"&gt;our&lt;/span&gt; &lt;span class="n"&gt;metaclass&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;ExtendedHandler&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;RequestHandler&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;__metaclass__&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;DecorateHttpVerbsMetaclass&lt;/span&gt;
 
-&lt;span class="n"&gt;And&lt;/span&gt; &lt;span class="n"&gt;now&lt;/span&gt; &lt;span class="n"&gt;you&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;James&lt;/span&gt; &lt;span class="n"&gt;Nekbehrd&lt;/span&gt; &lt;span class="n"&gt;can&lt;/span&gt; &lt;span class="n"&gt;feel&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;like&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;
-&lt;span class="n"&gt;boss&lt;/span&gt;&lt;span class="p"&gt;](&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;youtube&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;watch&lt;/span&gt;&lt;span class="err"&gt;?&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;NisCkxU544c&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;when&lt;/span&gt; &lt;span class="n"&gt;your&lt;/span&gt; &lt;span class="n"&gt;app&lt;/span&gt; &lt;span class="n"&gt;handles&lt;/span&gt;
-&lt;span class="n"&gt;errors&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;handle_exception&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;exception&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;debug_mode&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;traceback_info&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;format_exception&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exc_info&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;
+        &lt;span class="n"&gt;email_admins&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;traceback_info&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;defer_now&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 
-&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;Imports&lt;/span&gt;&lt;span class="p"&gt;:](&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;blog&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bossylobster&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2011&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;python&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;metaclass&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;extra&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;bad&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;errors&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="c"&gt;#imports)**&lt;/span&gt;
-
-&lt;span class="o"&gt;~~~~&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prettyprint&lt;/span&gt; &lt;span class="n"&gt;style&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;background-color: white;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;mailfrom&lt;/span&gt; &lt;span class="n"&gt;google&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;appengine&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ext&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;deferred&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;deferfrom&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.ext.webapp&lt;/span&gt; &lt;span class="nn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;RequestHandlerfrom&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.runtime&lt;/span&gt; &lt;span class="nn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;DeadlineExceededErrorimport&lt;/span&gt; &lt;span class="nn"&gt;sysfrom&lt;/span&gt; &lt;span class="nn"&gt;traceback&lt;/span&gt; &lt;span class="nn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;format_exceptionfrom&lt;/span&gt; &lt;span class="nn"&gt;SOME_APP_SPECIFIC_LIBRARY&lt;/span&gt; &lt;span class="nn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;serve_500from&lt;/span&gt; &lt;span class="nn"&gt;LAST_POST&lt;/span&gt; &lt;span class="nn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;email_admins&lt;/span&gt;
+        &lt;span class="n"&gt;serve_500&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;&lt;strong&gt;*Pythonic:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;By doing this, when the &lt;strong&gt;class&lt;/strong&gt; &lt;code&gt;ExtendedHandler&lt;/code&gt;
+is built (as an &lt;strong&gt;object&lt;/strong&gt;), all of its attributes and all of its
+parent classes (or bases) attributes are checked and possibly updated by
+our metaclass.&lt;/p&gt;
+&lt;p&gt;And now you and James Nekbehrd can feel
+&lt;a href="http://www.youtube.com/watch?v=NisCkxU544c"&gt;like a boss&lt;/a&gt; when your app
+handles errors.&lt;/p&gt;
+&lt;h2 id="imports"&gt;Imports:&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.ext.deferred&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;defer&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.ext.webapp&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;RequestHandler&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.runtime&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;DeadlineExceededError&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;sys&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;traceback&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;format_exception&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;SOME_APP_SPECIFIC_LIBRARY&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;serve_500&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;LAST_POST&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;email_admins&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Pythonic:&lt;/h4&gt;
 &lt;blockquote&gt;
-&lt;p&gt;&lt;em&gt;An idea or piece of code which closely follows the most common idioms
+&lt;p&gt;An idea or piece of code which closely follows the most common idioms
 of the Python language, rather than implementing code using concepts
-common to other languages.&lt;/em&gt;&lt;/p&gt;
+common to other languages.&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;&lt;strong&gt;Notes:&lt;/strong&gt;&lt;/p&gt;
+&lt;h4&gt;Notes:&lt;/h4&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;em&gt;Using&lt;/em&gt;&lt;span class="Apple-style-span"
-    style="background-color: white; color: purple; font-family: 'Courier New', Courier, monospace;"&gt;grep
-    -r "Exception)" . | grep "class "&lt;/span&gt; &lt;em&gt;I have convinced myself
-    (for now) that the only errors AppEngine will throw that do not
-    inherit from&lt;/em&gt;&lt;span class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;Exception&lt;/span&gt;&lt;em&gt;are&lt;/em&gt;&lt;span
-    class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;DeadlineExceededError&lt;/span&gt;&lt;em&gt;,&lt;/em&gt;&lt;span
-    class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;SystemExit&lt;/span&gt;&lt;em&gt;,
-    and&lt;/em&gt;&lt;span class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;KeyboardInterrupt&lt;/span&gt;&lt;em&gt;so
-    that is why I only catch the timeout.&lt;/em&gt;&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;You can also use&lt;/em&gt;&lt;span class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;webapp2&lt;/span&gt;&lt;em&gt;to
-    &lt;a href="http://stackoverflow.com/questions/6853257/how-can-i-setup-a-global-deadlineexceedederror-handler"&gt;catch 500
-    errors&lt;/a&gt;,
-    even when&lt;/em&gt;&lt;span class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;handle_exception&lt;/span&gt;&lt;em&gt;fails
-    to catch them.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Using &lt;code&gt;grep -r "Exception)" . | grep "class "&lt;/code&gt;
+    I have convinced myself (for now) that the only errors App Engine will throw
+    that do not inherit from &lt;code&gt;Exception&lt;/code&gt; are &lt;code&gt;DeadlineExceededError&lt;/code&gt;,
+    &lt;code&gt;SystemExit&lt;/code&gt;, and &lt;code&gt;KeyboardInterrupt&lt;/code&gt; so that is why I only catch the
+    timeout.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;You can also use &lt;code&gt;webapp2&lt;/code&gt; to
+    &lt;a href="http://stackoverflow.com/questions/6853257/how-can-i-setup-a-global-deadlineexceedederror-handler"&gt;catch 500 errors&lt;/a&gt;,
+    even when &lt;code&gt;handle_exception&lt;/code&gt; fails to catch them.&lt;/p&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt;&lt;em&gt;Just because you know what a metaclass is doesn't mean
-you should use one:&lt;/em&gt;&lt;/p&gt;
+&lt;h4&gt;Disclaimer: &lt;span style="font-weight: normal;"&gt;Just because you know what a metaclass is doesn't mean you should use one.&lt;/span&gt;&lt;/h4&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;em&gt;"Don't do stuff like this though, what is your use case?" -Ali
-    Afshar&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;"Don't do stuff like this though, what is your use case?"&lt;/em&gt; - Ali Afshar&lt;/li&gt;
 &lt;li&gt;&lt;em&gt;"Metaclasses are deeper magic than 99% of users should ever worry
     about. If you wonder whether you need them, you don't (the people
     who actually need them know with certainty that they need them, and
-    don't need an explanation about why)." -Python Guru Tim Peters&lt;/em&gt;&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;"The main use case for a metaclass is creating an API." -Kevin
-    Samuel&lt;/em&gt;&lt;/li&gt;
-&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Wed, 30 Nov 2011 00:00:00 -0800</pubDate><guid>tag:,2011-11-30:2011/11/python-metaclass-for-extra-bad-errors.html</guid><category>AppEngine</category><category>Class as Object</category><category>Decorator</category><category>Exception</category><category>Google App Engine</category><category>Metaclass</category><category>OOP</category><category>Python</category><category>Pythonic</category><category>Request Handler</category></item><item><title>Handling errors in Google App Engine...and failing</title><link>/2011/11/handling-errors-in-google-app-engineand.html</link><description>&lt;p&gt;After spending a nontrivial amount of my nights and weekends working on
+    don't need an explanation about why)."&lt;/em&gt; - Python Guru Tim Peters&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;"The main use case for a metaclass is creating an API."&lt;/em&gt; -Kevin
+    Samuel&lt;/li&gt;
+&lt;/ul&gt;
+&lt;!-- Images not my own but included here for hosting reasons --&gt;
+
+&lt;!-- /images/prepare-yourself-for-war.jpg -&gt; http://www.troll.me/images/war-cat/prepare-yourself-for-war.jpg --&gt;
+
+&lt;!-- /images/try-decorate-spiderman.jpg   -&gt; http://troll.me/images/misc-corrupted-husband/i-try-to-decorate-the-house-he-puts-spiderman-images-everywhere.jpg --&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Wed, 30 Nov 2011 00:00:00 -0800</pubDate><guid>tag:,2011-11-30:2011/11/python-metaclass-for-extra-bad-errors.html</guid><category>AppEngine</category><category>Class as Object</category><category>Decorator</category><category>Exception</category><category>Google App Engine</category><category>Metaclass</category><category>OOP</category><category>Python</category><category>Pythonic</category><category>Request Handler</category></item><item><title>Handling errors in Google App Engine...and failing</title><link>/2011/11/handling-errors-in-google-app-engineand.html</link><description>&lt;p&gt;After spending a nontrivial amount of my nights and weekends working on
 an AppEngine app, I wanted a good way to monitor the logs without
 checking in on them every day. After a particularly frustrating weekend
 of updates that exposed unnoticed bugs that had yet to be triggered by

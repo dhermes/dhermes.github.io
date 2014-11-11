@@ -187,16 +187,14 @@ travel for personal fun) to really have the excess time to write.</p>
       <p class="meta"><time datetime="2011-11-30T00:00:00-08:00" pubdate>Nov 30, 2011</time></p>
 </header>
 
-  <div class="entry-content"><p>So now here we are, having tried to<a href="http://blog.bossylobster.com/2011/11/handling-errors-in-google-app-engineand.html">handle errors in Google App
-Engine...and
-failed</a>all
-because silly<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">DeadlineExceededError</span>
-<a href="http://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py#32">jumps
-over</a><span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">Exception</span>
-in the inheritance chain and ...</p></div>
+  <div class="entry-content"><p>So now here we are, having tried to
+<a href="/2011/11/handling-errors-in-google-app-engineand.html">handle errors in Google App Engine...and failed</a>
+all because silly <code>DeadlineExceededError</code>
+<a href="https://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py?r=491#33">jumps over</a>
+<code>Exception</code> in the inheritance chain and goes right for <code>BaseException</code>.
+How can we catch these in our handlers while staying
+<a href="http://docs.python.org/glossary.html#term-pythonic">Pythonic</a>?</p>
+<p>First and foremost, in the case of ...</p></div>
   <footer>
     <a rel="full-article" href="/2011/11/python-metaclass-for-extra-bad-errors.html">Read On &crarr;</a>
   </footer>

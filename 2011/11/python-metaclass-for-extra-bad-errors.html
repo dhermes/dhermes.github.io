@@ -61,146 +61,152 @@
       <p class="meta"><time datetime="2011-11-30T00:00:00-08:00" pubdate>Nov 30, 2011</time></p>
 </header>
 
-  <div class="entry-content"><p>So now here we are, having tried to<a href="http://blog.bossylobster.com/2011/11/handling-errors-in-google-app-engineand.html">handle errors in Google App
-Engine...and
-failed</a>all
-because silly<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">DeadlineExceededError</span>
-<a href="http://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py#32">jumps
-over</a><span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">Exception</span>
-in the inheritance chain and goes right for <span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">BaseException</span>.
+  <div class="entry-content"><p>So now here we are, having tried to
+<a href="/2011/11/handling-errors-in-google-app-engineand.html">handle errors in Google App Engine...and failed</a>
+all because silly <code>DeadlineExceededError</code>
+<a href="https://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py?r=491#33">jumps over</a>
+<code>Exception</code> in the inheritance chain and goes right for <code>BaseException</code>.
 How can we catch these in our handlers while staying
-<a href="http://docs.python.org/glossary.html#term-pythonic">Pythonic*</a>?</p>
+<a href="http://docs.python.org/glossary.html#term-pythonic">Pythonic</a>?</p>
 <p>First and foremost, in the case of a timeout, we need to explicitly
-catch aDeadlineExceededError. To do so, we can use a
-<a href="http://stackoverflow.com/questions/739654/understanding-python-decorators#1594484">decorator</a>(hey,
-that's Pythonic) in each and every handler for each and every HTTP
-verb.(Again, <a href="http://troll.me/images/war-cat/prepare-yourself-for-war.jpg">prepare
-yourselves</a>,
-a bunch of code is about to happen. See the necessary
-<a href="http://blog.bossylobster.com/2011/11/python-metaclass-for-extra-bad-errors.html#imports">imports</a>
+catch a <code>DeadlineExceededError</code>. To do so, we can use a
+<a href="http://stackoverflow.com/questions/739654/understanding-python-decorators#1594484">decorator</a>
+(hey, that's Pythonic) in each and every handler for each and every HTTP
+verb. (Again,
+<a href="/images/prepare-yourself-for-war.jpg">prepare yourselves</a>,
+a bunch of code is about to happen. See the necessary <a href="#imports">imports</a>
 at the bottom of the post.)</p>
-<p>~~~~ {.prettyprint style="background-color: white;"}
-def deadline_decorator(method):    def wrapped_method(self, <em>args, <strong>kwargs):        try:            method(self, *args, </strong>kwargs)        except DeadlineExceededError:            traceback_info = ''.join(format_exception(</em>sys.exc_info()))            email_admins(traceback_info, defer_now=True)            serve_500(self)    return wrapped_method</p>
-<div class="highlight"><pre><span class="n">Unfortunately</span><span class="p">,</span> <span class="n">having</span> <span class="n">to</span> <span class="n">manually</span>
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">deadline_decorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
 
-<span class="o">&lt;</span><span class="n">div</span> <span class="k">class</span><span class="o">=</span><span class="s">&quot;separator&quot;</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;clear: both; text-align: center;&quot;</span><span class="o">&gt;</span>
+    <span class="k">def</span> <span class="nf">wrapped_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">DeadlineExceededError</span><span class="p">:</span>
+            <span class="n">traceback_info</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">format_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()))</span>
+            <span class="n">email_admins</span><span class="p">(</span><span class="n">traceback_info</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-<span class="p">[</span><span class="o">!</span><span class="p">[](</span><span class="nl">http</span><span class="p">:</span><span class="c1">//www.bossylobster.com/images/blog/decorate_all_the_functions.jpg)](http://www.bossylobster.com/images/blog/decorate_all_the_functions.jpg)</span>
+            <span class="n">serve_500</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
-
-<span class="n">is</span> <span class="n">not</span> <span class="n">so</span> <span class="n">Pythonic</span><span class="p">.</span> <span class="n">At</span> <span class="n">this</span> <span class="n">point</span> <span class="n">I</span> <span class="n">was</span> <span class="n">stuck</span> <span class="n">and</span> <span class="n">wanted</span> <span class="n">to</span> <span class="n">give</span> <span class="n">up</span><span class="p">,</span> <span class="n">but</span>
-<span class="p">[</span><span class="n">asked</span> <span class="k">for</span> <span class="n">some</span>
-<span class="n">advice</span><span class="p">](</span><span class="nl">https</span><span class="p">:</span><span class="c1">//plus.google.com/u/0/114760865724135687241/posts/GJjXjq5zXhU)</span>
-<span class="n">on</span> <span class="p">[</span><span class="n">G</span><span class="o">+</span><span class="p">](</span><span class="nl">http</span><span class="p">:</span><span class="c1">//www.google.com/+) and actually got what I needed from the</span>
-<span class="n">all</span> <span class="n">knowing</span> <span class="p">[</span><span class="n">Ali</span>
-<span class="n">Afshar</span><span class="p">](</span><span class="nl">https</span><span class="p">:</span><span class="c1">//plus.google.com/u/0/118327176775959145936/posts). What</span>
-<span class="n">did</span> <span class="n">I</span>
-<span class="n">need</span><span class="o">?</span><span class="p">[</span><span class="n">Metaclasses</span><span class="p">](</span><span class="nl">http</span><span class="p">:</span><span class="c1">//stackoverflow.com/questions/100003/what-is-a-metaclass-in-python#6581949).</span>
-
-<span class="n">Before</span> <span class="n">showing</span> <span class="n">the</span> <span class="nb">super</span> <span class="n">simple</span> <span class="n">metaclass</span> <span class="n">I</span> <span class="n">wrote</span><span class="p">,</span> <span class="n">you</span> <span class="n">need</span> <span class="n">to</span> <span class="n">know</span> <span class="n">one</span>
-<span class="n">thing</span> <span class="n">from</span> <span class="n">StackOverflow</span> <span class="n">user</span> <span class="p">[</span><span class="n">Kevin</span>
-<span class="n">Samuel</span><span class="p">](</span><span class="nl">http</span><span class="p">:</span><span class="c1">//stackoverflow.com/users/9951/kevin-samuel):</span>
-
-<span class="o">&gt;</span> <span class="n">The</span> <span class="n">main</span> <span class="n">purpose</span> <span class="n">of</span> <span class="n">a</span> <span class="n">metaclass</span> <span class="n">is</span> <span class="n">to</span> <span class="n">change</span> <span class="n">the</span> <span class="k">class</span> <span class="n">automatically</span><span class="p">,</span>
-<span class="o">&gt;</span> <span class="n">when</span> <span class="n">it</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">created</span><span class="p">.</span>
-
-<span class="n">With</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span> <span class="k">class</span><span class="o">=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="err">\</span><span class="n">_</span><span class="err">\</span><span class="n">_new</span><span class="err">\</span><span class="n">_</span><span class="err">\</span><span class="n">_</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
-<span class="n">method</span><span class="p">,</span> <span class="n">the</span> <span class="o">&lt;</span><span class="n">span</span> <span class="k">class</span><span class="o">=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">type</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
-<span class="n">object</span> <span class="k">in</span> <span class="n">Python</span> <span class="n">actually</span> <span class="n">constructs</span> <span class="n">a</span> <span class="k">class</span> <span class="p">(</span><span class="n">which</span> <span class="n">is</span> <span class="n">also</span> <span class="n">an</span> <span class="n">object</span><span class="p">)</span>
-<span class="n">by</span> <span class="n">taking</span> <span class="n">into</span> <span class="n">account</span> <span class="n">the</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="k">class</span><span class="p">,</span> <span class="n">the</span> <span class="n">parents</span> <span class="p">(</span><span class="n">or</span> <span class="n">bases</span><span class="p">)</span> <span class="n">and</span>
-<span class="n">the</span> <span class="k">class</span> <span class="n">attritubutes</span><span class="p">.</span> <span class="n">So</span><span class="p">,</span> <span class="n">we</span> <span class="n">can</span> <span class="n">make</span> <span class="n">a</span> <span class="n">metaclass</span> <span class="n">by</span> <span class="n">subclassing</span><span class="o">&lt;</span><span class="n">span</span>
-<span class="k">class</span><span class="o">=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">type</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="n">and</span>
-<span class="n">overriding</span><span class="o">&lt;</span><span class="n">span</span> <span class="k">class</span><span class="o">=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="err">\</span><span class="n">_</span><span class="err">\</span><span class="n">_new</span><span class="err">\</span><span class="n">_</span><span class="err">\</span><span class="n">_</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;:</span>
-
-<span class="o">~~~~</span> <span class="p">{.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
-<span class="k">class</span> <span class="n">DecorateHttpVerbsMetaclass</span><span class="p">(</span><span class="n">type</span><span class="p">)</span><span class="o">:</span>    <span class="n">def</span> <span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">)</span><span class="o">:</span>        <span class="n">verbs</span> <span class="o">=</span> <span class="p">[</span><span class="err">&#39;</span><span class="n">get</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">post</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">put</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">delete</span><span class="err">&#39;</span><span class="p">]</span>        <span class="k">for</span> <span class="n">verb</span> <span class="k">in</span> <span class="nl">verbs</span><span class="p">:</span>            <span class="k">if</span> <span class="n">verb</span> <span class="k">in</span> <span class="n">cls_attr</span> <span class="n">and</span> <span class="n">isinstance</span><span class="p">(</span><span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">],</span> <span class="n">function</span><span class="p">)</span><span class="o">:</span>                <span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">]</span> <span class="o">=</span> <span class="n">deadline_decorator</span><span class="p">(</span><span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">])</span>        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">DecorateHttpVerbsMetaclass</span><span class="p">,</span> <span class="n">cls</span><span class="p">).</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>                                                              <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapped_method</span>
 </pre></div>
 
 
-<p>In<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">DecorateHttpVerbsMetaclass</span>,
+<p>Unfortunately, having to manually</p>
+<div style="text-align: center;">
+<p>[<img alt="Decorate All" src="/images/decorate_all_the_functions.jpg" />]</p>
+</div>
+<p>is not so Pythonic. At this point I was stuck and wanted to give up, but
+<a href="https://plus.google.com/u/0/114760865724135687241/posts/GJjXjq5zXhU">asked for some advice</a>
+on <a href="http://www.google.com/+">G+</a> and actually got what I needed from the
+all knowing
+<a href="https://plus.google.com/u/0/118327176775959145936/posts">Ali Afshar</a>.
+What did I need?</p>
+<blockquote>
+<p><a href="http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python#6581949">Metaclasses</a>.</p>
+</blockquote>
+<p>Before showing the super simple metaclass I wrote, you need to know one
+thing from StackOverflow user
+<a href="http://stackoverflow.com/users/9951/kevin-samuel">Kevin Samuel</a>:</p>
+<blockquote>
+<p>The main purpose of a metaclass is to change the class automatically,
+when it's created.</p>
+</blockquote>
+<p>With the <code>__new__</code>
+method, the <code>type</code>
+object in Python actually constructs a class (which is also an object)
+by taking into account the name of the class, the parents (or bases) and
+the class attritubutes. So, we can make a metaclass by subclassing <code>type</code> and overriding
+<code>__new__</code>:</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">DecorateHttpVerbsMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">):</span>
+        <span class="n">verbs</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;get&#39;</span><span class="p">,</span> <span class="s">&#39;post&#39;</span><span class="p">,</span> <span class="s">&#39;put&#39;</span><span class="p">,</span> <span class="s">&#39;delete&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">verb</span> <span class="ow">in</span> <span class="n">verbs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verb</span> <span class="ow">in</span> <span class="n">cls_attr</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">],</span> <span class="n">function</span><span class="p">):</span>
+                <span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">]</span> <span class="o">=</span> <span class="n">deadline_decorator</span><span class="p">(</span><span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">DecorateHttpVerbsMetaclass</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>
+                                                              <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">)</span>
+</pre></div>
+
+
+<p>In <code>DecorateHttpVerbsMetaclass</code>,
 we look for four (of the nine) HTTP
 <a href="http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods">verbs</a>,
 because heck, only seven are supported in
-<a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html">RequestHandler</a>,
+<a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html"><code>RequestHandler</code></a>,
 and we're not that crazy. If the class has one of the verbs as an
-attribute <strong><em>andif</em></strong> the attribute is a function, we
-<a href="http://troll.me/images/misc-corrupted-husband/i-try-to-decorate-the-house-he-puts-spiderman-images-everywhere.jpg">decorate</a>
-it with <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">deadline_decorator</span>.</p>
-<p>Now, we can rewrite our subclass of <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">RequestHandler</span>
+attribute <strong>and if</strong> the attribute is a function, we
+<a href="/images/try-decorate-spiderman.jpg">decorate</a>
+it with <code>deadline_decorator</code>.</p>
+<p>Now, we can rewrite our subclass of <code>RequestHandler</code>
 with one extra line:</p>
-<p>~~~~ {.prettyprint style="background-color: white;"}
-class ExtendedHandler(RequestHandler):    <strong>metaclass</strong> = DecorateHttpVerbsMetaclass    def handle_exception(self, exception, debug_mode):        traceback_info = ''.join(format_exception(*sys.exc_info()))        email_admins(traceback_info, defer_now=True)        serve_500(self)</p>
-<div class="highlight"><pre><span class="n">By</span> <span class="n">doing</span> <span class="n">this</span><span class="p">,</span> <span class="n">when</span> <span class="n">the</span> <span class="o">***</span><span class="n">class</span><span class="o">***</span> <span class="o">&lt;</span><span class="n">span</span> <span class="n">class</span><span class="o">=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="n">style</span><span class="o">=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="o">&gt;</span><span class="n">ExtendedHandler</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
-<span class="ow">is</span> <span class="n">built</span> <span class="p">(</span><span class="k">as</span> <span class="n">an</span> <span class="o">***</span><span class="nb">object</span><span class="o">***</span><span class="p">),</span> <span class="nb">all</span> <span class="n">of</span> <span class="n">its</span> <span class="n">attributes</span> <span class="ow">and</span> <span class="nb">all</span> <span class="n">of</span> <span class="n">its</span>
-<span class="n">parent</span> <span class="n">classes</span> <span class="p">(</span><span class="ow">or</span> <span class="n">bases</span><span class="p">)</span><span class="n">attributes</span> <span class="n">are</span> <span class="n">checked</span> <span class="ow">and</span> <span class="n">possibly</span> <span class="n">updated</span> <span class="n">by</span>
-<span class="n">our</span> <span class="n">metaclass</span><span class="o">.</span>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">ExtendedHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">DecorateHttpVerbsMetaclass</span>
 
-<span class="n">And</span> <span class="n">now</span> <span class="n">you</span> <span class="ow">and</span> <span class="n">James</span> <span class="n">Nekbehrd</span> <span class="n">can</span> <span class="n">feel</span><span class="p">[</span><span class="n">like</span> <span class="n">a</span>
-<span class="n">boss</span><span class="p">](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">youtube</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">watch</span><span class="err">?</span><span class="n">v</span><span class="o">=</span><span class="n">NisCkxU544c</span><span class="p">)</span><span class="n">when</span> <span class="n">your</span> <span class="n">app</span> <span class="n">handles</span>
-<span class="n">errors</span><span class="o">.</span>
+    <span class="k">def</span> <span class="nf">handle_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">,</span> <span class="n">debug_mode</span><span class="p">):</span>
+        <span class="n">traceback_info</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">format_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()))</span>
+        <span class="n">email_admins</span><span class="p">(</span><span class="n">traceback_info</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-<span class="o">**</span><span class="p">[</span><span class="n">Imports</span><span class="p">:](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">blog</span><span class="o">.</span><span class="n">bossylobster</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="mi">2011</span><span class="o">/</span><span class="mi">11</span><span class="o">/</span><span class="n">python</span><span class="o">-</span><span class="n">metaclass</span><span class="o">-</span><span class="k">for</span><span class="o">-</span><span class="n">extra</span><span class="o">-</span><span class="n">bad</span><span class="o">-</span><span class="n">errors</span><span class="o">.</span><span class="n">html</span><span class="c">#imports)**</span>
-
-<span class="o">~~~~</span> <span class="p">{</span><span class="o">.</span><span class="n">prettyprint</span> <span class="n">style</span><span class="o">=</span><span class="s">&quot;background-color: white;&quot;</span><span class="p">}</span>
-<span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">mailfrom</span> <span class="n">google</span><span class="o">.</span><span class="n">appengine</span><span class="o">.</span><span class="n">ext</span><span class="o">.</span><span class="n">deferred</span> <span class="kn">import</span> <span class="nn">deferfrom</span> <span class="nn">google.appengine.ext.webapp</span> <span class="nn">import</span> <span class="nn">RequestHandlerfrom</span> <span class="nn">google.appengine.runtime</span> <span class="nn">import</span> <span class="nn">DeadlineExceededErrorimport</span> <span class="nn">sysfrom</span> <span class="nn">traceback</span> <span class="nn">import</span> <span class="nn">format_exceptionfrom</span> <span class="nn">SOME_APP_SPECIFIC_LIBRARY</span> <span class="nn">import</span> <span class="nn">serve_500from</span> <span class="nn">LAST_POST</span> <span class="nn">import</span> <span class="nn">email_admins</span>
+        <span class="n">serve_500</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </pre></div>
 
 
-<p><strong>*Pythonic:</strong></p>
+<p>By doing this, when the <strong>class</strong> <code>ExtendedHandler</code>
+is built (as an <strong>object</strong>), all of its attributes and all of its
+parent classes (or bases) attributes are checked and possibly updated by
+our metaclass.</p>
+<p>And now you and James Nekbehrd can feel
+<a href="http://www.youtube.com/watch?v=NisCkxU544c">like a boss</a> when your app
+handles errors.</p>
+<h2 id="imports">Imports:</h2>
+<div class="highlight"><pre><span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">mail</span>
+<span class="kn">from</span> <span class="nn">google.appengine.ext.deferred</span> <span class="kn">import</span> <span class="n">defer</span>
+<span class="kn">from</span> <span class="nn">google.appengine.ext.webapp</span> <span class="kn">import</span> <span class="n">RequestHandler</span>
+<span class="kn">from</span> <span class="nn">google.appengine.runtime</span> <span class="kn">import</span> <span class="n">DeadlineExceededError</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">traceback</span> <span class="kn">import</span> <span class="n">format_exception</span>
+<span class="kn">from</span> <span class="nn">SOME_APP_SPECIFIC_LIBRARY</span> <span class="kn">import</span> <span class="n">serve_500</span>
+<span class="kn">from</span> <span class="nn">LAST_POST</span> <span class="kn">import</span> <span class="n">email_admins</span>
+</pre></div>
+
+
+<h4>Pythonic:</h4>
 <blockquote>
-<p><em>An idea or piece of code which closely follows the most common idioms
+<p>An idea or piece of code which closely follows the most common idioms
 of the Python language, rather than implementing code using concepts
-common to other languages.</em></p>
+common to other languages.</p>
 </blockquote>
-<p><strong>Notes:</strong></p>
+<h4>Notes:</h4>
 <ul>
-<li><em>Using</em><span class="Apple-style-span"
-    style="background-color: white; color: purple; font-family: 'Courier New', Courier, monospace;">grep
-    -r "Exception)" . | grep "class "</span> <em>I have convinced myself
-    (for now) that the only errors AppEngine will throw that do not
-    inherit from</em><span class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">Exception</span><em>are</em><span
-    class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">DeadlineExceededError</span><em>,</em><span
-    class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">SystemExit</span><em>,
-    and</em><span class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">KeyboardInterrupt</span><em>so
-    that is why I only catch the timeout.</em></li>
-<li><em>You can also use</em><span class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">webapp2</span><em>to
-    <a href="http://stackoverflow.com/questions/6853257/how-can-i-setup-a-global-deadlineexceedederror-handler">catch 500
-    errors</a>,
-    even when</em><span class="Apple-style-span"
-    style="color: lime; font-family: 'Courier New', Courier, monospace;">handle_exception</span><em>fails
-    to catch them.</em></li>
+<li>
+<p>Using <code>grep -r "Exception)" . | grep "class "</code>
+    I have convinced myself (for now) that the only errors App Engine will throw
+    that do not inherit from <code>Exception</code> are <code>DeadlineExceededError</code>,
+    <code>SystemExit</code>, and <code>KeyboardInterrupt</code> so that is why I only catch the
+    timeout.</p>
+</li>
+<li>
+<p>You can also use <code>webapp2</code> to
+    <a href="http://stackoverflow.com/questions/6853257/how-can-i-setup-a-global-deadlineexceedederror-handler">catch 500 errors</a>,
+    even when <code>handle_exception</code> fails to catch them.</p>
+</li>
 </ul>
-<p><strong>Disclaimer:</strong><em>Just because you know what a metaclass is doesn't mean
-you should use one:</em></p>
+<h4>Disclaimer: <span style="font-weight: normal;">Just because you know what a metaclass is doesn't mean you should use one.</span></h4>
 <ul>
-<li><em>"Don't do stuff like this though, what is your use case?" -Ali
-    Afshar</em></li>
+<li><em>"Don't do stuff like this though, what is your use case?"</em> - Ali Afshar</li>
 <li><em>"Metaclasses are deeper magic than 99% of users should ever worry
     about. If you wonder whether you need them, you don't (the people
     who actually need them know with certainty that they need them, and
-    don't need an explanation about why)." -Python Guru Tim Peters</em></li>
-<li><em>"The main use case for a metaclass is creating an API." -Kevin
-    Samuel</em></li>
-</ul></div>
+    don't need an explanation about why)."</em> - Python Guru Tim Peters</li>
+<li><em>"The main use case for a metaclass is creating an API."</em> -Kevin
+    Samuel</li>
+</ul>
+<!-- Images not my own but included here for hosting reasons -->
+
+<!-- /images/prepare-yourself-for-war.jpg -> http://www.troll.me/images/war-cat/prepare-yourself-for-war.jpg -->
+
+<!-- /images/try-decorate-spiderman.jpg   -> http://troll.me/images/misc-corrupted-husband/i-try-to-decorate-the-house-he-puts-spiderman-images-everywhere.jpg --></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">
