@@ -62,62 +62,135 @@
 </header>
 
   <div class="entry-content"><p>On the (much too early) bus to work this morning, I was reading my
-Twitter feed and saw an <a href="https://twitter.com/#!/robhawkes/status/121593545202216960">interesting
-question</a>from
-<a href="https://twitter.com/#!/robhawkes">Rob Hawkes</a>:</p>
+Twitter feed and saw an
+<a href="https://twitter.com/#!/robhawkes/status/121593545202216960">interesting question</a>
+from <a href="https://twitter.com/#!/robhawkes">Rob Hawkes</a>:</p>
+<style type="text/css">
+  a.anchor-twitter, a:visited.anchor-twitter {
+    font-weight: bolder;
+    font-style: normal;
+    text-decoration: none;
+    outline: none;
+  }
+
+  iframe {
+    width: 300px;
+    height: 20px;
+  }
+
+  .bump-left {
+    margin-left: 1em;
+  }
+
+  #post-container {
+    font: 14px/1.231 helvetica,arial,clean,sans-serif;
+    display: inline-block;
+    position: relative;
+    width: 640px;
+    text-align: left;
+  }
+
+  #container-bg {
+    background: url(/images/twitter-bg.png) no-repeat #EBEBEB;
+    padding: 20px;
+    margin: 8px 0;
+  }
+
+  #post-bg {
+    background: #fff;
+    color: #000;
+    padding: 10px 12px 2px 12px;
+    margin: 0;
+    min-height: 60px;
+    font-size: 18px;
+    line-height: 22px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius:5px;
+    -moz-box-shadow:0 2px 2px rgba(0,0,0,0.2);
+    -webkit-box-shadow:0 2px 2px rgba(0,0,0,0.2);
+    box-shadow:0 2px 2px rgba(0,0,0,0.2);
+  }
+
+  #top-span {
+    width: 100%;
+    margin-bottom: 12px;
+    padding-top: 8px;
+    height: 40px;
+  }
+
+  #follow-span {
+    float: right;
+    width: 300px;
+    font-size: 12px;
+    text-align: right;
+  }
+
+  #name-span {
+    line-height: 19px;
+  }
+
+  #id-img {
+    float: left;
+    margin: 0px 7px 0px 0px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: none;
+  }
+</style>
+
 <p><center>
-<div id="post-container"></p>
-<div id="container-bg">
-
-<div id="post-bg">
-
-<span id="top-span"> <span id="follow-span"></span> <span
-id="name-span"> [![Rob
-Hawkes](http://www.bossylobster.com/images/blog/robhawkes.jpg)](http://twitter.com/intent/user?screen_name=robhawkes "Rob Hawkes")
-**[@robhawkes](http://twitter.com/intent/user?screen_name=robhawkes "Rob Hawkes")**
-<span style="color: #999999; font-size: 14px;">
-Rob Hawkes</span></span></span>
-<div style="margin: 1em 0em .5em 0em;">
-
-How do you handle config files in your apps when you use Git? I keep
-accidentally adding config files with sensitive data to Git. :(
-
-</div>
-
-<div style="font-size: 12px;">
-
-[October 5, 2011 7:32
-am](https://twitter.com/#!/robhawkes/status/121593545202216960 "tweeted on October 5, 2011 7:32 am")
-via [TweetDeck](http://www.tweetdeck.com/)
-[**Reply**](https://twitter.com/intent/tweet?in_reply_to=121593545202216960 "Reply")
-[**Retweet**](https://twitter.com/intent/retweet?tweet_id=121593545202216960 "Retweet")
-[**Favorite**](https://twitter.com/intent/favorite?tweet_id=121593545202216960 "Favorite")
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<p></center>
-Rob's Twitter followers made all kinds of recommendations and Rob
-eventually decided it was a solved problem, declaring "Best method I've
-found so far is creating a temporary config file and keeping that in
-git, then .gitignoring the real one." and then "Thanks for the config
-file tips! In the end I went with a "config.example.js" file stored in
-<a href="http://git-scm.com/">Git</a> and a "config.js" file that is ignored." For
-those following along at home, they mean the same thing.</p>
+  <div id="post-container">
+    <div id="container-bg">
+      <div id="post-bg">
+        <span id="top-span">
+          <span id="follow-span">
+            <iframe allowtransparency="true" frameborder="0" scrolling="no" src="http://platform.twitter.com/widgets/follow_button.html#_=1319487235961&amp;align=right&amp;button=blue&amp;id=twitter_tweet_button_2&amp;lang=en&amp;link_color=%230084B4&amp;screen_name=robhawkes&amp;show_count=false&amp;show_screen_name=&amp;text_color="></iframe>
+          </span>
+          <span id="name-span">
+            <a class="anchor-twitter" href="http://twitter.com/intent/user?screen_name=robhawkes" title="Rob Hawkes">
+              <img alt="Rob Hawkes" id="id-img" src="/images/robhawkes.jpg" />
+            </a>
+            <strong>
+              <a class="anchor-twitter" href="http://twitter.com/intent/user?screen_name=robhawkes" style="color: #0084b4;" title="Rob Hawkes">@robhawkes</a>
+            </strong>
+            <span style="color: #999999; font-size: 14px;"><br />Rob Hawkes</span>
+          </span>
+        </span>
+        <br />
+        <div style="margin: 1em 0em .5em 0em;">How do you handle config files in your apps when you use Git? I keep accidentally adding config files with sensitive data to Git. :(
+        </div>
+        <div style="font-size: 12px;">
+          <a class="anchor-twitter" href="https://twitter.com/#!/robhawkes/status/121593545202216960" style="color: #0084b4;" target="_blank" title="tweeted on October 5, 2011 7:32 am">October 5, 2011 7:32 am</a>
+          via
+          <a class="anchor-twitter" href="http://www.tweetdeck.com/" rel="nofollow" style="color: #0084b4;" target="blank">TweetDeck</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</center></p>
+<p>Rob's Twitter followers made all kinds of recommendations and Rob
+eventually decided it was a solved problem, declaring</p>
+<blockquote>
+<p>Best method I've found so far is creating a temporary config file and
+keeping that in <code>git</code>, then <code>.gitignore</code>ing the real one.</p>
+</blockquote>
+<p>and then</p>
+<blockquote>
+<p>Thanks for the config file tips! In the end I went with a <code>config.example.js</code>
+file stored in <a href="http://git-scm.com/"><code>git</code></a> and a <code>config.js</code> file that is
+ignored.</p>
+</blockquote>
+<p>For those following along at home, they mean the same thing.</p>
 <p>As Rob was probably intending, this can be used for deploying an app on
-your personal server, or for a sample App on a PaaS like <a href="http://code.google.com/appengine/">Google App
-Engine</a> or
+your personal server, or for a sample App on a PaaS like
+<a href="http://code.google.com/appengine/">Google App Engine</a> or
 <a href="http://www.heroku.com/">Heroku</a>. When testing such an app, the ability
 to have a native environment locally is a huge convenience, but the
 overhead of remembering which private keys need to be hidden is a
 headache and sometimes completely neglected. But it shouldn't be,
-because git never forgets!</p>
-<p>Anyone who has used git for any substantial amount of time probably
+because <code>git</code> never forgets!</p>
+<p>Anyone who has used <code>git</code> for any substantial amount of time probably
 initially conceived of this hack when on first thought. (This is no
 insult to Rob, just the inevitability of the pattern.) But, by the time
 Rob posted his solution, I had moved on from this and came up a solution
@@ -125,159 +198,135 @@ that I think does the trick a bit more thoroughly. I envisioned a
 solution which assumes people who checkout my code will want to keep
 their config in a specified path that is already in the repo; of course,
 I also wanted to share this with the interwebs.</p>
-<p><span class="Apple-style-span">Anyhow, this is quick and dirty. First,
-create <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span>
-and<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>in
-the root directory of your git repository (the same directory that <span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">.git</span>
-lives in). I intend</span><span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span><span
-class="Apple-style-span">to be the local copy with my actual passwords
-and keys and</span><span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>to
-hold the master contents that actually show up in the public repo. For
-example, the contents of<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js
-are</span>:</p>
-<div style="text-align: center;">
-
-<span class="Apple-style-span"
-style="background-color: white; color: purple; font-family: 'Courier New', Courier, monospace;">var
-SECRET = 'Nnkrndkmn978489MDkjw';</span>
-
-</div>
-
-<p>and the contents of<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>are:</p>
-<div style="text-align: center;">
-
-<span class="Apple-style-span"
-style="background-color: white; color: purple; font-family: 'Courier New', Courier, monospace;">var
-SECRET = 'SECRET';</span>
-
-</div>
-
-<p>Since I <strong><em>don't</em></strong> want a duplicate in my repo, I put a rule in my
-<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">.gitignore</span>
-<a href="http://progit.org/book/ch2-2.html#ignoring_files">file</a>to ignore<span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>.
-(For those unfamiliar, this can be done just by including<span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>on
-its own line in the<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">.gitignore</span>file.)
-After doing so, I set up two <a href="http://progit.org/book/ch7-3.html">git
-hooks</a>, a pre-commit and post-commit
-hook.</p>
-<p>To "<em>install</em>" the hooks, just add the files<span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">pre-commit</span>and<span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">post-commit</span>to
-the <span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">.git/hooks</span>
-subdirectory in your repo.They are nearly identical files, with a
-one-line difference. Both files simply swap the contents of<span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span><span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"></span>and<span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">_config.js</span>,
-while<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">pre-commit</span>also
-adds<span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">config.js</span>to
-the changelist. First I'll give you the contents of<span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">pre-commit</span>,
-and then explain why it's cool/safe:</p>
-<p>~~~~ {.prettyprint style="background-color: white;"}</p>
-<h1>!/usr/bin/env pythonimport oshooks_dir = os.path.dirname(os.path.abspath(<strong>file</strong>))relative_dir = os.path.join(hooks_dir, '../..')project_root = os.path.abspath(relative_dir)git_included_config = os.path.join(project_root, 'config.js')confidential_config = os.path.join(project_root, '_config.js')with open(git_included_config, 'rU') as fh:  git_included_contents = fh.read()with open(confidential_config, 'rU') as fh:  confidential_contents = fh.read()with open(git_included_config, 'w') as fh:  fh.write(confidential_contents)with open(confidential_config, 'w') as fh:  fh.write(git_included_contents)os.system('git add %s' % git_included_config)</h1>
-<div class="highlight"><pre>(Also note the contents of<span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>post-commit<span class="nt">&lt;/span&gt;</span>are
-exactly the same, except without the final statement: <span class="nt">&lt;span</span>
-<span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;background-color: white; color: purple; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>os.system(&#39;git
-add %s&#39; % git\_included\_config)<span class="nt">&lt;/span&gt;</span>.)
-
-So what is happening in this file:
-
-1.  Uses the Python <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-    <span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>os<span class="nt">&lt;/span&gt;</span>
-    module to determine the absolute path to the root directory in your
-    project by using the absolute path of the hook file, backing up two
-    directories and again find that absolute path.
-2.  Determines the two files which need to swap contents
-3.  Loads the contents into string variables and then writes them to the
-    opposite files
-4.  (only in<span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-    <span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>pre-commit<span class="nt">&lt;/span&gt;</span>)
-    Adds the included file to the changelist before the commit occurs.
-
-Step 4 is actually the secret sauce. It puts cleaned, non-sensitive data
-into the checked in<span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>config.js<span class="nt">&lt;/span&gt;</span>file
-and then updates the changelist before making a commit, to ensure only
-the non-sensitive data goes in. Though you could do this yourself by
-making an initial commit with clean data and then never<span class="nt">&lt;span</span>
-<span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>git
-add<span class="nt">&lt;/span&gt;</span>ing the file with your actual data, these hooks prevent an
-accident and allow you to update your local<span class="nt">&lt;span</span>
-<span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>\_config.js<span class="nt">&lt;/span&gt;</span>file
-with more fields as your config spec changes.
-
-But wait bossylobster, you say, what if one of the hooks doesn&#39;t occur?
-You are right! As<span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>pre-commit<span class="nt">&lt;/span&gt;</span>stands
-above, if the changelist is empty we have problems. Since the pre-commit
-hook changes<span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>config.js<span class="nt">&lt;/span&gt;</span>to
-the same value in HEAD, git will tell us either &quot;***nothing to
-commit***&quot; or &quot;***no changes added to commit***&quot;. In this case, the
-commit will exit and the post-commit hook will never occur. **<span class="nt">&lt;span</span>
-<span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span> <span class="na">style=</span><span class="s">&quot;font-size: large;&quot;</span><span class="nt">&gt;</span>This is very
-bad<span class="nt">&lt;/span&gt;</span>**, since the contents of<span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>config.js<span class="nt">&lt;/span&gt;</span>and<span class="nt">&lt;span</span>
-<span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>\_config.js<span class="nt">&lt;/span&gt;</span>will
-be switched but not switched back. So, to account for this, we need to
-append the following code to the end of<span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">&quot;Apple-style-span&quot;</span>
-<span class="na">style=</span><span class="s">&quot;color: lime; font-family: &#39;Courier New&#39;, Courier, monospace;&quot;</span><span class="nt">&gt;</span>pre-commit<span class="nt">&lt;/span&gt;</span>:
-
-~~~~ {.prettyprint style=&quot;background-color: white;&quot;}
-with os.popen(&#39;git st&#39;) as fh:  git_status = fh.read()if (&#39;nothing to commit&#39; in git_status or    &#39;no changes added to commit&#39; in git_status or    &#39;nothing added to commit&#39; in git_status):  import sys  msg = &#39;# From pre-commit hook: No commit necessary, &#39; \        &#39;sensitive config unchanged. #&#39;  hash_head = &#39;#&#39; * len(msg)  print (&#39;%s\n%s\n%s\n\n&#39; % (hash_head, msg, hash_head)),  with open(git_included_config, &#39;w&#39;) as fh:    fh.write(git_included_contents)  with open(confidential_config, &#39;w&#39;) as fh:    fh.write(confidential_contents)  sys.exit(1)
+<p>Anyhow, this is quick and dirty. First, create <code>config.js</code> and <code>_config.js</code>
+in the root directory of your git repository (the same directory that <code>.git/</code>
+lives in). I intend <code>config.js</code> to be the local copy with my actual passwords
+and keys and <code>_config.js</code> to hold the master contents that actually show up in
+the public repo. For example, the contents of <code>config.js</code> are:</p>
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">SECRET</span> <span class="o">=</span> <span class="s1">&#39;Nnkrndkmn978489MDkjw&#39;</span><span class="p">;</span>
 </pre></div>
 
 
-<p>For final versions see
-the<a href="http://www.bossylobster.com/scripts/pre-commit">pre-commit</a> and
-<a href="http://www.bossylobster.com/scripts/post-commit">post-commit</a>files.
-Thanks again to<a href="https://twitter.com/#!/robhawkes">Rob Hawkes</a>for the
-idea/work break over lunch!</p>
-<p><strong>Update</strong>: <em>One of Rob's followers, <a href="https://twitter.com/#!/nrocy">Paul
-King</a>, found and
+<p>and the contents of <code>_config.js</code>
+are:</p>
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">SECRET</span> <span class="o">=</span> <span class="s1">&#39;SECRET&#39;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>Since I <strong>don't</strong> want a duplicate in my repo, I put a rule in my <code>.gitignore</code>
+<a href="http://progit.org/book/ch2-2.html#ignoring_files">file</a> to ignore <code>_config.js</code>.
+(For those unfamiliar, this can be done just by including <code>_config.js</code> on its
+own line in the <code>.gitignore</code> file.) After doing so, I set up two
+<a href="http://progit.org/book/ch7-3.html">git hooks</a>, a pre-commit and post-commit
+hook.</p>
+<p>To <strong>install</strong> the hooks, just add the files <code>pre-commit</code> and <code>post-commit</code>
+to the <code>.git/hooks/</code> subdirectory in your repo.They are nearly identical files,
+with a one-line difference. Both files simply swap the contents of <code>config.js</code>
+and <code>_config.js</code>, while <code>pre-commit</code> also adds <code>config.js</code> to the changelist.
+First I'll give you the contents of <code>pre-commit</code>, and then explain why it's
+cool/safe:</p>
+<div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">hooks_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+<span class="n">relative_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hooks_dir</span><span class="p">,</span> <span class="s">&#39;../..&#39;</span><span class="p">)</span>
+<span class="n">project_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">relative_dir</span><span class="p">)</span>
+
+<span class="n">git_included_config</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_root</span><span class="p">,</span> <span class="s">&#39;config.js&#39;</span><span class="p">)</span>
+<span class="n">confidential_config</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_root</span><span class="p">,</span> <span class="s">&#39;_config.js&#39;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+  <span class="n">git_included_contents</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+  <span class="n">confidential_contents</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+  <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">confidential_contents</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+  <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">git_included_contents</span><span class="p">)</span>
+
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;git add </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">git_included_config</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Also note the contents of <code>post-commit</code> are exactly the same, except without
+the final statement:</p>
+<div class="highlight"><pre><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;git add </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">git_included_config</span><span class="p">)</span><span class="o">.</span>
+</pre></div>
+
+
+<p>So what is happening in this file:</p>
+<ol>
+<li>Uses the Python <code>os</code> module to determine the absolute path to the root
+    directory in your project by using the absolute path of the hook file,
+    backing up two directories and again find that absolute path.</li>
+<li>Determines the two files which need to swap contents</li>
+<li>Loads the contents into string variables and then writes them to the
+    opposite files</li>
+<li>(only in <code>pre-commit</code>) Adds the included file to the changelist before
+    the commit occurs.</li>
+</ol>
+<p>Step 4 is actually the secret sauce. It puts cleaned, non-sensitive data
+into the checked in <code>config.js</code> file and then updates the changelist before
+making a commit, to ensure only the non-sensitive data goes in. Though you
+could do this yourself by making an initial commit with clean data and then
+never <code>git add</code>ing the file with your actual data, these hooks prevent an
+accident and allow you to update your local <code>_config.js</code> file with more
+fields as your config spec changes.</p>
+<p>But wait bossylobster, you say, what if one of the hooks doesn't occur?
+You are right! As <code>pre-commit</code> stands above, if the changelist is empty we
+have problems. Since the pre-commit hook changes <code>config.js</code> to the same
+value in <code>HEAD</code>, <code>git</code> will tell us either <strong>nothing to commit</strong> or
+<strong>no changes added to commit</strong>. In this case, the commit will exit and the
+post-commit hook will never occur. <strong>THIS IS VERY BAD</strong>, since the contents of
+<code>config.js</code> and <code>_config.js</code> will be switched but not switched back. So, to
+account for this, we need to append the following code to the end of
+<code>pre-commit</code>:</p>
+<div class="highlight"><pre><span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="s">&#39;git st&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+  <span class="n">git_status</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="s">&#39;nothing to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span> <span class="ow">or</span>
+    <span class="s">&#39;no changes added to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span> <span class="ow">or</span>
+    <span class="s">&#39;nothing added to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span><span class="p">):</span>
+  <span class="kn">import</span> <span class="nn">sys</span>
+
+  <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;# From pre-commit hook: No commit necessary, &#39;</span>
+         <span class="s">&#39;sensitive config unchanged. #&#39;</span><span class="p">)</span>
+  <span class="n">hash_head</span> <span class="o">=</span> <span class="s">&#39;#&#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+  <span class="k">print</span> <span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hash_head</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">hash_head</span><span class="p">)),</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">git_included_contents</span><span class="p">)</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">confidential_contents</span><span class="p">)</span>
+
+  <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>For final versions see the
+<a href="https://gist.github.com/dhermes/21b152c25a321b554b61">pre-commit</a> and
+<a href="https://gist.github.com/dhermes/877ed7c9838d6fc5bb08">post-commit</a>
+files. Thanks again to <a href="https://twitter.com/#!/robhawkes">Rob Hawkes</a>
+for the idea/work break over lunch!</p>
+<h4>Update 1:</h4>
+<p>One of Rob's followers, <a href="https://twitter.com/#!/nrocy">Paul King</a>, found and
 <a href="https://twitter.com/#!/nrocy/status/124468167086051328">tweeted</a> a very
 different alternative that is also pretty cool. Check out the
-<a href="http://archive.robwilkerson.org/2010/03/02/git-tip-ignore-changes-to-tracked-files/">post</a>he
-found by <a href="https://twitter.com/#!/robwilkerson">Rob Wilkerson</a>.</em></p>
-<p><strong>Update</strong>:<em>I swapped out a screen shot of the tweet for a CSS-ified
-version, inspired by and based on a design used on Mashable.</em></p>
-<p><strong>Update</strong>: <em>Some change in gitcauses empty commits to be allowed.I
-either didn't notice this before or it just showed up in git. So I
-added</em><span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">sys.exit(1)</span><em>to
-force the pre-commit script to fail when nothing is changed and added a
-check for the phrase</em><span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;">nothing
-added to commit</span><em>as well.</em></p></div>
+<a href="http://archive.robwilkerson.org/2010/03/02/git-tip-ignore-changes-to-tracked-files/">post</a>
+he found by <a href="https://twitter.com/#!/robwilkerson">Rob Wilkerson</a>.</p>
+<h4>Update 2:</h4>
+<p>I swapped out a screen shot of the tweet for a CSS-ified
+version, inspired by and based on a design used on Mashable.</p>
+<h4>Update 3:</h4>
+<p>Some change in <code>git</code> causes empty commits to be allowed. I either didn't
+notice this before or it just showed up in <code>git</code>. So I added <code>sys.exit(1)</code>
+to force the pre-commit script to fail when nothing is changed and added
+a check for the phrase <strong>nothing added to commit</strong> as well.</p></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">

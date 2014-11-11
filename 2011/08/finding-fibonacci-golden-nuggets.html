@@ -63,391 +63,246 @@
 
   <div class="entry-content"><p>As I mentioned in my last set ofposts, the content would go somewhere
 and this post will be the first to deliver on that. In fact this is the
-<em>all math, no code</em> first half of a two part post that will deliver. If
+<strong>all math, no code</strong> first half of a two part post that will deliver. If
 you see words like topograph, river, and base and you aren't sure what I
-mean, you may want to read that last<a href="http://blog.bossylobster.com/2011/08/conways-topograph-part-3.html">set of
-posts</a>.</p>
-<p>In this post, I outline a solution to Project Euler <a href="http://projecteuler.net/index.php?section=problems&amp;id=137">problem
-137</a>, so stop
-reading now if you don't want to be spoiled. There is no code here, but
-the <a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets-part-2.html">second
-half</a>of
-this post has a pretty useful abstraction.</p>
-<p>The problems asks us to consider \[A_F(z) = z F_1 + z\^2 F_2 + z\^3
-F_3 + \ldots,\] the generating polynomial for the Fibonacci
-sequence<a href="http://www.blogger.com/post-edit.g?blogID=1697307561385480651&amp;postID=8793933354039507148#footnote">*</a>.
+mean, you may want to read that last
+<a href="/2011/08/conways-topograph-part-3.html">set of posts</a>.</p>
+<p>In this post, I outline a solution to Project Euler
+<a href="http://projecteuler.net/index.php?section=problems&amp;id=137">problem 137</a>, so
+stop reading now if you don't want to be spoiled. There is no code here, but
+the <a href="/2011/08/finding-fibonacci-golden-nuggets-part-2.html">second half</a>
+of this post has a pretty useful abstraction.</p>
+<p>The problems asks us to consider</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">A</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">3</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">3</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mpunct">&#8230;</span><span class="mpunct">,</span></span></span></span>
+</blockquote></div>
+
+<p>the generating polynomial for the <a href="#footnote">Fibonacci sequence</a>
 The problem defines (without stating so), a sequence
-\(\left\{z_n\right\}_{n > 0}\) where \(A_F(z_n) = n\) and
-asks us to find the values \(n\) for which \(z_n\) is rational.
-Such a value \(n\) is called a <em>golden nugget</em>.As noted in the
-problem statement, \(A_F(\frac{1}{2}) = 2\), hence \(z_2 =
-\frac{1}{2}\) is rational and \(2\) is the first golden nugget.</p>
-<p>As a first step, we determine a criterion for \(n\) to be a golden
-nugget by analyzing the equation \(A_F(z) = n\). With the recurrence
-relation given by the Fibonacci sequence as inspiration, we consider
-\begin{align*}(z + z\^2)A_F(z) =z\^2 F_1 &amp;+ z\^3 F_2 + z\^4 F_3
-+ \ldots\\ &amp;+z\^3 F_1 + z\^4 F_2 + z\^5 F_3 + \ldots.
-\end{align*}Due to the fact that \(F_2 = F_1 = 1\) and the nature
-of the recurrence relation, we have \[(z +z\^2)A_F(z) = z\^2 F_2 +
-z\^3 F_3 + z\^4 F_4 + \ldots = A_F(z) -z\] which implies \[A_F(z)
-= \frac{z}{1 - z -z\^2}.\] Now solving\(A_F(z) = n\), we have
-\[z = n - n z - n z\^2 \Rightarrow n z\^2 + (n + 1)z - n = 0.\] In
-order for \(n\) to be a golden nugget, we must have the solutions
-\(z\) rational. This only occurs if the discriminant \[(n + 1)\^2 -
-4(n)(-n) = 5 n\^2 + 2 n + 1\] in the quadratic is the square of a
-rational.</p>
-<p>So we now positive seek values \(n\) such that \(5 n\^2 + 2 n + 1 =
-m\^2\) for some integer \(m\) (the value \(m\) must be an integer
-since a rational square root of an integer can only be an integer.) This
-equation is equivalent to \[25n\^2 + 10n + 5 = 5m\^2\] which is
-equivalent to \[5m\^2 - (5 n + 1)\^2 = 4.\] This is where Conway's
-topograph comes in. We'll use the topograph with the quadratic form
-\(f(x, y) = 5 x\^2 - y\^2\) to find our solutions. First note, a
-solution is only valuable if \(y \equiv 1 \bmod{5}\) since \(y = 5
-n + 1\) must hold. Also, since \(\sqrt{5}\) is irrational, \(f\)
-can never take the value \(0\), but \(f(1, 0) = 5\) and\(f(0, 1) =
--1\), hence there is a river on the topograph and the values of \(f\)
-occur in a periodic fashion.Finally, since we take pairs \((x, y)\)
-that occur on the topograph, we know \(x\) and \(y\) share no
-factors. Hence solutions \(f(x, y) = 4\) can come either come from
-pairs on the topograph or by taking a pair which satisfies\(f(x, y) =
-1\) and scaling up by a factor of \(2\) (we will have \(f(2x, 2y) =
-2\^2 \cdot 1 = 4\) due to the homogeneity of \(f\)).</p>
-<p>Starting from the trivial base \(u = (1, 0)\) and\(v = (0, 1)\),
-the full period of the river has length \(8\) as seen below:</p>
-<div class="separator" style="clear: both; text-align: center;">
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1.07737em;vertical-align:-0.32737em;"></span><span class="base textstyle uncramped"><span class="minner"><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.04398em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">n</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span><span class="vlist"><span style="top:0.3em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">n</span><span class="mrel">&gt;</span><span class="mord">0</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> where
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">A</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.04398em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">n</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mrel">=</span><span class="mord mathit">n</span></span></span></span> and asks us to find the values
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">n</span></span></span></span> for which <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.04398em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">n</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> is rational.
+Such a value <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">n</span></span></span></span> is called a <strong>golden nugget</strong>. As noted in
+the problem statement,
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:1.45em;"></span><span class="strut bottom" style="height:2.40003em;vertical-align:-0.95003em;"></span><span class="base textstyle uncramped"><span class="reset-textstyle displaystyle textstyle uncramped"><span class="mord"><span class="mord mathit">A</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="minner displaystyle textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="minner reset-textstyle displaystyle textstyle uncramped"><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mord">2</span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mrel">=</span><span class="mord">2</span></span></span></span></span>,
+hence <span class="katex"><span class="katex-inner"><span class="strut" style="height:1.32144em;"></span><span class="strut bottom" style="height:2.00744em;vertical-align:-0.686em;"></span><span class="base textstyle uncramped"><span class="reset-textstyle displaystyle textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.04398em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="minner reset-textstyle displaystyle textstyle uncramped"><span class="mfrac"><span class="vlist"><span style="top:0.686em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle textstyle cramped"><span class="mord textstyle cramped"><span class="mord">2</span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.677em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle textstyle uncramped"><span class="mord textstyle uncramped"><span class="mord">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span></span></span> is rational and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord">2</span></span></span></span> is the first golden nugget.</p>
+<p>As a first step, we determine a criterion for <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">n</span></span></span></span> to be a
+golden nugget by analyzing the equation <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">A</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord mathit">n</span></span></span></span>. With
+the recurrence relation given by the Fibonacci sequence as inspiration, we
+consider</p>
+<blockquote class="latex-img"><img src="/latex_images/38.png" alt="\begin{align*}(z + z^2)A_F(z) = z^2 F_1 &+ z^3 F_2 + z^4 F_3 + \ldots\\ &+z^3 F_1 + z^4 F_2 + z^5 F_3 + \ldots. \end{align*}" class="latex-img"/></blockquote>
 
-[![](http://www.bossylobster.com/images/blog/golden_nugget.png)](http://www.bossylobster.com/images/blog/golden_nugget.png)
+<p>Due to the fact that <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mord">1</span></span></span></span> and the nature
+of the recurrence relation, we have</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mord"><span class="mord mathit">A</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">3</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">3</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">4</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">4</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mpunct">&#8230;</span><span class="mrel">=</span><span class="mord"><span class="mord mathit">A</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mclose">)</span><span class="mbin">&#8722;</span><span class="mord mathit" style="margin-right:0.04398em;">z</span></span></span></span>
+</blockquote></div>
 
+<p>which implies</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1.153331em;vertical-align:-0.403331em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">A</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mclose">)</span><span class="mrel">=</span><span class="minner reset-textstyle textstyle uncramped"><span class="mfrac"><span class="vlist"><span style="top:0.345em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord">1</span><span class="mbin">&#8722;</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mbin">&#8722;</span><span class="mord"><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="vlist"><span style="top:-0.289em;margin-right:0.07142857142857144em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-scriptstyle scriptscriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.394em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord scriptstyle uncramped"><span class="mord mathit" style="margin-right:0.04398em;">z</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span><span class="mord">.</span></span></span></span>
+</blockquote></div>
+
+<p>Now solving<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">A</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.13889em;">F</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.04398em;">z</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord mathit">n</span></span></span></span>, we have</p>
+<blockquote class="latex-img"><img src="/latex_images/39.png" alt="z = n - n z - n z^2 \Rightarrow n z^2 + (n + 1)z - n = 0." class="latex-img"/></blockquote>
+
+<p>In order for <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">n</span></span></span></span> to be a golden nugget, we must have the
+solutions <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.04398em;">z</span></span></span></span> rational. This only occurs if the discriminant</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit">n</span><span class="mbin">+</span><span class="mord">1</span><span class="mclose"><span class="mclose">)</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">&#8722;</span><span class="mord">4</span><span class="mopen">(</span><span class="mord mathit">n</span><span class="mclose">)</span><span class="mopen">(</span><span class="mord">&#8722;</span><span class="mord mathit">n</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">5</span><span class="mord"><span class="mord mathit">n</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord">2</span><span class="mord mathit">n</span><span class="mbin">+</span><span class="mord">1</span></span></span></span>
+</blockquote></div>
+
+<p>in the quadratic is the square of a rational.</p>
+<p>So we now positive seek values <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">n</span></span></span></span> such that
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:0.897438em;vertical-align:-0.08333em;"></span><span class="base textstyle uncramped"><span class="mord">5</span><span class="mord"><span class="mord mathit">n</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord">2</span><span class="mord mathit">n</span><span class="mbin">+</span><span class="mord">1</span><span class="mrel">=</span><span class="mord"><span class="mord mathit">m</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> for some integer <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">m</span></span></span></span>
+(the value <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">m</span></span></span></span> must be an integer since a rational square root
+of an integer can only be an integer.) This equation is equivalent to</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:0.897438em;vertical-align:-0.08333em;"></span><span class="base textstyle uncramped"><span class="mord">2</span><span class="mord">5</span><span class="mord"><span class="mord mathit">n</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord">1</span><span class="mord">0</span><span class="mord mathit">n</span><span class="mbin">+</span><span class="mord">5</span><span class="mrel">=</span><span class="mord">5</span><span class="mord"><span class="mord mathit">m</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span>
+</blockquote></div>
+
+<p>which is equivalent to</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord">5</span><span class="mord"><span class="mord mathit">m</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">&#8722;</span><span class="mopen">(</span><span class="mord">5</span><span class="mord mathit">n</span><span class="mbin">+</span><span class="mord">1</span><span class="mclose"><span class="mclose">)</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mord">4</span><span class="mord">.</span></span></span></span>
+</blockquote></div>
+
+<p>This is where Conway's topograph comes in. We'll use the topograph with the
+quadratic form</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">5</span><span class="mord"><span class="mord mathit">x</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">&#8722;</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span>
+</blockquote></div>
+
+<p>to find our solutions. Note
+- A solution is only valuable if <img src="/latex_images/40.png" alt="y \equiv 1 \bmod{5}" class="latex-img"/>
+  since <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.8388800000000001em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mrel">=</span><span class="mord">5</span><span class="mord mathit">n</span><span class="mbin">+</span><span class="mord">1</span></span></span></span> must hold.
+- Since <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.9072200000000001em;"></span><span class="strut bottom" style="height:1.04em;vertical-align:-0.13277999999999995em;"></span><span class="base textstyle uncramped"><span class="sqrt mord"><span class="sqrt-sign" style="top:-0.06722000000000006em;"><span class="style-wrap reset-textstyle textstyle uncramped">&#8730;</span></span><span class="vlist"><span style="top:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:1em;">&#8203;</span></span><span class="mord textstyle cramped"><span class="mord">5</span></span></span><span style="top:-0.8272200000000001em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:1em;">&#8203;</span></span><span class="reset-textstyle textstyle uncramped sqrt-line"></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:1em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> is irrational, <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span> can
+  never take the value <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord">0</span></span></span></span>
+- Since <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mord">0</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">5</span></span></span></span> and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mord">1</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">&#8722;</span><span class="mord">1</span></span></span></span>,
+  there is a river on the topograph and the values of <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span> occur
+  in a periodic fashion.
+- Finally, since we take pairs <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> that occur on the
+  topograph, we know <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">x</span></span></span></span> and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">y</span></span></span></span> share no
+  factors.</p>
+<p>Hence solutions <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">4</span></span></span></span> can come either come from pairs
+on the topograph or by taking a pair which satisfies
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">1</span></span></span></span> and scaling up by a factor of
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord">2</span></span></span></span> (we will have
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.8141079999999999em;"></span><span class="strut bottom" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord">2</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord">2</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord"><span class="mord">2</span><span class="vlist"><span style="top:-0.363em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">&#8901;</span><span class="mord">1</span><span class="mrel">=</span><span class="mord">4</span></span></span></span> due to the homogeneity of
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span>).</p>
+<p>Starting from the trivial base <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">u</span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mord">0</span><span class="mclose">)</span></span></span></span> and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>, the full period of the river has length
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord">8</span></span></span></span> as seen below:</p>
+<div style="text-align: center;">
+<p><img alt="Golden Nugget" src="/images/golden_nugget.png" /></p>
 </div>
+<blockquote>
+<p><strong>NOTE</strong>: In the above, the values denoted as combinations of
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">u</span></span></span></span> and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">v</span></span></span></span> are the vectors for each face
+on the topograph while the numbers are the values of <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span> on
+these vectors.</p>
+</blockquote>
+<p>Since every edge protruding from the river on the positive side has a value of
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord">4</span></span></span></span> on a side (the value pairs are <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord">5</span><span class="mpunct">,</span><span class="mord">4</span><span class="mclose">)</span></span></span></span>,
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord">4</span><span class="mpunct">,</span><span class="mord">1</span><span class="mclose">)</span></span></span></span>, <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mord">4</span><span class="mclose">)</span></span></span></span>, and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord">4</span><span class="mpunct">,</span><span class="mord">5</span><span class="mclose">)</span></span></span></span>), by the climbing lemma, we know all values above
+those on the river have value greater than <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord">4</span></span></span></span>. Thus, the only
+solutions we are concerned with</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">1</span><span class="mord mspace quad"></span><span class="text mord textstyle uncramped"><span class="mord">o</span><span class="mord">r</span></span><span class="mord mspace quad"></span><span class="mord">4</span></span></span></span>
+</blockquote></div>
 
-<p>(<em><strong>Note</strong>: in the above, the values denoted as combinations of \(u\)
-and \(v\) are the vectors for each face on the topograph while the
-numbers are the values of \(f\) on these vectors.</em>) Since every edge
-protruding from the river on the positive side has a value of \(4\) on
-a side (the value pairs are \((5, 4)\),\((4, 1)\),\((1, 4)\),
-and\((4, 5)\)), by the climbing lemma, we know all values above those
-on the river have value greater than \(4\). Thus, the only solutions
-we are concerned with -- \(f(x, y) = 1\) or \(4\) -- must appear on
-the river. Notice on the river, the trivial base \((u, v)\) is
-replaced by the base \((9 u + 20 v, 4 u + 9 v)\). This actually gives
-us a concrete recurrence for the river and with it we can get a complete
-understanding of our solution set.</p>
-<p>When we startfrom the trivial base, we only need consider moving to the
-right (orientation provided by the above picture) along the river since
-we only care about the absolute value of the coordinates (\(n\) comes
-from \(y\), so it must be positive). As such, we have a sequence of
-bases \(\left\{(u_k, v_k)\right\}_{k \geq 0}\) with \(u_0 =
-(1, 0)\),\(v_0 = (0, 1)\) and recurrence \begin{align*}u_{k + 1}
-&amp;= 9 u_k + 20 v_k \\ v_{k + 1} &amp;= 4 u_k + 9 v_k. \end{align*}
-This implies that both\(\left\{u_k\right\}\)
-and\(\left\{v_k\right\}\)satisfy the same
-relation\begin{align*}u_{k + 2} - 9 u_{k + 1} - 9(u_{k + 1} - 9
-u_k) &amp;=20 v_{k + 1} - 9(20 v_k) = 20(4 u_k) \\v_{k + 2} - 9
-v_{k + 1} - 9(v_{k + 1} - 9 v_k) &amp;=4 u_{k + 1} - 9(4 u_k) = 4(20
-v_k). \end{align*} With these recurrences, you can take the three
-base solutions on the river and quickly find each successive golden
-nugget. Since each value is a coordinate in a vector, it satisfies the
-same linear recurrence as the vector. Also, since each of the solution
-vectors occur as linear combinations of \(u_k\) and \(v_k\), they
-must satisfy the same recurrence as well.</p>
-<p>Since the recurrence is degree two, we need the first two values to
-determine the entire sequence. For the first solution we start with
-\(u_0 + v_0 = (1, 1)\) and\(u_1 + v_1 = (13, 29)\); for the
-second solution we start with \(u_0 + 2 v_0) = (2, 4)\) and\(u_1
-+ 2 v_1 = (17, 38)\); andfor the third solution we start with \(5
-u_0 + 11 v_0 = (5, 11)\) and\(5 u_1 + 11 v_1 = (89, 199)\). For
-the second solution, since \(f(1, 2) = 1\), we use homogeneity to
-scale up to \((2, 4)\) and \((34, 76)\) to start us off. With these
-values, we take the second coordinate along the recurrence and get the
+<p>must appear on the river. Notice on the river, the
+trivial base <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit">u</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="mclose">)</span></span></span></span> is replaced by the base
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord">9</span><span class="mord mathit">u</span><span class="mbin">+</span><span class="mord">2</span><span class="mord">0</span><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="mpunct">,</span><span class="mord">4</span><span class="mord mathit">u</span><span class="mbin">+</span><span class="mord">9</span><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="mclose">)</span></span></span></span>. This actually gives us a concrete
+recurrence for the river and with it we can get a complete understanding of our
+solution set.</p>
+<p>When we start from the trivial base, we only need consider moving to the right
+(orientation provided by the above picture) along the river since we only care
+about the absolute value of the coordinates (<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">n</span></span></span></span> comes from
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">y</span></span></span></span>, so it must be positive). As such, we have a sequence of
+bases <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1.145179em;vertical-align:-0.395179em;"></span><span class="base textstyle uncramped"><span class="minner"><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span><span class="vlist"><span style="top:0.3em;margin-right:0.05em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mrel">&#8805;</span><span class="mord">0</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> with
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mord">0</span><span class="mclose">)</span></span></span></span>, <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> and recurrence</p>
+<blockquote class="latex-img"><img src="/latex_images/41.png" alt="\begin{align*}u_{k + 1} &= 9 u_k + 20 v_k \\ v_{k + 1} &= 4 u_k + 9 v_k. \end{align*}" class="latex-img"/></blockquote>
+
+<p>This implies that both <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span></span></span></span> and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span></span></span></span> satisfy the same relation</p>
+<blockquote class="latex-img"><img src="/latex_images/42.png" alt="\begin{align*}u_{k + 2} - 9 u_{k + 1} - 9(u_{k + 1} - 9 u_k) &= 20 v_{k + 1} - 9(20 v_k) = 20(4 u_k) \\v_{k + 2} - 9 v_{k + 1} - 9(v_{k + 1} - 9 v_k) &=4 u_{k + 1} - 9(4 u_k) = 4(20 v_k). \end{align*}" class="latex-img"/></blockquote>
+
+<p>With these recurrences, you can take the three base solutions on the river and
+quickly find each successive golden nugget. Since each value is a coordinate in
+a vector, it satisfies the same linear recurrence as the vector. Also, since
+each of the solution vectors occur as linear combinations of
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span>, they must satisfy the same
+recurrence as well.</p>
+<p>Since the recurrence is degree two, we need the first two values to determine
+the entire sequence. For the first solution we start with
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">1</span><span class="mord">3</span><span class="mpunct">,</span><span class="mord">2</span><span class="mord">9</span><span class="mclose">)</span></span></span></span>; for the second solution we start with
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord">2</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">2</span><span class="mpunct">,</span><span class="mord">4</span><span class="mclose">)</span></span></span></span> and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord">2</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">1</span><span class="mord">7</span><span class="mpunct">,</span><span class="mord">3</span><span class="mord">8</span><span class="mclose">)</span></span></span></span>; and for the third solution we start
+with <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord">5</span><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">5</span><span class="mpunct">,</span><span class="mord">1</span><span class="mord">1</span><span class="mclose">)</span></span></span></span> and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord">5</span><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord">1</span><span class="mord">1</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord">8</span><span class="mord">9</span><span class="mpunct">,</span><span class="mord">1</span><span class="mord">9</span><span class="mord">9</span><span class="mclose">)</span></span></span></span>. For the second solution, since
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord">1</span><span class="mpunct">,</span><span class="mord">2</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">1</span></span></span></span>, we use homogeneity to scale up to
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord">2</span><span class="mpunct">,</span><span class="mord">4</span><span class="mclose">)</span></span></span></span> and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord">3</span><span class="mord">4</span><span class="mpunct">,</span><span class="mord">7</span><span class="mord">6</span><span class="mclose">)</span></span></span></span> to start us off. With
+these values, we take the second coordinate along the recurrence and get the
 following values:</p>
 <p><center>
-<table border="1" style="border-collapse: collapse;">
-<tbody>
-<tr>
-<th>
-n</p>
-<p></th>
-<th>
-First</p>
-<p></th>
-<th>
-Second</p>
-<p></th>
-<th>
-Third</p>
-<p></th>
-</tr>
-<tr>
-<td>
-0</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>1</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>4</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>11</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-1</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>29</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>76</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>199</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-2</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>521</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>1364</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>3571</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-3</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>9349</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>24476</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>64079</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-4</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>167761</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>439204</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>1149851</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-5</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>3010349</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>7881196</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>20633239</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-6</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>54018521</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>141422324</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>370248451</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-7</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>969323029</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>2537720636</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>6643838879</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-8</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>17393796001</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>45537549124</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>119218851371</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-9</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>312119004989</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>817138163596</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>2139295485799</p>
-</div>
-
-<p></td>
-</tr>
-<tr>
-<td>
-10</p>
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>5600748293801</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>14662949395604</p>
-</div>
-
-<p></td>
-<td>
-<div style="text-align: center;"></p>
-<p>38388099893011</p>
-</div>
-
-<p></td>
-</tr>
-</tbody>
+<table>
+  <tbody>
+    <tr>
+      <th>n</th>
+      <th>First</th>
+      <th>Second</th>
+      <th>Third</th>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>1</td>
+      <td>4</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>29</td>
+      <td>76</td>
+      <td>199</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>521</td>
+      <td>1364</td>
+      <td>3571</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>9349</td>
+      <td>24476</td>
+      <td>64079</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>167761</td>
+      <td>439204</td>
+      <td>1149851</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>3010349</td>
+      <td>7881196</td>
+      <td>20633239</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>54018521</td>
+      <td>141422324</td>
+      <td>370248451</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>969323029</td>
+      <td>2537720636</td>
+      <td>6643838879</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>17393796001</td>
+      <td>45537549124</td>
+      <td>119218851371</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>312119004989</td>
+      <td>817138163596</td>
+      <td>2139295485799</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>5600748293801</td>
+      <td>14662949395604</td>
+      <td>38388099893011</td>
+    </tr>
+  </tbody>
 </table>
 </center></p>
 <p>We don't get our fifteenth golden nugget candidate (value must be one
-more than a multiple of \(5\)) until \(5600748293801\), which yields
-\(\boxed{n = 1120149658760}\). By no means did I do this by hand in
-real life; I didn't make a pretty representation of the river either. I
-just wanted to make the idea clear without any code. To get to the code
-(and the way you should approach this stuff), move on to the<a href="http://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets-part-2.html">second
-half</a>
+more than a multiple of <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord">5</span></span></span></span>) until
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord">5</span><span class="mord">6</span><span class="mord">0</span><span class="mord">0</span><span class="mord">7</span><span class="mord">4</span><span class="mord">8</span><span class="mord">2</span><span class="mord">9</span><span class="mord">3</span><span class="mord">8</span><span class="mord">0</span><span class="mord">1</span></span></span></span>, which yields</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.64444em;"></span><span class="strut bottom" style="height:0.64444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">n</span><span class="mrel">=</span><span class="mord">1</span><span class="mord">1</span><span class="mord">2</span><span class="mord">0</span><span class="mord">1</span><span class="mord">4</span><span class="mord">9</span><span class="mord">6</span><span class="mord">5</span><span class="mord">8</span><span class="mord">7</span><span class="mord">6</span><span class="mord">0</span><span class="mord">.</span></span></span></span>
+</blockquote></div>
+
+<p>By no means did I do this by hand in real life; I didn't make a pretty
+representation of the river either. I just wanted to make the idea clear
+without any code. To get to the code (and the way you should approach this
+stuff), move on to the
+<a href="/2011/08/finding-fibonacci-golden-nuggets-part-2.html">second half</a>
 of this post.</p>
-<div id="footnote">
-
-*\*The Fibonacci sequence is given by \\(F\_0 = 0\\),\\(F\_1 =
-1\\),and\\(F\_{n} =F\_{n - 1} +F\_{n - 2}\\).*
-
-</div></div>
+<h4 id="footnote">NOTE:</h4>
+<p>The Fibonacci sequence is given by</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.891661em;vertical-align:-0.208331em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit">n</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">n</span><span class="mbin">&#8722;</span><span class="mord">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit">n</span><span class="mbin">&#8722;</span><span class="mord">2</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord mspace quad"></span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">0</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mord">0</span><span class="mpunct">,</span><span class="mord"><span class="mord mathit" style="margin-right:0.13889em;">F</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.13889em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mord">1</span><span class="mord">.</span></span></span></span>
+</blockquote></div></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">
