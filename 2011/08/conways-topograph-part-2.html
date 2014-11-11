@@ -58,172 +58,156 @@
   <article class="hentry" role="article">
 <header>
       <h1 class="entry-title">Conway's Topograph Part 2</h1>
-      <p class="meta"><time datetime="2011-08-23T00:00:00-07:00" pubdate>Aug 23, 2011</time></p>
+      <p class="meta"><time datetime="2011-08-23T14:00:00-07:00" pubdate>Aug 23, 2011</time></p>
 </header>
 
-  <div class="entry-content"><p>This is the second (continued from<a href="http://blog.bossylobster.com/2011/08/conways-topograph-part-1.html">Part
-1</a>)in
-a series of three blog posts. In the following we'll investigate a few
-properties of an object called Conway's topograph.<a href="http://en.wikipedia.org/wiki/John_Horton_Conway">John
-Conway</a>conjured up a
+  <div class="entry-content"><p>This is the second (continued from
+<a href="/2011/08/conways-topograph-part-1.html">Part 1</a>)
+in a series of three blog posts. In the following we'll investigate a few
+properties of an object called Conway's topograph.
+<a href="http://en.wikipedia.org/wiki/John_Horton_Conway">John Conway</a> conjured up a
 way to understand a binary quadratic form &ndash; a very important algebraic
 object &ndash; in a geometric context. This is by no means original work, just
-my interpretation of some key points from his<a href="http://www.amazon.com/Sensual-Quadratic-Carus-Mathematical-Monographs/dp/0883850303">The Sensual (Quadratic)
-Form</a>that
-I'll need for some other posts.</p>
+my interpretation of some key points from his
+<a href="http://www.amazon.com/Sensual-Quadratic-Carus-Mathematical-Monographs/dp/0883850303">The Sensual (Quadratic) Form</a>
+that I'll need for some other posts.</p>
 <hr />
-<p>In the following, as mentioned in Part 1, "when referring to a
-base/superbase, we are referring to the lax equivalent of these
-notions."</p>
-<p>To begin to form the topograph, note each superbase \(\left\{e_1,
-e_2, e_3\right\}\) contains only three bases
-\[\left\{e_1, e_2\right\}, \left\{e_2, e_3\right\},
-\left\{e_3, e_1\right\}\]
-as subsets. Going the other direction, a base \(\left\{e_1,
-e_2\right\}\) can only possibly be contained as a subset of two
-superbases:
-\[\langle e_1, e_2, (e_1 + e_2)\rangle, \langle e_1, e_2,
-(e_1 - e_2)\rangle.\]
-With these two facts in hand, we can begin to form the geometric
-structure of the topograph. The interactions between bases and
-superbases (as well as the individual vectors themselves) give us the
-form. In the graph, we join each superbase (\(\bigcirc\)) to the
-three bases (\(\square\)) in it.</p>
-<div class="separator" style="clear: both; text-align: center;">
+<p>In the following, as mentioned in Part 1,</p>
+<blockquote>
+<p>when referring to a base/superbase, we are referring to the lax equivalent of
+these notions.</p>
+</blockquote>
+<p>To begin to form the topograph, note each superbase
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">3</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span></span></span></span> contains only three bases</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span><span class="mpunct">,</span><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">3</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span><span class="mpunct">,</span><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">3</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span></span></span></span>
+</blockquote></div>
 
-[![](http://www.bossylobster.com/images/blog/conway_edges_nodes.png)](http://www.bossylobster.com/images/blog/conway_edges_nodes.png)
+<p>as subsets. Going the other direction, a base
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">{</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">}</span></span></span></span></span> can only possibly be contained
+as a subset of two superbases:</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">&#10216;</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mclose">&#10217;</span><span class="mpunct">,</span><span class="mopen">&#10216;</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">&#8722;</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mclose">&#10217;</span><span class="mord">.</span></span></span></span>
+</blockquote></div>
 
+<p>With these two facts in hand, we can begin to form the geometric structure of
+the topograph. The interactions between bases and superbases (as well as the
+individual vectors themselves) give us the form. In the graph, we join each
+superbase (<img src="/latex_images/44.png" alt="\bigcirc" class="latex-img"></img>) to the three bases
+(<img src="/latex_images/45.png" alt="\square" class="latex-img"></img>) in it.</p>
+<div style="text-align: center;">
+<p><img alt="Conways Edges and Nodes" src="/images/conway_edges_nodes.png" /></p>
 </div>
-
-<p>Each edge connecting two superbases (\(\bigcirc\)) represents a base
-and we mark each of these edges with a (\(\square\)) in the middle.
-Since each base can only be in two superbases, we have well--defined
-endpoints for each base (edge). Similarly, since each superbase contains
-three bases as subsets, each superbase (endpoint) has three bases
-(edges) coming out of it.</p>
-<div class="separator" style="clear: both; text-align: center;">
-
-[![](http://www.bossylobster.com/images/blog/conway_face.png)](http://www.bossylobster.com/images/blog/conway_face.png)
-
+<p>Each edge connecting two superbases (<img src="/latex_images/44.png" alt="\bigcirc" class="latex-img"></img>)
+represents a base and we mark each of these edges with a
+(<img src="/latex_images/45.png" alt="\square" class="latex-img"></img>) in the middle. Since each base can only be
+in two superbases, we have well-defined endpoints for each base (edge).
+Similarly, since each superbase contains three bases as subsets, each
+superbase (endpoint) has three bases (edges) coming out of it.</p>
+<div style="text-align: center;">
+<p><img alt="Conway Faces" src="/images/conway_face.png" /></p>
 </div>
-
-<p>As we traverse each edge (base) surrounding a given vector (\(e_1\)
-above), we move from superbase (vertex) to superbase (vertex), and form
-a face. Starting from a base \(e_1, e_2\), traveling along each of
-the new faces encountered we begin to form the full (labeled) topograph
-below:</p>
-<div class="separator" style="clear: both; text-align: center;">
-
-[![](http://www.bossylobster.com/images/blog/conway_growing_graph.png)](http://www.bossylobster.com/images/blog/conway_growing_graph.png)
-
+<p>As we traverse each edge (base) surrounding a given vector
+(<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> above), we move from superbase (vertex) to superbase
+(vertex), and form a face. Starting from a base <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span>,
+traveling along each of the new faces encountered we begin to form the full
+(labeled) topograph below:</p>
+<div style="text-align: center;">
+<p><img alt="Conway Growing the Topograph" src="/images/conway_growing_graph.png" /></p>
 </div>
+<p>Notice the <strong>values</strong> of <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span> on the combinations of
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.58056em;vertical-align:-0.15em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span> is immaterial to the above
+discussion, hence the shape of the topograph doesn't depend on
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span>.</p>
+<p>If we know the values of <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span> at some superbase, it is actually
+possible to find the values of <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span> at vectors (faces) we
+encounter on the topograph without actually knowing <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span>.</p>
+<h4 id="claim-arith-prog-rule">Claim:</h4>
+<p>For vectors <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span>,</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">&#8722;</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mrel">=</span><span class="mord">2</span><span class="minner textstyle uncramped"><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">(</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mbin">+</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="style-wrap reset-textstyle textstyle uncramped" style="top:0em;">)</span></span></span></span></span>
+</blockquote></div>
 
-<p>Notice the <em>values</em> of \(f\) on the combinations of \(e_1\) and
-\(e_2\) is immaterial to the above discussion, hence the shape of the
-topograph doesn't depend on \(f\).</p>
-<p>If we know the values of \(f\) at some superbase, it is actually
-possibly to find the values of \(f\) at vectors (faces) we encounter
-on the topograph without actually knowing \(f\).</p>
-<p><strong>Claim</strong>:For vectors \(v_1, v_2\),
-\[f(v_1 + v_2) + f(v_1 - v_2) = 2\left(f(v_1) +
-f(v_2)\right)\]
-<strong>Proof</strong>: Exercise. (If you really can't get it, let me know in the
-comments.) \(\Box\)</p>
-<p>This implies that if
-\[a = f(v_1), \quad b = f(v_2), \quad c = f(v_1 + v_2), \quad d
-= f(v_1 - v_2)\]
-then \(d\), \(a + b\), \(c\) form an arithmetic progression with
-common difference \(h\). This so--called <em>Arithmetic Progression
-Rule</em>allows us to mark each edge with a direction based on the value of
-\(h\). Hence if \(d \&lt; a + b \&lt; c\), we have \(h > 0\) and the
+<h4 id="proof-arith-prog-rule">Proof:</h4>
+<p>Exercise. (If you really can't get it, let me know in the comments.)
+<img src="/latex_images/43.png" alt="\blacksquare" class="latex-img"></img></p>
+<p>This implies that if</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">a</span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mord mspace quad"></span><span class="mord mathit">b</span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mord mspace quad"></span><span class="mord mathit">c</span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mord mspace quad"></span><span class="mord mathit">d</span><span class="mrel">=</span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">&#8722;</span><span class="mord"><span class="mord mathit" style="margin-right:0.03588em;">v</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:-0.03588em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mclose">)</span></span></span></span>
+</blockquote></div>
+
+<p>then</p>
+<div class="katex-elt"><blockquote>
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit">d</span><span class="mpunct">,</span><span class="mord mspace thinspace"></span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">b</span><span class="mpunct">,</span><span class="mord mspace thinspace"></span><span class="mord mathit">c</span></span></span></span>
+</blockquote></div>
+
+<p>form an arithmetic progression with common difference <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">h</span></span></span></span>. This
+so-called <strong>Arithmetic Progression Rule</strong> allows us to mark each edge with a
+direction based on the value of <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">h</span></span></span></span>. Hence if
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="base textstyle uncramped"><span class="mord mathit">d</span><span class="mrel">&lt;</span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">b</span><span class="mrel">&lt;</span><span class="mord mathit">c</span></span></span></span>, we have <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.73354em;vertical-align:-0.0391em;"></span><span class="base textstyle uncramped"><span class="mord mathit">h</span><span class="mrel">&gt;</span><span class="mord">0</span></span></span></span> and the
 following directed edge:</p>
-<div class="separator" style="clear: both; text-align: center;">
-
-[![](http://www.bossylobster.com/images/blog/conway_directed_edge.png)](http://www.bossylobster.com/images/blog/conway_directed_edge.png)
-
+<div style="text-align: center;">
+<p><img alt="Conway Directed Edge" src="/images/conway_directed_edge.png" /></p>
 </div>
-
-<div class="separator" style="clear: both; text-align: left;">
-
+<p>Obviously starting from a base <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">1</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mpunct">,</span><span class="mord"><span class="mord mathit">e</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span>, one wonders if it is
+possible to move to any pair <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> with <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">x</span></span></span></span>
+and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.625em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">y</span></span></span></span> coprime along the topograph. It turns out that we can;
+the topograph forms a structure called a tree, and all nodes are connected.</p>
+<h4 id="climbing-lemma">Lemma: (Climbing Lemma)</h4>
+<p>Given a superbase <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit">Q</span></span></span></span> with the surrounding faces taking values
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">a</span></span></span></span>, <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">b</span></span></span></span>, and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">c</span></span></span></span> as below,
+if <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">a</span></span></span></span>, <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">b</span></span></span></span> and the common difference
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">h</span></span></span></span> are all positive, then <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">c</span></span></span></span> is positive and
+the other two edges at <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit">Q</span></span></span></span> point away from <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit">Q</span></span></span></span>.</p>
+<div style="text-align: center;">
+<p><img alt="Conway Directed Edge Superbase" src="/images/conway_directed_edge_superbase.png" /></p>
 </div>
-
-<div class="separator" style="clear: both; text-align: left;">
-
-Obviously starting from a base \\(e\_1, e\_2\\), one wonders if it is
-possible to move to any pair \\((x, y)\\) with \\(x\\) and \\(y\\)
-coprime along the topograph. It turns out that we can; the topograph
-forms a structurecalled a tree, and all nodes are connected.
-
-</div>
-
-<div class="separator" style="clear: both; text-align: left;">
-
-
-
-</div>
-
-<div class="separator" style="clear: both; text-align: left;">
-
-**Lemma**: (Climbing Lemma) Given a superbase \\(Q\\) with the
-surrounding faces taking values \\(a\\), \\(b\\), and \\(c\\) as below,
-if the \\(a\\), \\(b\\) and the common difference \\(h\\) are all
-positive, then \\(c\\) is positive and the other two edges at
-\\(Q\\)point away from \\(Q\\).
-
-</div>
-
-<div class="separator" style="clear: both; text-align: center;">
-
-[![](http://www.bossylobster.com/images/blog/conway_directed_edge_superbase.png)](http://www.bossylobster.com/images/blog/conway_directed_edge_superbase.png)
-
-</div>
-
-<p><strong>Proof</strong>:First \(c\) is positive because \(h = c - (a + b)\),
-hence \(c = a + b + h > 0\). The two other edges at \(Q\) have
-common differences \((a + c) - b\) and \((b + c) - a\). Since \(c =
-a + b + h\) is greater than both \(a\)and \(b\), these differences
-are positive.\(\Box\)</p>
-<p>Notice also that this establishes two new triples \((a, a + b + h, 2 a
-+ h)\) and \((b, a + b + h, 2 b + h)\) that continue to point away
-from each successive superbase and hence <em>climb</em>the topograph. We can
+<h4 id="proof-climbing-lemma">Proof:</h4>
+<p>First, <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">c</span></span></span></span> is positive because
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord mathit">h</span><span class="mrel">=</span><span class="mord mathit">c</span><span class="mbin">&#8722;</span><span class="mopen">(</span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">b</span><span class="mclose">)</span></span></span></span>, hence <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="base textstyle uncramped"><span class="mord mathit">c</span><span class="mrel">=</span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">b</span><span class="mbin">+</span><span class="mord mathit">h</span><span class="mrel">&gt;</span><span class="mord">0</span></span></span></span>.
+The two other edges at <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.68333em;"></span><span class="strut bottom" style="height:0.8777699999999999em;vertical-align:-0.19444em;"></span><span class="base textstyle uncramped"><span class="mord mathit">Q</span></span></span></span> have common differences
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">c</span><span class="mclose">)</span><span class="mbin">&#8722;</span><span class="mord mathit">b</span></span></span></span> and <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit">b</span><span class="mbin">+</span><span class="mord mathit">c</span><span class="mclose">)</span><span class="mbin">&#8722;</span><span class="mord mathit">a</span></span></span></span>. Since
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.77777em;vertical-align:-0.08333em;"></span><span class="base textstyle uncramped"><span class="mord mathit">c</span><span class="mrel">=</span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">b</span><span class="mbin">+</span><span class="mord mathit">h</span></span></span></span> is greater than both <span class="katex"><span class="katex-inner"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">a</span></span></span></span> and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit">b</span></span></span></span>, these differences are positive.
+<img src="/latex_images/43.png" alt="\blacksquare" class="latex-img"></img></p>
+<p>Notice also that this establishes two new triples
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit">a</span><span class="mpunct">,</span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">b</span><span class="mbin">+</span><span class="mord mathit">h</span><span class="mpunct">,</span><span class="mord">2</span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">h</span><span class="mclose">)</span></span></span></span> and
+<span class="katex"><span class="katex-inner"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit">b</span><span class="mpunct">,</span><span class="mord mathit">a</span><span class="mbin">+</span><span class="mord mathit">b</span><span class="mbin">+</span><span class="mord mathit">h</span><span class="mpunct">,</span><span class="mord">2</span><span class="mord mathit">b</span><span class="mbin">+</span><span class="mord mathit">h</span><span class="mclose">)</span></span></span></span> that continue to point away
+from each successive superbase and hence <strong>climb</strong> the topograph. We can
 use this lemma (along with a specific form) to show that there are no
 cycles in the topograph, i.e. the topograph doesn't loop back on
 itself.</p>
 <p>Consider the form which takes the following values at a given
 superbase:</p>
-<div class="separator" style="clear: both; text-align: center;">
-
-[![](http://www.bossylobster.com/images/blog/conway_no_cycle.png)](http://www.bossylobster.com/images/blog/conway_no_cycle.png)
-
+<div style="text-align: center;">
+<p><img alt="Conway No Cycle" src="/images/conway_no_cycle.png" /></p>
 </div>
-
 <p>Due to the symmetry, we may consider traveling along an edge in any
 direction from this superbase identically. Picking an arbitrary
 direction, we reach the following superbase:</p>
-<div class="separator" style="clear: both; text-align: center;">
-
-[![](http://www.bossylobster.com/images/blog/conway_connected.png)](http://www.bossylobster.com/images/blog/conway_connected.png)
-
+<div style="text-align: center;">
+<p><img alt="Conway Connected" src="/images/conway_connected.png" /></p>
 </div>
-
 <p>Since the values must increase indefinitely as laid out by the climbing
 lemma, the form can't loop back on itself; if it were to, it would need
 to loop back to a smaller value. Since this holds in all directions from
 the original well, there are no cycles.</p>
-<p>Follow along to <a href="http://blog.bossylobster.com/2011/08/conways-topograph-part-3.html">Part
-3</a>.</p>
-<p><strong>Update</strong>: <em>This material is intentionally aimed at an intermediate
-(think college freshman/high school senior) audience. One can go deeper
-with it, and I'd love to get more technical off the post.</em></p>
-<p><strong>Update</strong>: <em>All images were created with the
+<p>Follow along to
+<a href="/2011/08/conways-topograph-part-3.html">Part 3</a>.</p>
+<h4>Update 1:</h4>
+<p>This material is intentionally aimed at an intermediate (think college
+freshman/high school senior) audience. One can go deeper with it, and I'd
+love to get more technical off the post.</p>
+<h4>Update 2:</h4>
+<p>All images were created with the
 <a href="http://www.texample.net/tikz/examples/">tikz</a> LaTeX library and can be
-compiled with native LaTeX if pgf is installed.</em></p></div>
+compiled with native LaTeX if <code>pgf</code> is installed.</p></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">
     Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
   </span>
-<time datetime="2011-08-23T00:00:00-07:00" pubdate>Aug 23, 2011</time>  <span class="categories">
+<time datetime="2011-08-23T14:00:00-07:00" pubdate>Aug 23, 2011</time>  <span class="categories">
     <a class="category" href="/tag/algebra.html">Algebra</a>
     <a class="category" href="/tag/binary-quadratic-form.html">Binary Quadratic Form</a>
     <a class="category" href="/tag/conway.html">Conway</a>
