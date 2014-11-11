@@ -2252,93 +2252,107 @@ common to other languages.&lt;/p&gt;
 &lt;!-- /images/prepare-yourself-for-war.jpg -&gt; http://www.troll.me/images/war-cat/prepare-yourself-for-war.jpg --&gt;
 
 &lt;!-- /images/try-decorate-spiderman.jpg   -&gt; http://troll.me/images/misc-corrupted-husband/i-try-to-decorate-the-house-he-puts-spiderman-images-everywhere.jpg --&gt;</summary><category term="AppEngine"></category><category term="Class as Object"></category><category term="Decorator"></category><category term="Exception"></category><category term="Google App Engine"></category><category term="Metaclass"></category><category term="OOP"></category><category term="Python"></category><category term="Pythonic"></category><category term="Request Handler"></category></entry><entry><title>Handling errors in Google App Engine...and failing</title><link href="/2011/11/handling-errors-in-google-app-engineand.html" rel="alternate"></link><updated>2011-11-27T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:,2011-11-27:2011/11/handling-errors-in-google-app-engineand.html</id><summary type="html">&lt;p&gt;After spending a nontrivial amount of my nights and weekends working on
-an AppEngine app, I wanted a good way to monitor the logs without
+an App Engine app, I wanted a good way to monitor the logs without
 checking in on them every day. After a particularly frustrating weekend
 of updates that exposed unnoticed bugs that had yet to be triggered by
 the app, I set out to find such a way. I set out to find a
-&lt;a href="http://docs.python.org/glossary.html#term-pythonic"&gt;Pythonic*&lt;/a&gt;way.&lt;/p&gt;
-&lt;p&gt;Since I knew the&lt;a href="http://code.google.com/appengine/docs/python/mail/"&gt;App Engine Mail
-API&lt;/a&gt;was&lt;a href="http://t.qkme.me/355773.jpg"&gt;super
-easy&lt;/a&gt; to configure, I figured I would just
+&lt;a href="http://docs.python.org/glossary.html#term-pythonic"&gt;Pythonic&lt;/a&gt; way.&lt;/p&gt;
+&lt;p&gt;Since I knew the
+&lt;a href="http://code.google.com/appengine/docs/python/mail/"&gt;App Engine Mail API&lt;/a&gt; was
+&lt;a href="/images/too-easy.jpg"&gt;super easy&lt;/a&gt; to configure, I figured I would just
 email myself every time there was an exception, before serving my
 default 500 error page. To do so, I just needed to subclass the default
-&lt;a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html"&gt;RequestHandler&lt;/a&gt;
-with my own &lt;a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html#RequestHandler_handle_exception"&gt;&lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;handle_exception&lt;/span&gt;&lt;/a&gt;
-method. (OK, &lt;a href="http://troll.me/images/war-cat/prepare-yourself-for-war.jpg"&gt;prepare
-yourselves&lt;/a&gt;,
+&lt;a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html"&gt;&lt;code&gt;RequestHandler&lt;/code&gt;&lt;/a&gt;
+with my own
+&lt;a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html#RequestHandler_handle_exception"&gt;&lt;code&gt;handle_exception&lt;/code&gt;&lt;/a&gt;
+method. (OK, &lt;a href="/images/prepare-yourself-for-war.jpg"&gt;prepare yourselves&lt;/a&gt;,
 a bunch of code is about to happen. See the necessary
-&lt;a href="http://blog.bossylobster.com/2011/11/handling-errors-in-google-app-engineand.html#imports"&gt;imports&lt;/a&gt;
-at the bottom of the post.)&lt;/p&gt;
-&lt;p&gt;~~~~ {.prettyprint style="background-color: white;"}
-class ExtendedHandler(RequestHandler):    def handle_exception(self, exception, debug_mode):        traceback_info = ''.join(format_exception(*sys.exc_info()))        email_admins(traceback_info, defer_now=True)        serve_500(self)&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;Awesome! By making all my handlers inherit from &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt;
-&lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Apple-style-span&amp;quot;&lt;/span&gt;
-&lt;span class="na"&gt;style=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;ExtendedHandler&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;,
-I can use the native Python modules &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Apple-style-span&amp;quot;&lt;/span&gt;
-&lt;span class="na"&gt;style=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;traceback&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-and &lt;span class="nt"&gt;&amp;lt;span&lt;/span&gt; &lt;span class="na"&gt;class=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Apple-style-span&amp;quot;&lt;/span&gt;
-&lt;span class="na"&gt;style=&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;color: lime; font-family: &amp;#39;Courier New&amp;#39;, Courier, monospace;&amp;quot;&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;sys&lt;span class="nt"&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;to
-get the traceback and my handy dandy
+&lt;a href="#imports"&gt;imports&lt;/a&gt; at the bottom of the post.)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;ExtendedHandler&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;RequestHandler&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
 
-~~~~ {.prettyprint style=&amp;quot;background-color: white;&amp;quot;}
-def email_admins(error_msg, defer_now=False):    if defer_now:        defer(email_admins, error_msg, defer_now=False)        return    sender = &amp;#39;YOUR APP Errors &lt;span class="nt"&gt;&amp;lt;errors&lt;/span&gt;&lt;span class="err"&gt;@your_app_id_here.appspotmail.com&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;&amp;#39;    to = &amp;#39;Robert Admin &lt;span class="nt"&gt;&amp;lt;bob&lt;/span&gt;&lt;span class="err"&gt;@example.com&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;, James Nekbehrd &lt;span class="nt"&gt;&amp;lt;jim&lt;/span&gt;&lt;span class="err"&gt;@example.com&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;&amp;#39;    subject = &amp;#39;YOUR APP Error: Admin Notify&amp;#39;    body = &amp;#39;\n&amp;#39;.join([&amp;#39;Dearest Admin,&amp;#39;,                      &amp;#39;&amp;#39;,                      &amp;#39;An error has occurred in YOUR APP:&amp;#39;,                      error_msg,                      &amp;#39;&amp;#39;])    mail.send_mail(sender=sender, to=to,                   subject=subject, body=body)
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;handle_exception&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;exception&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;debug_mode&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;traceback_info&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;format_exception&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exc_info&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;
+        &lt;span class="n"&gt;email_admins&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;traceback_info&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;defer_now&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="n"&gt;serve_500&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;to send out the email in the &lt;a href="http://code.google.com/appengine/articles/deferred.html"&gt;deferred
-queue**&lt;/a&gt;so
-as not to hold up the handler serving the page.&lt;a href="http://www.realdigitalmedia.com/digital-signage-blog/wp-content/uploads/2011/04/Mission-accomplished.jpg"&gt;Mission
-accomplished&lt;/a&gt;,
-right? &lt;span class="Apple-style-span"
-style="font-size: large;"&gt;WRONG!&lt;/span&gt;&lt;/p&gt;
-&lt;p&gt;Unfortunately, &lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;handle_exception&lt;/span&gt;
-&lt;a href="http://code.google.com/p/googleappengine/issues/detail?id=2110"&gt;only
-handles&lt;/a&gt;
+&lt;p&gt;Awesome! By making all my handlers inherit from &lt;code&gt;ExtendedHandler&lt;/code&gt;,
+I can use the native Python modules &lt;code&gt;traceback&lt;/code&gt; and &lt;code&gt;sys&lt;/code&gt;
+to get the traceback and my handy dandy&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;email_admins&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;error_msg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;defer_now&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;defer_now&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="n"&gt;defer&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;email_admins&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;error_msg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;defer_now&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt;
+
+    &lt;span class="n"&gt;sender&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;YOUR APP Errors &amp;lt;errors@your_app_id_here.appspotmail.com&amp;gt;&amp;#39;&lt;/span&gt;
+    &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;Robert Admin &amp;lt;bob@example.com&amp;gt;, James Nekbehrd &amp;lt;jim@example.com&amp;gt;&amp;#39;&lt;/span&gt;
+    &lt;span class="n"&gt;subject&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;YOUR APP Error: Admin Notify&amp;#39;&lt;/span&gt;
+    &lt;span class="n"&gt;body&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;Dearest Admin,&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                      &lt;span class="s"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                      &lt;span class="s"&gt;&amp;#39;An error has occurred in YOUR APP:&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                      &lt;span class="n"&gt;error_msg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                      &lt;span class="s"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+
+    &lt;span class="n"&gt;mail&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;send_mail&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sender&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;sender&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                   &lt;span class="n"&gt;subject&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;subject&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;to send out the email in the
+&lt;a href="http://code.google.com/appengine/articles/deferred.html"&gt;deferred queue&lt;/a&gt;
+as not to hold up the handler serving the page.
+Mission accomplished, right? &lt;strong&gt;WRONG!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Unfortunately, &lt;code&gt;handle_exception&lt;/code&gt;
+&lt;a href="http://code.google.com/p/googleappengine/issues/detail?id=2110"&gt;only handles&lt;/a&gt;
 the "right" kind of exceptions. That is, exceptions which inherit
-directly from Python's &lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;Exception&lt;/span&gt;.
+directly from Python's &lt;code&gt;Exception&lt;/code&gt;.
 From the
-&lt;a href="http://media.comicvine.com/uploads/3/37572/1705127-sea_horse_your_argument_is_invalid_super.jpg"&gt;horse&lt;/a&gt;'s
+&lt;a href="/images/your_argument_is_invalid_seahorse.jpg"&gt;horse&lt;/a&gt;'s
 &lt;a href="http://docs.python.org/tutorial/errors.html#user-defined-exceptions"&gt;mouth&lt;/a&gt;:&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Exceptions should typically be derived from the
-&lt;a href="http://docs.python.org/library/exceptions.html#exceptions.Exception"&gt;Exception&lt;/a&gt;
+&lt;a href="http://docs.python.org/library/exceptions.html#exceptions.Exception"&gt;&lt;code&gt;Exception&lt;/code&gt;&lt;/a&gt;
 class, either directly or indirectly.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;But. &lt;a href="http://www.youtube.com/watch?v=a1Y73sPHKxw"&gt;But&lt;/a&gt;! If the app fails
-because a request times out, a&lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;DeadlineExceededError&lt;/span&gt;is
-thrown and &lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;handle_exception&lt;/span&gt;
-falls on its face. Why? Because&lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;DeadlineExceededError&lt;/span&gt;&lt;a href="http://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py#32"&gt;inherits&lt;/a&gt;directlyfrom&lt;span
-class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;Exception&lt;/span&gt;'s
-parent class:&lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;BaseException&lt;/span&gt;.
-(&lt;a href="http://vipdictionary.com/img/gasp_by_dokuro-png.jpg"&gt;Gasp&lt;/a&gt;)&lt;/p&gt;
-&lt;p&gt;It's OK little ones, in my &lt;a href="http://blog.bossylobster.com/2011/11/python-metaclass-for-extra-bad-errors.html"&gt;next
-post&lt;/a&gt;
+because a request times out, a &lt;code&gt;DeadlineExceededError&lt;/code&gt; is thrown and
+&lt;code&gt;handle_exception&lt;/code&gt; falls on its face. Why? Because &lt;code&gt;DeadlineExceededError&lt;/code&gt;
+&lt;a href="https://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py?r=491#33"&gt;inherits&lt;/a&gt;
+directly from &lt;code&gt;Exception&lt;/code&gt;'s parent class:&lt;code&gt;BaseException&lt;/code&gt;.
+(&lt;a href="/images/gasp_by_dokuro-png.jpg"&gt;Gasp&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;It's OK little ones, in my
+&lt;a href="/2011/11/python-metaclass-for-extra-bad-errors.html"&gt;next post&lt;/a&gt;
 I explain how I did it while keeping my code Pythonic by using
 &lt;a href="http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python#6581949"&gt;metaclasses&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;&lt;a href="http://www.blogger.com/blogger.g?blogID=1697307561385480651"&gt;Imports:&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;~~~~ {.prettyprint style="background-color: white;"}
-from google.appengine.api import mailfrom google.appengine.ext.deferred import deferfrom google.appengine.ext.webapp import RequestHandlerimport sysfrom traceback import format_exceptionfrom SOME_APP_SPECIFIC_LIBRARY import serve_500
-~~~~&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;*Pythonic:&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id="imports"&gt;Imports:&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.api&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.ext.deferred&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;defer&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;google.appengine.ext.webapp&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;RequestHandler&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;sysfrom&lt;/span&gt; &lt;span class="nn"&gt;traceback&lt;/span&gt; &lt;span class="nn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;format_exception&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;SOME_APP_SPECIFIC_LIBRARY&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;serve_500&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Pythonic:&lt;/h4&gt;
 &lt;blockquote&gt;
-&lt;p&gt;&lt;em&gt;An idea or piece of code which closely follows the most common idioms
+&lt;p&gt;An idea or piece of code which closely follows the most common idioms
 of the Python language, rather than implementing code using concepts
-common to other languages.&lt;/em&gt;&lt;/p&gt;
+common to other languages.&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;**&lt;strong&gt;Deferred Queue&lt;/strong&gt;: &lt;em&gt;Make sure to enable the deferred library in
-your&lt;/em&gt;&lt;span class="Apple-style-span"
-style="background-color: white; color: purple; font-family: 'Courier New', Courier, monospace;"&gt;app.yaml&lt;/span&gt;&lt;em&gt;by
-using&lt;/em&gt;&lt;span class="Apple-style-span"
-style="color: lime; font-family: 'Courier New', Courier, monospace;"&gt;deferred:
-on&lt;/span&gt;&lt;em&gt;in your builtins.&lt;/em&gt;&lt;/p&gt;</summary><category term="AppEngine"></category><category term="Deferred Library"></category><category term="Exception"></category><category term="Google App Engine"></category><category term="Mail API"></category><category term="Metaclass"></category><category term="Python"></category><category term="Pythonic"></category><category term="Request Handler"></category><category term="Task Queue API"></category></entry><entry><title>Quick and Dirty: Santa's Coming</title><link href="/2011/11/quick-and-dirty-santas-coming.html" rel="alternate"></link><updated>2011-11-17T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:,2011-11-17:2011/11/quick-and-dirty-santas-coming.html</id><summary type="html">&lt;p&gt;I have been wanting to write a post for awhile, but was travelling for a
+&lt;h4&gt;Deferred Queue:&lt;/h4&gt;
+&lt;p&gt;Make sure to enable the deferred library in your &lt;code&gt;app.yaml&lt;/code&gt;
+by  using &lt;code&gt;deferred: on&lt;/code&gt; in your builtins.&lt;/p&gt;
+&lt;!-- Images not my own but included here for hosting reasons --&gt;
+
+&lt;!-- /images/too-easy.jpg                          -&gt; http://t.qkme.me/355773.jpg --&gt;
+
+&lt;!-- /images/prepare-yourself-for-war.jpg          -&gt; http://www.troll.me/images/war-cat/prepare-yourself-for-war.jpg --&gt;
+
+&lt;!-- /images/your_argument_is_invalid_seahorse.jpg -&gt; http://gagnamite.com/wp-content/uploads/2013/05/your_argument_is_invalid_seahorse.jpg --&gt;
+
+&lt;!-- /images/gasp_by_dokuro-png.jpg                -&gt; http://vipdictionary.com/img/gasp_by_dokuro-png.jpg --&gt;</summary><category term="App Engine"></category><category term="Deferred Library"></category><category term="Exception"></category><category term="Google App Engine"></category><category term="Mail API"></category><category term="Metaclass"></category><category term="Python"></category><category term="Pythonic"></category><category term="Request Handler"></category><category term="Task Queue API"></category></entry><entry><title>Quick and Dirty: Santa's Coming</title><link href="/2011/11/quick-and-dirty-santas-coming.html" rel="alternate"></link><updated>2011-11-17T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:,2011-11-17:2011/11/quick-and-dirty-santas-coming.html</id><summary type="html">&lt;p&gt;I have been wanting to write a post for awhile, but was travelling for a
 &lt;a href="https://sites.google.com/site/barcelonadevfest/"&gt;work event&lt;/a&gt; and while
 on the road I decided to be lazy.&lt;/p&gt;
 &lt;p&gt;Since I just so happen to use a few&lt;a href="http://code.google.com/apis/gdata/"&gt;GData
