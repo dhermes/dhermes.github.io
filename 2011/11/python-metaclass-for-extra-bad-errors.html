@@ -73,7 +73,7 @@ catch a <code>DeadlineExceededError</code>. To do so, we can use a
 <a href="http://stackoverflow.com/questions/739654/understanding-python-decorators#1594484">decorator</a>
 (hey, that's Pythonic) in each and every handler for each and every HTTP
 verb. (Again,
-<a href="/images/prepare-yourself-for-war.jpg">prepare yourselves</a>,
+<a href="/images/prepare-yourself.jpg">prepare yourselves</a>,
 a bunch of code is about to happen. See the necessary <a href="#imports">imports</a>
 at the bottom of the post.)</p>
 <div class="highlight"><pre><span class="k">def</span> <span class="nf">deadline_decorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
@@ -135,8 +135,7 @@ because heck, only seven are supported in
 <a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html"><code>RequestHandler</code></a>,
 and we're not that crazy. If the class has one of the verbs as an
 attribute <strong>and if</strong> the attribute is a function, we
-<a href="/images/try-decorate-spiderman.png">decorate</a>
-it with <code>deadline_decorator</code>.</p>
+decorate it with <code>deadline_decorator</code>.</p>
 <p>Now, we can rewrite our subclass of <code>RequestHandler</code>
 with one extra line:</p>
 <div class="highlight"><pre><span class="k">class</span> <span class="nc">ExtendedHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
@@ -199,12 +198,7 @@ common to other languages.</p>
     don't need an explanation about why)."</em> - Python Guru Tim Peters</li>
 <li><em>"The main use case for a metaclass is creating an API."</em> -Kevin
     Samuel</li>
-</ul>
-<!-- Images not my own but included here for hosting reasons -->
-
-<!-- /images/prepare-yourself-for-war.jpg -> http://www.troll.me/images/war-cat/prepare-yourself-for-war.jpg -->
-
-<!-- /images/try-decorate-spiderman.jpg   -> http://troll.me/images/misc-corrupted-husband/i-try-to-decorate-the-house-he-puts-spiderman-images-everywhere.jpg --></div>
+</ul></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">

@@ -75,7 +75,7 @@ default 500 error page. To do so, I just needed to subclass the default
 <a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html"><code>RequestHandler</code></a>
 with my own
 <a href="http://code.google.com/appengine/docs/python/tools/webapp/requesthandlerclass.html#RequestHandler_handle_exception"><code>handle_exception</code></a>
-method. (OK, <a href="/images/prepare-yourself-for-war.jpg">prepare yourselves</a>,
+method. (OK, <a href="/images/prepare-yourself.jpg">prepare yourselves</a>,
 a bunch of code is about to happen. See the necessary
 <a href="#imports">imports</a> at the bottom of the post.)</p>
 <div class="highlight"><pre><span class="k">class</span> <span class="nc">ExtendedHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
@@ -118,8 +118,7 @@ Mission accomplished, right? <strong>WRONG!</strong></p>
 <a href="http://code.google.com/p/googleappengine/issues/detail?id=2110">only handles</a>
 the "right" kind of exceptions. That is, exceptions which inherit
 directly from Python's <code>Exception</code>.
-From the
-<a href="/images/your_argument_is_invalid_seahorse.jpg">horse</a>'s
+From the <a href="/images/horse.jpg">horse</a>'s
 <a href="http://docs.python.org/tutorial/errors.html#user-defined-exceptions">mouth</a>:</p>
 <blockquote>
 <p>Exceptions should typically be derived from the
@@ -130,8 +129,7 @@ class, either directly or indirectly.</p>
 because a request times out, a <code>DeadlineExceededError</code> is thrown and
 <code>handle_exception</code> falls on its face. Why? Because <code>DeadlineExceededError</code>
 <a href="https://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py?r=491#33">inherits</a>
-directly from <code>Exception</code>'s parent class:<code>BaseException</code>.
-(<a href="/images/gasp_by_dokuro-png.jpg">Gasp</a>)</p>
+directly from <code>Exception</code>'s parent class:<code>BaseException</code>.</p>
 <p>It's OK little ones, in my
 <a href="/2011/11/python-metaclass-for-extra-bad-errors.html">next post</a>
 I explain how I did it while keeping my code Pythonic by using
@@ -153,14 +151,7 @@ common to other languages.</p>
 </blockquote>
 <h4>Deferred Queue:</h4>
 <p>Make sure to enable the deferred library in your <code>app.yaml</code>
-by  using <code>deferred: on</code> in your builtins.</p>
-<!-- Images not my own but included here for hosting reasons -->
-
-<!-- /images/prepare-yourself-for-war.jpg          -> http://www.troll.me/images/war-cat/prepare-yourself-for-war.jpg -->
-
-<!-- /images/your_argument_is_invalid_seahorse.jpg -> http://gagnamite.com/wp-content/uploads/2013/05/your_argument_is_invalid_seahorse.jpg -->
-
-<!-- /images/gasp_by_dokuro-png.jpg                -> http://vipdictionary.com/img/gasp_by_dokuro-png.jpg --></div>
+by  using <code>deferred: on</code> in your builtins.</p></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">
