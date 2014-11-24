@@ -46,12 +46,19 @@
 </ul>
 
 
-<form action="//google.com/search" method="get">
+<form action="//google.com/search" method="get" id="site-search">
   <fieldset role="search">
-    <input type="hidden" name="q" value="site:blog.bossylobster.com" />
     <input class="search" type="text" name="q" results="0" placeholder="Search"/>
   </fieldset>
 </form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
 
 <ul class="main-navigation">
     <li><a href="/all_posts.html">All Posts</a></li>
