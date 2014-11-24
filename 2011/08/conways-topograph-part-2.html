@@ -56,6 +56,8 @@ function site_search_submit(submit_event) {
   var form_element = submit_event.srcElement;
   var query_elt = form_element.elements['q'];
   
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
 }
 document.getElementById('site-search').onsubmit = site_search_submit;
 </script>
