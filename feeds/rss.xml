@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bossylobster Blog</title><link>https://blog.bossylobster.com/</link><description>Musings on humor/tech/mathematics/sports from the bossiest lobster</description><atom:link href="https://blog.bossylobster.com/feeds/rss.xml" rel="self"></atom:link><lastBuildDate>Sun, 28 Sep 2014 00:00:00 -0700</lastBuildDate><item><title>Quantitative Interview Brain Teaser: Computer Assistance</title><link>https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html</link><description>&lt;p&gt;In a &lt;a href="/2014/09/quantitative-brain-teaser-brain-only.html"&gt;previous post&lt;/a&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><atom:link href="https://blog.bossylobster.com/feeds/rss.xml" rel="self"></atom:link><lastBuildDate>Sun, 28 Sep 2014 00:00:00 -0700</lastBuildDate><item><title>Quantitative Interview Brain Teaser: Computer Assistance</title><link>https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html</link><description>&lt;p&gt;In a &lt;a href="/2014/09/quantitative-brain-teaser-brain-only.html"&gt;previous post&lt;/a&gt;
 I discussed a recent brain teaser I had come across:&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Find a &lt;strong&gt;10-digit number&lt;/strong&gt;, where each digit represents the
@@ -466,7 +466,7 @@ and that they cover all possible events that could occur. For example
 
 &lt;p&gt;The same is true if we replace &lt;span class="katex"&gt;&lt;span class="katex-inner"&gt;&lt;span class="strut" style="height:0.64444em;"&gt;&lt;/span&gt;&lt;span class="strut bottom" style="height:0.64444em;vertical-align:0em;"&gt;&lt;/span&gt;&lt;span class="base textstyle uncramped"&gt;&lt;span class="mord"&gt;3&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt; with an arbitrary number of
 events &lt;span class="katex"&gt;&lt;span class="katex-inner"&gt;&lt;span class="strut" style="height:0.43056em;"&gt;&lt;/span&gt;&lt;span class="strut bottom" style="height:0.43056em;vertical-align:0em;"&gt;&lt;/span&gt;&lt;span class="base textstyle uncramped"&gt;&lt;span class="mord mathit"&gt;n&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Tue, 29 Jul 2014 00:00:00 -0700</pubDate><guid>tag:blog.bossylobster.com,2014-07-29:2014/07/bayes-law-primer.html</guid><category>Bayes</category><category>Layman</category><category>Mathematics</category><category>Probability</category></item><item><title>Conditional Probabilities in "Thinking Fast and Slow"</title><link>https://blog.bossylobster.com/2014/07/conditional-probabilities-in-thinking.html</link><description>&lt;p&gt;I'm currently reading
-&lt;a href="http://www.amazon.com/gp/product/0374533555/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0374533555&amp;linkCode=as2&amp;tag=boslobblo-20&amp;linkId=FMJCYK4RKIVWRNFH"&gt;Thinking, Fast and Slow&lt;/a&gt;&lt;img src="http://ir-na.amazon-adsystem.com/e/ir?t=boslobblo-20&amp;l=as2&amp;o=1&amp;a=0374533555" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" /&gt;
+&lt;a href="http://www.amazon.com/gp/product/0374533555/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0374533555&amp;linkCode=as2&amp;tag=boslobblo-20&amp;linkId=FMJCYK4RKIVWRNFH"&gt;Thinking, Fast and Slow&lt;/a&gt;&lt;img src="http://ir-na.amazon-adsystem.com/e/ir?t=boslobblo-20&amp;l=as2&amp;o=1&amp;a=0374533555" width="1" height="1" border="0" alt="AMZN Affiliate Ad" style="border:none !important; margin:0px !important;" /&gt;
 by &lt;a href="http://en.wikipedia.org/wiki/Daniel_Kahneman"&gt;Daniel Kahneman&lt;/a&gt;.
 (Thanks to Elianna for letting me borrow it.) I'm not finished yet, but
 60% of the way through I definitely recommend it.&lt;/p&gt;
@@ -3199,7 +3199,7 @@ properties of an object called Conway's topograph.
 way to understand a binary quadratic form &amp;ndash; a very important algebraic
 object &amp;ndash; in a geometric context. This is by no means original work, just
 my interpretation of some key points from his
-&lt;a href="http://www.amazon.com/gp/product/0883850303/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0883850303&amp;linkCode=as2&amp;tag=boslobblo-20&amp;linkId=5ZI7SBFQVULNR52O"&gt;The Sensual (Quadratic) Form&lt;/a&gt;&lt;img src="http://ir-na.amazon-adsystem.com/e/ir?t=boslobblo-20&amp;l=as2&amp;o=1&amp;a=0883850303" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" /&gt;
+&lt;a href="http://www.amazon.com/gp/product/0883850303/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0883850303&amp;linkCode=as2&amp;tag=boslobblo-20&amp;linkId=5ZI7SBFQVULNR52O"&gt;The Sensual (Quadratic) Form&lt;/a&gt;&lt;img src="http://ir-na.amazon-adsystem.com/e/ir?t=boslobblo-20&amp;l=as2&amp;o=1&amp;a=0883850303" width="1" height="1" border="0" alt="AMZN Affiliate Ad" style="border:none !important; margin:0px !important;" /&gt;
 that I'll need for some other posts.&lt;/p&gt;
 &lt;hr /&gt;
 &lt;h4 id="define-discriminant"&gt;Definition:&lt;/h4&gt;
@@ -3387,7 +3387,7 @@ properties of an object called Conway's topograph.
 way to understand a binary quadratic form &amp;ndash; a very important algebraic
 object &amp;ndash; in a geometric context. This is by no means original work, just
 my interpretation of some key points from his
-&lt;a href="http://www.amazon.com/gp/product/0883850303/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0883850303&amp;linkCode=as2&amp;tag=boslobblo-20&amp;linkId=5ZI7SBFQVULNR52O"&gt;The Sensual (Quadratic) Form&lt;/a&gt;&lt;img src="http://ir-na.amazon-adsystem.com/e/ir?t=boslobblo-20&amp;l=as2&amp;o=1&amp;a=0883850303" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" /&gt;
+&lt;a href="http://www.amazon.com/gp/product/0883850303/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0883850303&amp;linkCode=as2&amp;tag=boslobblo-20&amp;linkId=5ZI7SBFQVULNR52O"&gt;The Sensual (Quadratic) Form&lt;/a&gt;&lt;img src="http://ir-na.amazon-adsystem.com/e/ir?t=boslobblo-20&amp;l=as2&amp;o=1&amp;a=0883850303" width="1" height="1" border="0" alt="AMZN Affiliate Ad" style="border:none !important; margin:0px !important;" /&gt;
 that I'll need for some other posts.&lt;/p&gt;
 &lt;hr /&gt;
 &lt;p&gt;In the following, as mentioned in Part 1,&lt;/p&gt;
@@ -3525,7 +3525,7 @@ topograph. &lt;a href="http://en.wikipedia.org/wiki/John_Horton_Conway"&gt;John 
 conjured up a way to understand a binary quadratic form &amp;ndash; a very important
 algebraic object &amp;ndash; in a geometric context. This is by no means original
 work, just my interpretation of some key points from his
-&lt;a href="http://www.amazon.com/gp/product/0883850303/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0883850303&amp;linkCode=as2&amp;tag=boslobblo-20&amp;linkId=5ZI7SBFQVULNR52O"&gt;The Sensual (Quadratic) Form&lt;/a&gt;&lt;img src="http://ir-na.amazon-adsystem.com/e/ir?t=boslobblo-20&amp;l=as2&amp;o=1&amp;a=0883850303" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" /&gt;
+&lt;a href="http://www.amazon.com/gp/product/0883850303/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=0883850303&amp;linkCode=as2&amp;tag=boslobblo-20&amp;linkId=5ZI7SBFQVULNR52O"&gt;The Sensual (Quadratic) Form&lt;/a&gt;&lt;img src="http://ir-na.amazon-adsystem.com/e/ir?t=boslobblo-20&amp;l=as2&amp;o=1&amp;a=0883850303" width="1" height="1" border="0" alt="AMZN Affiliate Ad" style="border:none !important; margin:0px !important;" /&gt;
 that I'll need for some other posts.&lt;/p&gt;
 &lt;hr /&gt;
 &lt;h4 id="define-quadratic-form"&gt;Definition:&lt;/h4&gt;
