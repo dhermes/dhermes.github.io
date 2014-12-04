@@ -1,5 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><atom:link href="https://blog.bossylobster.com/feeds/rss.xml" rel="self"></atom:link><lastBuildDate>Sun, 28 Sep 2014 00:00:00 -0700</lastBuildDate><item><title>Quantitative Interview Brain Teaser: Computer Assistance</title><link>https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html</link><description>&lt;p&gt;In a &lt;a href="/2014/09/quantitative-brain-teaser-brain-only.html"&gt;previous post&lt;/a&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><atom:link href="https://blog.bossylobster.com/feeds/rss.xml" rel="self"></atom:link><lastBuildDate>Thu, 04 Dec 2014 00:00:00 -0800</lastBuildDate><item><title>Brand New Blog</title><link>https://blog.bossylobster.com/2014/12/brand-new-blog.html</link><description>&lt;p&gt;After a happy 3-year run with &lt;a href="http://bossylobster.blogspot.com/"&gt;Blogger&lt;/a&gt;, I've decided to
+revamp my blog with viewers in mind.&lt;/p&gt;
+&lt;h2&gt;Why?&lt;/h2&gt;
+&lt;p&gt;When I &lt;a href="https://blog.bossylobster.com/2011/04/first.html"&gt;started&lt;/a&gt; my blog, I was still learning the ropes as a
+programmer. I was happy to have a place to share the things I learned,
+but didn't have much context for the things I was writing.
+However, as I started to develop a voice, I became acutely aware
+that the look and feel of my blog was bad.&lt;/p&gt;
+&lt;p&gt;After a good &lt;a href="https://twitter.com/zacharykimball"&gt;friend&lt;/a&gt; of mine asked me something along the lines
+of "Danny, are you blind?", it was clear I needed to make a change.
+He solidified what I had known for some time:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;In order to have a voice, I needed more than just content.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I needed to respect my viewers taste by providing a quality visual
+experience. This was not clear to me as a freshly minted math nerd from
+the University of Michigan.&lt;/p&gt;
+&lt;p&gt;However, after spending two and a half years at Google building plenty of
+slide decks, I knew better. By not writing with viewers in mind, I was
+weakening my work by increasing the effort required to consume it.&lt;/p&gt;
+&lt;p&gt;I hope you're enjoying a more visually pleasing blog
+experience and welcome any &lt;a href="https://github.com/dhermes/bossylobster-blog/issues/new"&gt;feedback&lt;/a&gt; you may have.&lt;/p&gt;
+&lt;p&gt;Feel free to continue on if you are a nerd like me.&lt;/p&gt;
+&lt;h2&gt;How?&lt;/h2&gt;
+&lt;p&gt;I am now hand-crafting HTML for my posts and using a static site
+generator for my content. It feels so 90's, but I wasn't using the
+internet then, so what do I know?&lt;/p&gt;
+&lt;p&gt;Inspired by my old buddy &lt;a href="http://brianmannmath.github.io/"&gt;Brian&lt;/a&gt; and by the insanely productive
+&lt;a href="https://jakevdp.github.io/blog/2013/05/07/migrating-from-octopress-to-pelican/"&gt;Jake Vanderplas&lt;/a&gt;, I decided to port my old content by hand.&lt;/p&gt;
+&lt;p&gt;The current blog you see here is due to a few main ingredients:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The &lt;a href="http://docs.getpelican.com/en/latest/"&gt;Pelican&lt;/a&gt; static site generator, for the Python hacker in me.&lt;/li&gt;
+&lt;li&gt;The &lt;a href="https://github.com/duilio/pelican-octopress-theme"&gt;&lt;code&gt;octopress&lt;/code&gt;&lt;/a&gt; theme for Pelican. This is arguably the most
+  important part. Big thanks to the &lt;a href="http://octopress.org/"&gt;original&lt;/a&gt; theme, I love it!&lt;/li&gt;
+&lt;li&gt;Static content hosting via &lt;a href="https://pages.github.com/"&gt;GitHub Pages&lt;/a&gt;. Luckily it's a breeze
+  to &lt;a href="https://github.com/dhermes/dhermes.github.io/blob/master/CNAME"&gt;set up&lt;/a&gt; a &lt;a href="https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/"&gt;custom domain&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;HTTPS always on and other perks from &lt;a href="https://www.cloudflare.com/"&gt;CloudFlare&lt;/a&gt;. They claim they
+  only need five minutes and it is not an exaggeration!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Beyond that, I &lt;strong&gt;enhanced&lt;/strong&gt; the Pelican dev experience by &lt;a href="https://github.com/dhermes/bossylobster-blog/commit/f578f3c70ea71f4e513c7ff10f5f5afc963b5df4"&gt;adding&lt;/a&gt;
+a way to broadcast within my local network for local testing on
+mobile devices. In addition, via &lt;a href="https://travis-ci.org/"&gt;Travis&lt;/a&gt;, my blog has a &lt;a href="https://github.com/dhermes/bossylobster-blog/blob/master/.travis.yml"&gt;build&lt;/a&gt;
+stage just like real software. This allows the new static content
+to be &lt;a href="https://travis-ci.org/dhermes/bossylobster-blog/"&gt;built&lt;/a&gt; every time I make a new commit to GitHub.&lt;/p&gt;
+&lt;p&gt;There were plenty of other fun hacks in the 150+ commits it took me
+to make the switch, but I'll save that for another post.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 04 Dec 2014 00:00:00 -0800</pubDate><guid>tag:blog.bossylobster.com,2014-12-04:2014/12/brand-new-blog.html</guid><category>Pelican</category><category>Octopress</category><category>GitHub Pages</category><category>Blogger</category><category>Presentation</category></item><item><title>Quantitative Interview Brain Teaser: Computer Assistance</title><link>https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html</link><description>&lt;p&gt;In a &lt;a href="/2014/09/quantitative-brain-teaser-brain-only.html"&gt;previous post&lt;/a&gt;
 I discussed a recent brain teaser I had come across:&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Find a &lt;strong&gt;10-digit number&lt;/strong&gt;, where each digit represents the

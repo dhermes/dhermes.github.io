@@ -4,7 +4,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Bossy Lobster</title>
+  <title>Brand New Blog</title>
   <meta name="author" content="Danny Hermes">
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
@@ -69,99 +69,82 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 </ul></nav>
   <div id="main">
     <div id="content">
-<div class="blog-index">
-      <article>
+<div>
+  <article class="hentry" role="article">
 <header>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2011/08/conways-topograph-part-3.html">Conway's Topograph Part 3</a>
-      </h1>
-      <p class="meta"><time datetime="2011-08-23T18:00:00-07:00" pubdate>Aug 23, 2011</time></p>
+      <h1 class="entry-title">Brand New Blog</h1>
+      <p class="meta"><time datetime="2014-12-04T00:00:00-08:00" pubdate>Dec 04, 2014</time></p>
 </header>
 
-  <div class="entry-content"><p>This is the second (continued from
-<a href="/2011/08/conways-topograph-part-2.html">Part 2</a>)
-in a series of three blog posts. In the following we'll investigate a few
-properties of an object called Conway's topograph.
-<a href="http://en.wikipedia.org/wiki/John_Horton_Conway">John Conway</a> conjured up a
-way to understand a binary quadratic form &ndash; a very important algebraic
-object &ndash; in a ...</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2011/08/conways-topograph-part-3.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2011/08/conways-topograph-part-2.html">Conway's Topograph Part 2</a>
-      </h1>
-      <p class="meta"><time datetime="2011-08-23T14:00:00-07:00" pubdate>Aug 23, 2011</time></p>
-</header>
+  <div class="entry-content"><p>After a happy 3-year run with <a href="http://bossylobster.blogspot.com/">Blogger</a>, I've decided to
+revamp my blog with viewers in mind.</p>
+<h2>Why?</h2>
+<p>When I <a href="https://blog.bossylobster.com/2011/04/first.html">started</a> my blog, I was still learning the ropes as a
+programmer. I was happy to have a place to share the things I learned,
+but didn't have much context for the things I was writing.
+However, as I started to develop a voice, I became acutely aware
+that the look and feel of my blog was bad.</p>
+<p>After a good <a href="https://twitter.com/zacharykimball">friend</a> of mine asked me something along the lines
+of "Danny, are you blind?", it was clear I needed to make a change.
+He solidified what I had known for some time:</p>
+<blockquote>
+<p>In order to have a voice, I needed more than just content.</p>
+</blockquote>
+<p>I needed to respect my viewers taste by providing a quality visual
+experience. This was not clear to me as a freshly minted math nerd from
+the University of Michigan.</p>
+<p>However, after spending two and a half years at Google building plenty of
+slide decks, I knew better. By not writing with viewers in mind, I was
+weakening my work by increasing the effort required to consume it.</p>
+<p>I hope you're enjoying a more visually pleasing blog
+experience and welcome any <a href="https://github.com/dhermes/bossylobster-blog/issues/new">feedback</a> you may have.</p>
+<p>Feel free to continue on if you are a nerd like me.</p>
+<h2>How?</h2>
+<p>I am now hand-crafting HTML for my posts and using a static site
+generator for my content. It feels so 90's, but I wasn't using the
+internet then, so what do I know?</p>
+<p>Inspired by my old buddy <a href="http://brianmannmath.github.io/">Brian</a> and by the insanely productive
+<a href="https://jakevdp.github.io/blog/2013/05/07/migrating-from-octopress-to-pelican/">Jake Vanderplas</a>, I decided to port my old content by hand.</p>
+<p>The current blog you see here is due to a few main ingredients:</p>
+<ul>
+<li>The <a href="http://docs.getpelican.com/en/latest/">Pelican</a> static site generator, for the Python hacker in me.</li>
+<li>The <a href="https://github.com/duilio/pelican-octopress-theme"><code>octopress</code></a> theme for Pelican. This is arguably the most
+  important part. Big thanks to the <a href="http://octopress.org/">original</a> theme, I love it!</li>
+<li>Static content hosting via <a href="https://pages.github.com/">GitHub Pages</a>. Luckily it's a breeze
+  to <a href="https://github.com/dhermes/dhermes.github.io/blob/master/CNAME">set up</a> a <a href="https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/">custom domain</a>.</li>
+<li>HTTPS always on and other perks from <a href="https://www.cloudflare.com/">CloudFlare</a>. They claim they
+  only need five minutes and it is not an exaggeration!</li>
+</ul>
+<p>Beyond that, I <strong>enhanced</strong> the Pelican dev experience by <a href="https://github.com/dhermes/bossylobster-blog/commit/f578f3c70ea71f4e513c7ff10f5f5afc963b5df4">adding</a>
+a way to broadcast within my local network for local testing on
+mobile devices. In addition, via <a href="https://travis-ci.org/">Travis</a>, my blog has a <a href="https://github.com/dhermes/bossylobster-blog/blob/master/.travis.yml">build</a>
+stage just like real software. This allows the new static content
+to be <a href="https://travis-ci.org/dhermes/bossylobster-blog/">built</a> every time I make a new commit to GitHub.</p>
+<p>There were plenty of other fun hacks in the 150+ commits it took me
+to make the switch, but I'll save that for another post.</p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">Danny Hermes (dhermes@bossylobster.com)</span>
+  </span>
+<time datetime="2014-12-04T00:00:00-08:00" pubdate>Dec 04, 2014</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/pelican.html">Pelican</a>
+    <a class="category" href="https://blog.bossylobster.com/tag/octopress.html">Octopress</a>
+    <a class="category" href="https://blog.bossylobster.com/tag/github-pages.html">GitHub Pages</a>
+    <a class="category" href="https://blog.bossylobster.com/tag/blogger.html">Blogger</a>
+    <a class="category" href="https://blog.bossylobster.com/tag/presentation.html">Presentation</a>
+  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2014/12/brand-new-blog.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2014/12/brand-new-blog.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
 
-  <div class="entry-content"><p>This is the second (continued from
-<a href="/2011/08/conways-topograph-part-1.html">Part 1</a>)
-in a series of three blog posts. In the following we'll investigate a few
-properties of an object called Conway's topograph.
-<a href="http://en.wikipedia.org/wiki/John_Horton_Conway">John Conway</a> conjured up a
-way to understand a binary quadratic form &ndash; a very important algebraic
-object &ndash; in a ...</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2011/08/conways-topograph-part-2.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2011/08/conways-topograph-part-1.html">Conway's Topograph Part 1</a>
-      </h1>
-      <p class="meta"><time datetime="2011-08-23T10:00:00-07:00" pubdate>Aug 23, 2011</time></p>
-</header>
-
-  <div class="entry-content"><p>This is the first in a series of three blog posts. In the following
-we'll investigate a few properties of an object called Conway's
-topograph. <a href="http://en.wikipedia.org/wiki/John_Horton_Conway">John Conway</a>
-conjured up a way to understand a binary quadratic form &ndash; a very important
-algebraic object &ndash; in a geometric context. This is ...</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2011/08/conways-topograph-part-1.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2011/08/lesson-v8-can-teach-python-and-other.html">The Lesson V8 Can Teach Python and Other Dynamic Languages</a>
-      </h1>
-      <p class="meta"><time datetime="2011-08-17T00:00:00-07:00" pubdate>Aug 17, 2011</time></p>
-</header>
-
-  <div class="entry-content"><p>Being unable to completely give up math for computers, I am naturally
-drawn to <a href="http://projecteuler.net/">Project Euler</a> and as a result
-solved a
-<a href="https://github.com/dhermes/project-euler/tree/master/python/complete">ridiculous number</a>
-of the problems posted there while learning Python. A few months
-ago (March 13), after reading
-<a href="http://jsninja.com/">Secrets of a Javascript Ninja</a>, I decided to begin
-converting ...</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2011/08/lesson-v8-can-teach-python-and-other.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2011/07/woo-hoo.html">Woo hoo</a>
-      </h1>
-      <p class="meta"><time datetime="2011-07-22T00:00:00-07:00" pubdate>Jul 22, 2011</time></p>
-</header>
-
-  <div class="entry-content"><p>It's official, I am a grown up!</p>
-<p><a href="http://code.google.com/apis/inapppayments/articles/index.html">http://code.google.com/apis/inapppayments/articles/index.html</a></p></div>
-      </article>
-<div class="pagination">
-    <a class="prev" href="https://blog.bossylobster.com/page/7">&larr; Older</a>
-
-    <a class="next" href="https://blog.bossylobster.com/page/5">Newer &rarr;</a>
-  <br />
-</div></div>
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
 <aside class="sidebar">
   <section class="sidebar-img">
     <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
@@ -233,6 +216,9 @@ converting ...</p></div>
 </script>
   <script type="text/javascript">
     var disqus_shortname = 'bossylobster';
+          var disqus_identifier = '/2014/12/brand-new-blog.html';
+          var disqus_url = 'https://blog.bossylobster.com/2014/12/brand-new-blog.html';
+          var disqus_title = "Brand New Blog";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
