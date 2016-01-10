@@ -17,7 +17,7 @@ and told her it could be one of four outcomes:&lt;/p&gt;
 &lt;p&gt;I decided it'd be fun to &lt;a href="https://gist.github.com/dhermes/c5088f4534108743015f"&gt;make a tool&lt;/a&gt; to answer this question
 for any score (not just &lt;strong&gt;9&lt;/strong&gt;). Enjoy&lt;/p&gt;
 &lt;h3&gt;Give me a score, I'll count the ways&lt;/h3&gt;
-&lt;div&gt;Score: &lt;input type="text" id="num-points" name="numPoints" value="9" style="width: 25px; font-size: 18px;" onchange="bossylobsterBlog.FBScore.updatePage();"&gt;&lt;/div&gt;
+&lt;div&gt;Score: &lt;input type="text" id="num-points" name="numPoints" value="9" style="width: 35px; font-size: 18px;" onchange="bossylobsterBlog.FBScore.updatePage();"&gt;&lt;/div&gt;
 
 &lt;ol id="scores-list"&gt;
   &lt;li&gt;1 x Field Goal, 1 x TD with missed PAT&lt;/li&gt;
