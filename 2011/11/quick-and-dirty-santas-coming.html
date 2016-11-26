@@ -108,24 +108,24 @@ I set my <strong>OAuth 2.0 Redirect URIs</strong> and made sure my app can serve
 <code>http://example.com/verify</code>.</p>
 <p>After doing this settings pre-work, I have two scripts to do the work for me.</p>
 <h2>First script &mdash; get the OAuth Token:</h2>
-<div class="highlight"><pre><span class="kn">import</span> <span class="nn">gdata.calendar.client</span>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gdata.calendar.client</span>
 <span class="kn">import</span> <span class="nn">gdata.gauth</span>
 
 <span class="n">gcal</span> <span class="o">=</span> <span class="n">gdata</span><span class="o">.</span><span class="n">calendar</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">CalendarClient</span><span class="p">()</span>
-<span class="n">oauth_callback</span> <span class="o">=</span> <span class="s">&#39;http://example.com/verify&#39;</span>
-<span class="n">scopes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;https://www.google.com/calendar/feeds/&#39;</span><span class="p">]</span>
-<span class="n">consumer_key</span> <span class="o">=</span> <span class="s">&#39;EXAMPLE_KEY&#39;</span>
-<span class="n">consumer_secret</span> <span class="o">=</span> <span class="s">&#39;EXAMPLE_SECRET&#39;</span>
+<span class="n">oauth_callback</span> <span class="o">=</span> <span class="s1">&#39;http://example.com/verify&#39;</span>
+<span class="n">scopes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;https://www.google.com/calendar/feeds/&#39;</span><span class="p">]</span>
+<span class="n">consumer_key</span> <span class="o">=</span> <span class="s1">&#39;EXAMPLE_KEY&#39;</span>
+<span class="n">consumer_secret</span> <span class="o">=</span> <span class="s1">&#39;EXAMPLE_SECRET&#39;</span>
 <span class="n">request_token</span> <span class="o">=</span> <span class="n">gcal</span><span class="o">.</span><span class="n">get_oauth_token</span><span class="p">(</span><span class="n">scopes</span><span class="p">,</span> <span class="n">oauth_callback</span><span class="p">,</span>
                                      <span class="n">consumer_key</span><span class="p">,</span> <span class="n">consumer_secret</span><span class="p">)</span>
-<span class="n">out_str</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Please visit https://www.google.com/accounts/OAuthAuthorize&#39;</span>
-           <span class="s">&#39;Token?hd=default&amp;oauth_token=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">request_token</span><span class="o">.</span><span class="n">token</span><span class="p">)</span>
+<span class="n">out_str</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Please visit https://www.google.com/accounts/OAuthAuthorize&#39;</span>
+           <span class="s1">&#39;Token?hd=default&amp;oauth_token=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">request_token</span><span class="o">.</span><span class="n">token</span><span class="p">)</span>
 <span class="k">print</span> <span class="n">out_str</span>
-<span class="n">follow</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&#39;Please entry the follow link after authorizing:</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+<span class="n">follow</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s1">&#39;Please entry the follow link after authorizing:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 <span class="n">gdata</span><span class="o">.</span><span class="n">gauth</span><span class="o">.</span><span class="n">authorize_request_token</span><span class="p">(</span><span class="n">request_token</span><span class="p">,</span> <span class="n">follow</span><span class="p">)</span>
 <span class="n">gcal</span><span class="o">.</span><span class="n">auth_token</span> <span class="o">=</span> <span class="n">gcal</span><span class="o">.</span><span class="n">get_access_token</span><span class="p">(</span><span class="n">request_token</span><span class="p">)</span>
-<span class="k">print</span> <span class="s">&#39;TOKEN:&#39;</span><span class="p">,</span> <span class="n">gcal</span><span class="o">.</span><span class="n">auth_token</span><span class="o">.</span><span class="n">token</span>
-<span class="k">print</span> <span class="s">&#39;TOKEN_SECRET:&#39;</span><span class="p">,</span> <span class="n">gcal</span><span class="o">.</span><span class="n">auth_token</span><span class="o">.</span><span class="n">token_secret</span>
+<span class="k">print</span> <span class="s1">&#39;TOKEN:&#39;</span><span class="p">,</span> <span class="n">gcal</span><span class="o">.</span><span class="n">auth_token</span><span class="o">.</span><span class="n">token</span>
+<span class="k">print</span> <span class="s1">&#39;TOKEN_SECRET:&#39;</span><span class="p">,</span> <span class="n">gcal</span><span class="o">.</span><span class="n">auth_token</span><span class="o">.</span><span class="n">token_secret</span>
 </pre></div>
 
 
@@ -144,21 +144,21 @@ goop that was <strong>produced by your computer</strong>). For the next script,
 let's pretend our token is <code>FAKE_TOKEN</code> and our token secret is
 <code>FAKE_TOKEN_SECRET</code>.</p>
 <h4>Second script &mdash; insert the events:</h4>
-<div class="highlight"><pre><span class="c"># General libraries</span>
+<div class="highlight"><pre><span></span><span class="c1"># General libraries</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
 
-<span class="c"># Third-party libraries</span>
+<span class="c1"># Third-party libraries</span>
 <span class="kn">import</span> <span class="nn">atom</span>
 <span class="kn">import</span> <span class="nn">gdata.gauth</span>
 <span class="kn">import</span> <span class="nn">gdata.calendar.client</span>
 <span class="kn">import</span> <span class="nn">gdata.calendar.data</span>
 
 <span class="n">gcal</span> <span class="o">=</span> <span class="n">gdata</span><span class="o">.</span><span class="n">calendar</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">CalendarClient</span><span class="p">()</span>
-<span class="n">auth_token</span> <span class="o">=</span> <span class="n">gdata</span><span class="o">.</span><span class="n">gauth</span><span class="o">.</span><span class="n">OAuthHmacToken</span><span class="p">(</span><span class="n">consumer_key</span><span class="o">=</span><span class="s">&#39;EXAMPLE_KEY&#39;</span><span class="p">,</span>
-                                        <span class="n">consumer_secret</span><span class="o">=</span><span class="s">&#39;EXAMPLE_SECRET&#39;</span><span class="p">,</span>
-                                        <span class="n">token</span><span class="o">=</span><span class="s">&#39;FAKE_TOKEN&#39;</span><span class="p">,</span>
-                                        <span class="n">token_secret</span><span class="o">=</span><span class="s">&#39;FAKE_TOKEN_SECRET&#39;</span><span class="p">,</span>
+<span class="n">auth_token</span> <span class="o">=</span> <span class="n">gdata</span><span class="o">.</span><span class="n">gauth</span><span class="o">.</span><span class="n">OAuthHmacToken</span><span class="p">(</span><span class="n">consumer_key</span><span class="o">=</span><span class="s1">&#39;EXAMPLE_KEY&#39;</span><span class="p">,</span>
+                                        <span class="n">consumer_secret</span><span class="o">=</span><span class="s1">&#39;EXAMPLE_SECRET&#39;</span><span class="p">,</span>
+                                        <span class="n">token</span><span class="o">=</span><span class="s1">&#39;FAKE_TOKEN&#39;</span><span class="p">,</span>
+                                        <span class="n">token_secret</span><span class="o">=</span><span class="s1">&#39;FAKE_TOKEN_SECRET&#39;</span><span class="p">,</span>
                                         <span class="n">auth_state</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">gcal</span><span class="o">.</span><span class="n">auth_token</span> <span class="o">=</span> <span class="n">auth_token</span>
 
@@ -168,20 +168,20 @@ let's pretend our token is <code>FAKE_TOKEN</code> and our token secret is
 <span class="k">while</span> <span class="n">days_left</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
     <span class="n">event</span> <span class="o">=</span> <span class="n">gdata</span><span class="o">.</span><span class="n">calendar</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">CalendarEventEntry</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">days_left</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> Days Until Home for Christmas&#39;</span> <span class="o">%</span> <span class="n">days_left</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> Days Until Home for Christmas&#39;</span> <span class="o">%</span> <span class="n">days_left</span>
     <span class="k">elif</span> <span class="n">days_left</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;1 Day Until Home for Christmas&#39;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;1 Day Until Home for Christmas&#39;</span>
     <span class="k">elif</span> <span class="n">days_left</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Going Home for Christmas&#39;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Going Home for Christmas&#39;</span>
     <span class="n">event</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Title</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
-    <span class="c"># When</span>
-    <span class="n">start_time</span> <span class="o">=</span> <span class="s">&#39;2011-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">T08:00:00.000-08:00&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">today</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">today</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
-    <span class="n">end_time</span> <span class="o">=</span> <span class="s">&#39;2011-</span><span class="si">%02d</span><span class="s">-</span><span class="si">%02d</span><span class="s">T09:00:00.000-08:00&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">today</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">today</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+    <span class="c1"># When</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="s1">&#39;2011-</span><span class="si">%02d</span><span class="s1">-</span><span class="si">%02d</span><span class="s1">T08:00:00.000-08:00&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">today</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">today</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+    <span class="n">end_time</span> <span class="o">=</span> <span class="s1">&#39;2011-</span><span class="si">%02d</span><span class="s1">-</span><span class="si">%02d</span><span class="s1">T09:00:00.000-08:00&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">today</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">today</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
     <span class="n">event</span><span class="o">.</span><span class="n">when</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gdata</span><span class="o">.</span><span class="n">calendar</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">When</span><span class="p">(</span>
         <span class="n">start</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
         <span class="n">end</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span>
-        <span class="n">reminder</span><span class="o">=</span><span class="p">[</span><span class="n">gdata</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Reminder</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="s">&#39;1&#39;</span><span class="p">)]))</span>
+        <span class="n">reminder</span><span class="o">=</span><span class="p">[</span><span class="n">gdata</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Reminder</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)]))</span>
 
     <span class="n">gcal</span><span class="o">.</span><span class="n">InsertEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
 
@@ -219,7 +219,7 @@ is very helpful.</p>
 <p>You can annoy other people by inviting them to these events for
     them as well. To do so, simply add the following two lines before
     inserting the event</p>
-<div class="highlight"><pre>who_add = gdata.calendar.data.EventWho(email=&#39;name@mail.com&#39;)event.who.append(who_add)
+<div class="highlight"><pre><span></span>who_add = gdata.calendar.data.EventWho(email=&#39;name@mail.com&#39;)event.who.append(who_add)
 </pre></div>
 
 
@@ -228,7 +228,7 @@ is very helpful.</p>
 <p>Sometimes inserting an item results in a RedirectError, so it may
     be safer to try the insert multiple times with a helper function
     such as the following:</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">try_insert</span><span class="p">(</span><span class="n">attempts</span><span class="p">,</span> <span class="n">gcal</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">try_insert</span><span class="p">(</span><span class="n">attempts</span><span class="p">,</span> <span class="n">gcal</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
     <span class="kn">from</span> <span class="nn">gdata.client</span> <span class="kn">import</span> <span class="n">RedirectError</span>
 
@@ -241,7 +241,7 @@ is very helpful.</p>
             <span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">attempts</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s">&#39;Insert &quot;</span><span class="si">%s</span><span class="s">&quot; failed&#39;</span> <span class="o">%</span> <span class="n">event</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">print</span> <span class="s1">&#39;Insert &quot;</span><span class="si">%s</span><span class="s1">&quot; failed&#39;</span> <span class="o">%</span> <span class="n">event</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">text</span>
 </pre></div>
 
 
@@ -290,6 +290,9 @@ is very helpful.</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2016/01/how-many-ways-to-make-a-football-score.html">How Many Ways to Make a (Football) Score</a>
       </li>
       <li class="post">
@@ -300,9 +303,6 @@ is very helpful.</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
       </li>
     </ul>
   </section>

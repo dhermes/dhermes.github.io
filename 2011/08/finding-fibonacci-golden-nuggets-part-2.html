@@ -162,25 +162,25 @@ determines the value at <span class="katex"><span class="katex-mathml"><math><se
 progression rule with the values at all three faces in the superbase.
 Using this helper function, we can define a way to get the next juncture
 by turning left or right:</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">next_juncture_on_river</span><span class="p">(</span><span class="n">juncture</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">next_juncture_on_river</span><span class="p">(</span><span class="n">juncture</span><span class="p">):</span>
     <span class="n">B</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">F</span> <span class="o">=</span> <span class="n">juncture</span>
     <span class="n">forward_val</span> <span class="o">=</span> <span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">forward_val</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c"># turn left</span>
+        <span class="c1"># turn left</span>
         <span class="n">NEXT</span> <span class="o">=</span> <span class="n">plus</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">N</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">NEXT</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">forward_val</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c"># turn right</span>
+        <span class="c1"># turn right</span>
         <span class="n">NEXT</span> <span class="o">=</span> <span class="n">plus</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">NEXT</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;No infinite river here.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;No infinite river here.&#39;</span><span class="p">)</span>
 </pre></div>
 
 
 <p>Next, to know when to stop crawling on the river, we need to know when
 we have returned to an identical juncture, so we define:</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">juncture_ident</span><span class="p">(</span><span class="n">juncture1</span><span class="p">,</span> <span class="n">juncture2</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">juncture_ident</span><span class="p">(</span><span class="n">juncture1</span><span class="p">,</span> <span class="n">juncture2</span><span class="p">):</span>
     <span class="n">B1</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span> <span class="n">N1</span><span class="p">,</span> <span class="n">F1</span> <span class="o">=</span> <span class="n">juncture1</span>
     <span class="n">B2</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span> <span class="n">N2</span><span class="p">,</span> <span class="n">F2</span> <span class="o">=</span> <span class="n">juncture2</span>
     <span class="k">return</span> <span class="p">((</span><span class="n">B1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">B2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">P1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">P2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">and</span>
@@ -230,7 +230,7 @@ have a recurrence</p>
 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msub><mi>u</mi><mrow><mi>k</mi><mo>+</mo><mn>2</mn></mrow></msub><mo>=</mo><mo>(</mo><mi>r</mi><mi>q</mi><mo>&#8722;</mo><mi>p</mi><mi>s</mi><mo>)</mo><msub><mi>u</mi><mi>k</mi></msub><mo>+</mo><mo>(</mo><mi>p</mi><mo>+</mo><mi>s</mi><mo>)</mo><msub><mi>u</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow><annotation encoding="application/x-tex">u_{k + 2} = (r q - p s)u_k + (p + s)u_{k + 1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mbin">+</span><span class="mord mathrm">2</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mrel">=</span><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.02778em;">r</span><span class="mord mathit" style="margin-right:0.03588em;">q</span><span class="mbin">&#8722;</span><span class="mord mathit">p</span><span class="mord mathit">s</span><span class="mclose">)</span><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="mbin">+</span><span class="mopen">(</span><span class="mord mathit">p</span><span class="mbin">+</span><span class="mord mathit">s</span><span class="mclose">)</span><span class="mord"><span class="mord mathit">u</span><span class="vlist"><span style="top:0.15em;margin-right:0.05em;margin-left:0em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mbin">+</span><span class="mord mathrm">1</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span>. (You
 can check that <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>v</mi></mrow><annotation encoding="application/x-tex">v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.43056em;"></span><span class="strut bottom" style="height:0.43056em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03588em;">v</span></span></span></span> satisfies this as well.) Hence our function
 to spit out the recurrence coefficients is:</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">get_recurrence</span><span class="p">(</span><span class="n">form</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_recurrence</span><span class="p">(</span><span class="n">form</span><span class="p">):</span>
     <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">form</span>
     <span class="n">B</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
     <span class="n">P</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">a</span><span class="p">)</span>
@@ -260,22 +260,22 @@ faces from the positive side</p>
 </div>
 <p>and have the negative from across the river as the "back" face. With
 this definition, we first write a function to return all tributaries:</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">all_positive_tributaries</span><span class="p">(</span><span class="n">form</span><span class="p">):</span>
-    <span class="c"># ...Initialization logic...</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">all_positive_tributaries</span><span class="p">(</span><span class="n">form</span><span class="p">):</span>
+    <span class="c1"># ...Initialization logic...</span>
 
     <span class="n">new_positives</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">J_curr</span> <span class="o">=</span> <span class="n">next_juncture_on_river</span><span class="p">(</span><span class="n">J_init</span><span class="p">)</span>
     <span class="k">while</span> <span class="ow">not</span> <span class="n">juncture_ident</span><span class="p">(</span><span class="n">J_init</span><span class="p">,</span> <span class="n">J_curr</span><span class="p">):</span>
-        <span class="c"># we add a new positive if the forward</span>
-        <span class="c"># value is positive</span>
+        <span class="c1"># we add a new positive if the forward</span>
+        <span class="c1"># value is positive</span>
         <span class="n">forward</span> <span class="o">=</span> <span class="n">J_curr</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">forward</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">new_positives</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">J_curr</span><span class="p">)</span>
         <span class="n">J_curr</span> <span class="o">=</span> <span class="n">next_juncture_on_river</span><span class="p">(</span><span class="n">J_curr</span><span class="p">)</span>
 
-    <span class="c"># For each (B, P, N, F) in new_positives, we want to</span>
-    <span class="c"># transform to a juncture with positive values, which will</span>
-    <span class="c"># be (N, P_1, P_2, P_F)</span>
+    <span class="c1"># For each (B, P, N, F) in new_positives, we want to</span>
+    <span class="c1"># transform to a juncture with positive values, which will</span>
+    <span class="c1"># be (N, P_1, P_2, P_F)</span>
     <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">new_positive</span> <span class="ow">in</span> <span class="n">new_positives</span><span class="p">:</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">F</span> <span class="o">=</span> <span class="n">new_positive</span>
@@ -291,7 +291,7 @@ are too large. So we write a helper function to take a given tributary
 and a max value and recursively "climb" the topograph until we exceed
 the value. This function will naively return all possible faces (value
 and vector) without checking the actual values.</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">seek_up_to_val</span><span class="p">(</span><span class="n">juncture</span><span class="p">,</span> <span class="n">max_value</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">seek_up_to_val</span><span class="p">(</span><span class="n">juncture</span><span class="p">,</span> <span class="n">max_value</span><span class="p">):</span>
     <span class="n">N</span><span class="p">,</span> <span class="n">P_1</span><span class="p">,</span> <span class="n">P_2</span><span class="p">,</span> <span class="n">P_F</span> <span class="o">=</span> <span class="n">juncture</span>
     <span class="k">if</span> <span class="n">P_F</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">max_value</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[]</span>
@@ -314,11 +314,11 @@ may have a pair (or pairs) <span class="katex"><span class="katex-mathml"><math>
 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>f</mi><mo>(</mo><mi>x</mi><mo separator="true">,</mo><mi>y</mi><mo>)</mo><mo>=</mo><mfrac><mrow><mi>z</mi></mrow><mrow><msup><mi>k</mi><mn>2</mn></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">f(x, y) = \frac{z}{k^2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1.095em;vertical-align:-0.345em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mrel">=</span><span class="mord reset-textstyle textstyle uncramped"><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span><span class="mfrac"><span class="vlist"><span style="top:0.345em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle cramped"><span class="mord scriptstyle cramped"><span class="mord"><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="vlist"><span style="top:-0.289em;margin-right:0.07142857142857144em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-scriptstyle scriptscriptstyle cramped"><span class="mord mathrm">2</span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span></span></span></span><span style="top:-0.22999999999999998em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle textstyle uncramped frac-line"></span></span><span style="top:-0.394em;"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span><span class="reset-textstyle scriptstyle uncramped"><span class="mord scriptstyle uncramped"><span class="mord mathit" style="margin-right:0.04398em;">z</span></span></span></span><span class="baseline-fix"><span class="fontsize-ensurer reset-size5 size5"><span style="font-size:0em;">&#8203;</span></span>&#8203;</span></span></span><span class="sizing reset-size5 size5 reset-textstyle textstyle uncramped nulldelimiter"></span></span></span></span></span> for some integer
 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi></mrow><annotation encoding="application/x-tex">k</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.69444em;"></span><span class="strut bottom" style="height:0.69444em;vertical-align:0em;"></span><span class="base textstyle uncramped"><span class="mord mathit" style="margin-right:0.03148em;">k</span></span></span></span>; if so, this gives rise to a solution
 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mo>(</mo><mi>k</mi><mi>x</mi><mo separator="true">,</mo><mi>k</mi><mi>y</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">(kx, ky)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="strut" style="height:0.75em;"></span><span class="strut bottom" style="height:1em;vertical-align:-0.25em;"></span><span class="base textstyle uncramped"><span class="mopen">(</span><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mord mathit">x</span><span class="mpunct">,</span><span class="mord mathit" style="margin-right:0.03148em;">k</span><span class="mord mathit" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> which we'll be sure to account for in our function.</p>
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">all_values_on_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-    <span class="c"># Use a helper (factors) to get all positive integer factors of value</span>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">all_values_on_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="c1"># Use a helper (factors) to get all positive integer factors of value</span>
     <span class="n">factor_list</span> <span class="o">=</span> <span class="n">factors</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    <span class="c"># Use another helper (is_square) to determine which factors can be</span>
-    <span class="c"># written as value/k^2 for some integer k</span>
+    <span class="c1"># Use another helper (is_square) to determine which factors can be</span>
+    <span class="c1"># written as value/k^2 for some integer k</span>
     <span class="n">valid_factors</span> <span class="o">=</span> <span class="p">[</span><span class="n">factor</span> <span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="n">factor_list</span>
                      <span class="k">if</span> <span class="n">is_square</span><span class="p">(</span><span class="n">value</span><span class="o">/</span><span class="n">factor</span><span class="p">)]</span>
 
@@ -328,18 +328,18 @@ may have a pair (or pairs) <span class="katex"><span class="katex-mathml"><math>
         <span class="n">candidates</span> <span class="o">=</span> <span class="n">seek_up_to_val</span><span class="p">(</span><span class="n">tributary</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="n">found</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">candidate</span> <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span>
                       <span class="k">if</span> <span class="n">candidate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">valid_factors</span><span class="p">])</span>
-        <span class="c"># Since each tributary is of the form (N, P_1, P_2, P_F) for</span>
-        <span class="c"># P_1, P_2 on the river, we need only consider P_1 and P_2 since</span>
-        <span class="c"># those faces above are in candidates. But P_2 will always be in</span>
-        <span class="c"># next tributary, so we need not count it. You may assume this ignores</span>
-        <span class="c"># the very final tributary, but here P_2 actually lies in the</span>
-        <span class="c"># second period of the river</span>
+        <span class="c1"># Since each tributary is of the form (N, P_1, P_2, P_F) for</span>
+        <span class="c1"># P_1, P_2 on the river, we need only consider P_1 and P_2 since</span>
+        <span class="c1"># those faces above are in candidates. But P_2 will always be in</span>
+        <span class="c1"># next tributary, so we need not count it. You may assume this ignores</span>
+        <span class="c1"># the very final tributary, but here P_2 actually lies in the</span>
+        <span class="c1"># second period of the river</span>
         <span class="n">N</span><span class="p">,</span> <span class="n">P_1</span><span class="p">,</span> <span class="n">P_2</span><span class="p">,</span> <span class="n">F</span> <span class="o">=</span> <span class="n">tributary</span>
         <span class="k">if</span> <span class="n">P_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">valid_factors</span><span class="p">:</span>
             <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">P_1</span><span class="p">)</span>
 
-    <span class="c"># Finally we must scale up factors to account for</span>
-    <span class="c"># the reduction by a square multiple</span>
+    <span class="c1"># Finally we must scale up factors to account for</span>
+    <span class="c1"># the reduction by a square multiple</span>
     <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">found</span><span class="p">:</span>
         <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">val</span> <span class="o">=</span> <span class="n">face</span>
@@ -398,6 +398,9 @@ binary quadratic forms over integers!</p></div>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2016/01/how-many-ways-to-make-a-football-score.html">How Many Ways to Make a (Football) Score</a>
       </li>
       <li class="post">
@@ -408,9 +411,6 @@ binary quadratic forms over integers!</p></div>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
       </li>
     </ul>
   </section>

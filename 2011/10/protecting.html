@@ -121,13 +121,13 @@ in the root directory of your git repository (the same directory that <code>.git
 lives in). I intend <code>config.js</code> to be the local copy with my actual passwords
 and keys and <code>_config.js</code> to hold the master contents that actually show up in
 the public repo. For example, the contents of <code>config.js</code> are:</p>
-<div class="highlight"><pre><span class="kd">var</span> <span class="nx">SECRET</span> <span class="o">=</span> <span class="s1">&#39;Nnkrndkmn978489MDkjw&#39;</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">SECRET</span> <span class="o">=</span> <span class="s1">&#39;Nnkrndkmn978489MDkjw&#39;</span><span class="p">;</span>
 </pre></div>
 
 
 <p>and the contents of <code>_config.js</code>
 are:</p>
-<div class="highlight"><pre><span class="kd">var</span> <span class="nx">SECRET</span> <span class="o">=</span> <span class="s1">&#39;SECRET&#39;</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">SECRET</span> <span class="o">=</span> <span class="s1">&#39;SECRET&#39;</span><span class="p">;</span>
 </pre></div>
 
 
@@ -143,36 +143,36 @@ with a one-line difference. Both files simply swap the contents of <code>config.
 and <code>_config.js</code>, while <code>pre-commit</code> also adds <code>config.js</code> to the changelist.
 First I'll give you the contents of <code>pre-commit</code>, and then explain why it's
 cool/safe:</p>
-<div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="n">hooks_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
-<span class="n">relative_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hooks_dir</span><span class="p">,</span> <span class="s">&#39;../..&#39;</span><span class="p">)</span>
+<span class="n">relative_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hooks_dir</span><span class="p">,</span> <span class="s1">&#39;../..&#39;</span><span class="p">)</span>
 <span class="n">project_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">relative_dir</span><span class="p">)</span>
 
-<span class="n">git_included_config</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_root</span><span class="p">,</span> <span class="s">&#39;config.js&#39;</span><span class="p">)</span>
-<span class="n">confidential_config</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_root</span><span class="p">,</span> <span class="s">&#39;_config.js&#39;</span><span class="p">)</span>
+<span class="n">git_included_config</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_root</span><span class="p">,</span> <span class="s1">&#39;config.js&#39;</span><span class="p">)</span>
+<span class="n">confidential_config</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">project_root</span><span class="p">,</span> <span class="s1">&#39;_config.js&#39;</span><span class="p">)</span>
 
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s1">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
   <span class="n">git_included_contents</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s1">&#39;rU&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
   <span class="n">confidential_contents</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
   <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">confidential_contents</span><span class="p">)</span>
 
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
   <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">git_included_contents</span><span class="p">)</span>
 
-<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;git add </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">git_included_config</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;git add </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">git_included_config</span><span class="p">)</span>
 </pre></div>
 
 
 <p>Also note the contents of <code>post-commit</code> are exactly the same, except without
 the final statement:</p>
-<div class="highlight"><pre><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&#39;git add </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">git_included_config</span><span class="p">)</span><span class="o">.</span>
+<div class="highlight"><pre><span></span><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;git add </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">git_included_config</span><span class="p">)</span><span class="o">.</span>
 </pre></div>
 
 
@@ -203,23 +203,23 @@ post-commit hook will never occur. <strong>THIS IS VERY BAD</strong>, since the 
 <code>config.js</code> and <code>_config.js</code> will be switched but not switched back. So, to
 account for this, we need to append the following code to the end of
 <code>pre-commit</code>:</p>
-<div class="highlight"><pre><span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="s">&#39;git st&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="s1">&#39;git st&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
   <span class="n">git_status</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-<span class="k">if</span> <span class="p">(</span><span class="s">&#39;nothing to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span> <span class="ow">or</span>
-    <span class="s">&#39;no changes added to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span> <span class="ow">or</span>
-    <span class="s">&#39;nothing added to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span><span class="p">):</span>
+<span class="k">if</span> <span class="p">(</span><span class="s1">&#39;nothing to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span> <span class="ow">or</span>
+    <span class="s1">&#39;no changes added to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span> <span class="ow">or</span>
+    <span class="s1">&#39;nothing added to commit&#39;</span> <span class="ow">in</span> <span class="n">git_status</span><span class="p">):</span>
   <span class="kn">import</span> <span class="nn">sys</span>
 
-  <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;# From pre-commit hook: No commit necessary, &#39;</span>
-         <span class="s">&#39;sensitive config unchanged. #&#39;</span><span class="p">)</span>
-  <span class="n">hash_head</span> <span class="o">=</span> <span class="s">&#39;#&#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-  <span class="k">print</span> <span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hash_head</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">hash_head</span><span class="p">)),</span>
+  <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;# From pre-commit hook: No commit necessary, &#39;</span>
+         <span class="s1">&#39;sensitive config unchanged. #&#39;</span><span class="p">)</span>
+  <span class="n">hash_head</span> <span class="o">=</span> <span class="s1">&#39;#&#39;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+  <span class="k">print</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hash_head</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">hash_head</span><span class="p">)),</span>
 
-  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">git_included_config</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
     <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">git_included_contents</span><span class="p">)</span>
 
-  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">confidential_config</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
     <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">confidential_contents</span><span class="p">)</span>
 
   <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -279,6 +279,9 @@ a check for the phrase <strong>nothing added to commit</strong> as well.</p></di
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2016/01/how-many-ways-to-make-a-football-score.html">How Many Ways to Make a (Football) Score</a>
       </li>
       <li class="post">
@@ -289,9 +292,6 @@ a check for the phrase <strong>nothing added to commit</strong> as well.</p></di
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
       </li>
     </ul>
   </section>

@@ -131,7 +131,7 @@ help people avoid some frustration with the following instructions.</p>
     with code for bossylobster (your site).</li>
 <li>
 <p>Create a Django project in that directory via the command</p>
-<div class="highlight"><pre>[sudo] django-admin.py startproject bossylobster_django.
+<div class="highlight"><pre><span></span>[sudo] django-admin.py startproject bossylobster_django.
 </pre></div>
 
 
@@ -143,11 +143,11 @@ more detailed tutorial see
 note, <code>startproject</code> is the function name in the <code>django-admin</code> module and
 <code>bossylobster_django</code> can be replaced with your project name.
 1.  Change the file <code>bossylobster_django/urls.py</code> to:</p>
-<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.conf.urls.defaults</span> <span class="kn">import</span> <span class="n">patterns</span>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django.conf.urls.defaults</span> <span class="kn">import</span> <span class="n">patterns</span>
 <span class="kn">from</span> <span class="nn">django.conf.urls.defaults</span> <span class="kn">import</span> <span class="n">url</span>
 
-<span class="n">urlpatterns</span> <span class="o">=</span> <span class="n">patterns</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span>
-  <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^$&#39;</span><span class="p">,</span> <span class="s">&#39;bossylobster_django.views.index&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s">&#39;home&#39;</span><span class="p">),</span>
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="n">patterns</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+  <span class="n">url</span><span class="p">(</span><span class="s1">r&#39;^$&#39;</span><span class="p">,</span> <span class="s1">&#39;bossylobster_django.views.index&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;home&#39;</span><span class="p">),</span>
 <span class="p">)</span>
 </pre></div>
 
@@ -155,18 +155,18 @@ note, <code>startproject</code> is the function name in the <code>django-admin</
 </li>
 <li>
 <p>Change the file <code>bossylobster_django/views.py</code> to:</p>
-<div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
 
 <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
-  <span class="n">content</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-    <span class="s">&#39;&lt;html&gt;&#39;</span><span class="p">,</span>
-    <span class="s">&#39; &lt;head&gt;&#39;</span><span class="p">,</span>
-    <span class="s">&#39;  &lt;meta name=&quot;google-site-verification&quot; content=&quot;XXXX&quot; /&gt;&#39;</span><span class="p">,</span>
-    <span class="s">&#39; &lt;/head&gt;&#39;</span><span class="p">,</span>
-    <span class="s">&#39; &lt;body&gt;&#39;</span><span class="p">,</span>
-    <span class="s">&#39;  Hello world!&#39;</span><span class="p">,</span>
-    <span class="s">&#39; &lt;/body&gt;&#39;</span><span class="p">,</span>
-    <span class="s">&#39; &lt;/html&gt;&#39;</span><span class="p">,</span>
+  <span class="n">content</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+    <span class="s1">&#39;&lt;html&gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &lt;head&gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;  &lt;meta name=&quot;google-site-verification&quot; content=&quot;XXXX&quot; /&gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &lt;/head&gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &lt;body&gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;  Hello world!&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &lt;/body&gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &lt;/html&gt;&#39;</span><span class="p">,</span>
   <span class="p">])</span>
   <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
 </pre></div>
@@ -195,7 +195,7 @@ note, <code>startproject</code> is the function name in the <code>django-admin</
 <li>
 <p>From the <code>bossylobster_django</code> directory (or whatever you called it), run
     the server via</p>
-<div class="highlight"><pre>[sudo] python manage.py runserver 192.168.XX.YY:80
+<div class="highlight"><pre><span></span>[sudo] python manage.py runserver 192.168.XX.YY:80
 </pre></div>
 
 
@@ -244,6 +244,9 @@ note, <code>startproject</code> is the function name in the <code>django-admin</
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2016/01/how-many-ways-to-make-a-football-score.html">How Many Ways to Make a (Football) Score</a>
       </li>
       <li class="post">
@@ -254,9 +257,6 @@ note, <code>startproject</code> is the function name in the <code>django-admin</
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
       </li>
     </ul>
   </section>

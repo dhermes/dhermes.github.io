@@ -148,7 +148,7 @@ inputs &mdash; both operating systems performed identically.</p>
 assumption <strong>"given the same inputs"</strong> was now the point of
 failure.</p>
 <p>He looked at the payload</p>
-<div class="highlight"><pre><span class="p">{</span>
+<div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;aud&quot;</span><span class="p">:</span> <span class="s2">&quot;https://accounts.google.com/o/oauth2/token&quot;</span><span class="p">,</span>
   <span class="nt">&quot;exp&quot;</span><span class="p">:</span> <span class="mi">1433902178</span><span class="p">,</span>
   <span class="nt">&quot;iat&quot;</span><span class="p">:</span> <span class="mi">1433898578</span><span class="p">,</span>
@@ -162,7 +162,7 @@ failure.</p>
 issued at, which are an hour, i.e. 3600 seconds apart) were
 drastically different from OS X to the EC2 instance!</p>
 <p>These are determined as seconds since the <a href="https://en.wikipedia.org/wiki/Unix_time">epoch</a>:</p>
-<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">datetime</span>
+<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">timetuple</span><span class="p">()))</span>
 <span class="mi">1433898578</span>
 </pre></div>
@@ -181,7 +181,7 @@ an impossibility, hence the invalid grant error.</p>
 <p>This most interesting bug wasn't a bug in the library, but an
 incorrectly configured local environment. Once we realized
 this fact, the fix was as simple as:</p>
-<div class="highlight"><pre><span class="nv">$ </span>sudo ntpdate -s ntp.ubuntu.com
+<div class="highlight"><pre><span></span>$ sudo ntpdate -s ntp.ubuntu.com
 </pre></div></div>
     <footer>
 <p class="meta">
@@ -214,6 +214,9 @@ this fact, the fix was as simple as:</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2016/01/how-many-ways-to-make-a-football-score.html">How Many Ways to Make a (Football) Score</a>
       </li>
       <li class="post">
@@ -224,9 +227,6 @@ this fact, the fix was as simple as:</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
       </li>
     </ul>
   </section>
