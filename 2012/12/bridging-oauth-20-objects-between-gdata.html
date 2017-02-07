@@ -129,9 +129,9 @@ This allows us to write less code, because,
 <a href="http://en.wikipedia.org/wiki/Don't_repeat_yourself">repeating is bad</a>
 (I think someone told me that once?).</p>
 <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">OAuth2TokenFromCredentials</span><span class="p">(</span><span class="n">OAuth2Token</span><span class="p">):</span>
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">credentials</span><span class="p">):</span>
+  <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">credentials</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">credentials</span> <span class="o">=</span> <span class="n">credentials</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">OAuth2TokenFromCredentials</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">OAuth2TokenFromCredentials</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">UpdateFromCredentials</span><span class="p">()</span>
 </pre></div>
 
@@ -249,6 +249,9 @@ and a GData API:</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2017/02/golang-and-log-x.html">How Does Go Compute a Logarithm</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
       </li>
       <li class="post">
@@ -259,9 +262,6 @@ and a GData API:</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2014/12/constantly-seek-criticism.html">Constantly Seek Criticism</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
       </li>
     </ul>
   </section>
@@ -288,7 +288,7 @@ and a GData API:</p>
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011-2016  - Danny Hermes -
+    Copyright &copy;  2011-2017  - Danny Hermes -
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
     <script type="text/javascript">

@@ -135,13 +135,13 @@ the class attritubutes. So, we can make a metaclass by subclassing <code>type</c
 <code>__new__</code>:</p>
 <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DecorateHttpVerbsMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">):</span>
         <span class="n">verbs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="s1">&#39;put&#39;</span><span class="p">,</span> <span class="s1">&#39;delete&#39;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">verb</span> <span class="ow">in</span> <span class="n">verbs</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">verb</span> <span class="ow">in</span> <span class="n">cls_attr</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">],</span> <span class="n">function</span><span class="p">):</span>
                 <span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">]</span> <span class="o">=</span> <span class="n">deadline_decorator</span><span class="p">(</span><span class="n">cls_attr</span><span class="p">[</span><span class="n">verb</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">DecorateHttpVerbsMetaclass</span><span class="p">,</span> <span class="n">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">DecorateHttpVerbsMetaclass</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>
                                                               <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">)</span>
 </pre></div>
 
@@ -157,7 +157,7 @@ decorate it with <code>deadline_decorator</code>.</p>
 <p>Now, we can rewrite our subclass of <code>RequestHandler</code>
 with one extra line:</p>
 <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ExtendedHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
-    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">DecorateHttpVerbsMetaclass</span>
+    <span class="vm">__metaclass__</span> <span class="o">=</span> <span class="n">DecorateHttpVerbsMetaclass</span>
 
     <span class="k">def</span> <span class="nf">handle_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">,</span> <span class="n">debug_mode</span><span class="p">):</span>
         <span class="n">traceback_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">format_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()))</span>
@@ -254,6 +254,9 @@ common to other languages.</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2017/02/golang-and-log-x.html">How Does Go Compute a Logarithm</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
       </li>
       <li class="post">
@@ -264,9 +267,6 @@ common to other languages.</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2014/12/constantly-seek-criticism.html">Constantly Seek Criticism</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
       </li>
     </ul>
   </section>
@@ -293,7 +293,7 @@ common to other languages.</p>
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011-2016  - Danny Hermes -
+    Copyright &copy;  2011-2017  - Danny Hermes -
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
     <script type="text/javascript">

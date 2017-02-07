@@ -112,9 +112,9 @@ first and hence will render the New York Times page for
 <p>The first step to do this was to find the IP address for the replacement
 site:</p>
 <div class="highlight"><pre><span></span>$ ping www.nytimes.com
-PING www.nytimes.com <span class="o">(</span>199.239.136.200<span class="o">)</span>: <span class="m">56</span> data bytes
-<span class="m">64</span> bytes from 199.239.136.200: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">0</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span>0.062 ms
-<span class="m">64</span> bytes from 199.239.136.200: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">1</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span>0.054 ms
+PING www.nytimes.com <span class="o">(</span><span class="m">199</span>.239.136.200<span class="o">)</span>: <span class="m">56</span> data bytes
+<span class="m">64</span> bytes from <span class="m">199</span>.239.136.200: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">0</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.062 ms
+<span class="m">64</span> bytes from <span class="m">199</span>.239.136.200: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">1</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.054 ms
 ...
 </pre></div>
 
@@ -182,6 +182,9 @@ fe80::1%lo0     localhost
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2017/02/golang-and-log-x.html">How Does Go Compute a Logarithm</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
       </li>
       <li class="post">
@@ -192,9 +195,6 @@ fe80::1%lo0     localhost
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2014/12/constantly-seek-criticism.html">Constantly Seek Criticism</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
       </li>
     </ul>
   </section>
@@ -221,7 +221,7 @@ fe80::1%lo0     localhost
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011-2016  - Danny Hermes -
+    Copyright &copy;  2011-2017  - Danny Hermes -
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
     <script type="text/javascript">
