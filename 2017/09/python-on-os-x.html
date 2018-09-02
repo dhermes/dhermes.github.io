@@ -106,7 +106,7 @@ system Python</strong>. The OS <strong>relies</strong> on that Python, including
 (and package versions) it has installed. This means if it is modified in a
 non-official way by you, then the OS may not have something it depends on.</p>
 <p>For Mac OS X, system Python is installed in</p>
-<div class="highlight"><pre><span></span>/System/Library/Frameworks/Python.framework/Versions/2.7/bin/python
+<div class=highlight><pre><span></span>/System/Library/Frameworks/Python.framework/Versions/2.7/bin/python
 </pre></div>
 
 
@@ -125,29 +125,29 @@ allows easy switching between versions and more importantly allows you
 to have all versions owned by you (not <code>root</code>) and in one easy to find
 (and easy to remove) place.</p>
 <p>For example, the system Python is <code>2.7.10</code> and was compiled with LLVM 7.0.0:</p>
-<div class="highlight"><pre><span></span><span class="err">$</span> <span class="o">/</span><span class="n">System</span><span class="o">/</span><span class="n">Library</span><span class="o">/</span><span class="n">Frameworks</span><span class="o">/</span><span class="n">Python</span><span class="o">.</span><span class="n">framework</span><span class="o">/</span><span class="n">Versions</span><span class="o">/</span><span class="mf">2.7</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span> <span class="o">-</span><span class="n">c</span> \
-<span class="o">&gt;</span>   <span class="s1">'import sys; print(sys.version)'</span>
-<span class="mf">2.7</span><span class="o">.</span><span class="mi">10</span> <span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">Oct</span> <span class="mi">23</span> <span class="mi">2015</span><span class="p">,</span> <span class="mi">19</span><span class="p">:</span><span class="mi">19</span><span class="p">:</span><span class="mi">21</span><span class="p">)</span>
-<span class="p">[</span><span class="n">GCC</span> <span class="mf">4.2</span><span class="o">.</span><span class="mi">1</span> <span class="n">Compatible</span> <span class="n">Apple</span> <span class="n">LLVM</span> <span class="mf">7.0</span><span class="o">.</span><span class="mi">0</span> <span class="p">(</span><span class="n">clang</span><span class="o">-</span><span class="mf">700.0</span><span class="o">.</span><span class="mf">59.5</span><span class="p">)]</span>
+<div class=highlight><pre><span></span><span class=err>$</span> <span class=o>/</span><span class=n>System</span><span class=o>/</span><span class=n>Library</span><span class=o>/</span><span class=n>Frameworks</span><span class=o>/</span><span class=n>Python</span><span class=o>.</span><span class=n>framework</span><span class=o>/</span><span class=n>Versions</span><span class=o>/</span><span class=mf>2.7</span><span class=o>/</span><span class=nb>bin</span><span class=o>/</span><span class=n>python2</span><span class=o>.</span><span class=mi>7</span> <span class=o>-</span><span class=n>c</span> \
+<span class=o>&gt;</span>   <span class=s1>'import sys; print(sys.version)'</span>
+<span class=mf>2.7</span><span class=o>.</span><span class=mi>10</span> <span class=p>(</span><span class=n>default</span><span class=p>,</span> <span class=n>Oct</span> <span class=mi>23</span> <span class=mi>2015</span><span class=p>,</span> <span class=mi>19</span><span class=p>:</span><span class=mi>19</span><span class=p>:</span><span class=mi>21</span><span class=p>)</span>
+<span class=p>[</span><span class=n>GCC</span> <span class=mf>4.2</span><span class=o>.</span><span class=mi>1</span> <span class=n>Compatible</span> <span class=n>Apple</span> <span class=n>LLVM</span> <span class=mf>7.0</span><span class=o>.</span><span class=mi>0</span> <span class=p>(</span><span class=n>clang</span><span class=o>-</span><span class=mf>700.0</span><span class=o>.</span><span class=mf>59.5</span><span class=p>)]</span>
 </pre></div>
 
 
-<p>However, with <code>pyenv</code> installed, we can use the latest<sup id="sf-python-on-os-x-1-back"><a href="#sf-python-on-os-x-1" class="simple-footnote" title="2.7.14 came out only a few days before this post">1</a></sup> version of 2.7<sup id="sf-python-on-os-x-2-back"><a href="#sf-python-on-os-x-2" class="simple-footnote" title="I would like to encourage you to use Python 3, and am just using 2.7 here because that is the system Python">2</a></sup>:</p>
-<div class="highlight"><pre><span></span><span class="err">$</span> <span class="n">python2</span><span class="o">.</span><span class="mi">7</span>
-<span class="n">Python</span> <span class="mf">2.7</span><span class="o">.</span><span class="mi">14</span> <span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">Sep</span> <span class="mi">19</span> <span class="mi">2017</span><span class="p">,</span> <span class="mi">20</span><span class="p">:</span><span class="mi">32</span><span class="p">:</span><span class="mi">14</span><span class="p">)</span>
-<span class="p">[</span><span class="n">GCC</span> <span class="mf">4.2</span><span class="o">.</span><span class="mi">1</span> <span class="n">Compatible</span> <span class="n">Apple</span> <span class="n">LLVM</span> <span class="mf">8.0</span><span class="o">.</span><span class="mi">0</span> <span class="p">(</span><span class="n">clang</span><span class="o">-</span><span class="mf">800.0</span><span class="o">.</span><span class="mf">42.1</span><span class="p">)]</span> <span class="n">on</span> <span class="n">darwin</span>
-<span class="n">Type</span> <span class="s2">"help"</span><span class="p">,</span> <span class="s2">"copyright"</span><span class="p">,</span> <span class="s2">"credits"</span> <span class="ow">or</span> <span class="s2">"license"</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="o">.</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sys</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">executable</span>
-<span class="s1">'${HOME}/.pyenv/versions/2.7.14/bin/python'</span>
+<p>However, with <code>pyenv</code> installed, we can use the latest<sup id=sf-python-on-os-x-1-back><a href=#sf-python-on-os-x-1 class=simple-footnote title="2.7.14 came out only a few days before this post">1</a></sup> version of 2.7<sup id=sf-python-on-os-x-2-back><a href=#sf-python-on-os-x-2 class=simple-footnote title="I would like to encourage you to use Python 3, and am just using 2.7 here because that is the system Python">2</a></sup>:</p>
+<div class=highlight><pre><span></span><span class=err>$</span> <span class=n>python2</span><span class=o>.</span><span class=mi>7</span>
+<span class=n>Python</span> <span class=mf>2.7</span><span class=o>.</span><span class=mi>14</span> <span class=p>(</span><span class=n>default</span><span class=p>,</span> <span class=n>Sep</span> <span class=mi>19</span> <span class=mi>2017</span><span class=p>,</span> <span class=mi>20</span><span class=p>:</span><span class=mi>32</span><span class=p>:</span><span class=mi>14</span><span class=p>)</span>
+<span class=p>[</span><span class=n>GCC</span> <span class=mf>4.2</span><span class=o>.</span><span class=mi>1</span> <span class=n>Compatible</span> <span class=n>Apple</span> <span class=n>LLVM</span> <span class=mf>8.0</span><span class=o>.</span><span class=mi>0</span> <span class=p>(</span><span class=n>clang</span><span class=o>-</span><span class=mf>800.0</span><span class=o>.</span><span class=mf>42.1</span><span class=p>)]</span> <span class=n>on</span> <span class=n>darwin</span>
+<span class=n>Type</span> <span class=s2>"help"</span><span class=p>,</span> <span class=s2>"copyright"</span><span class=p>,</span> <span class=s2>"credits"</span> <span class=ow>or</span> <span class=s2>"license"</span> <span class=k>for</span> <span class=n>more</span> <span class=n>information</span><span class=o>.</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>sys</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>sys</span><span class=o>.</span><span class=n>executable</span>
+<span class=s1>'${HOME}/.pyenv/versions/2.7.14/bin/python'</span>
 </pre></div>
 
 
 <p>Multiple Python executables live peacefully together:</p>
-<div class="highlight"><pre><span></span><span class="err">$</span> <span class="n">python</span> <span class="o">-</span><span class="n">c</span> <span class="s1">'import sys; print(sys.executable)'</span>
-<span class="err">$</span><span class="p">{</span><span class="n">HOME</span><span class="p">}</span><span class="o">/.</span><span class="n">pyenv</span><span class="o">/</span><span class="n">versions</span><span class="o">/</span><span class="mf">3.6</span><span class="o">.</span><span class="mi">2</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python</span>
-<span class="err">$</span> <span class="n">python3</span><span class="o">.</span><span class="mi">5</span> <span class="o">-</span><span class="n">c</span> <span class="s1">'import sys; print(sys.executable)'</span>
-<span class="err">$</span><span class="p">{</span><span class="n">HOME</span><span class="p">}</span><span class="o">/.</span><span class="n">pyenv</span><span class="o">/</span><span class="n">versions</span><span class="o">/</span><span class="mf">3.5</span><span class="o">.</span><span class="mi">4</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python3</span><span class="o">.</span><span class="mi">5</span>
+<div class=highlight><pre><span></span><span class=err>$</span> <span class=n>python</span> <span class=o>-</span><span class=n>c</span> <span class=s1>'import sys; print(sys.executable)'</span>
+<span class=err>$</span><span class=p>{</span><span class=n>HOME</span><span class=p>}</span><span class=o>/.</span><span class=n>pyenv</span><span class=o>/</span><span class=n>versions</span><span class=o>/</span><span class=mf>3.6</span><span class=o>.</span><span class=mi>2</span><span class=o>/</span><span class=nb>bin</span><span class=o>/</span><span class=n>python</span>
+<span class=err>$</span> <span class=n>python3</span><span class=o>.</span><span class=mi>5</span> <span class=o>-</span><span class=n>c</span> <span class=s1>'import sys; print(sys.executable)'</span>
+<span class=err>$</span><span class=p>{</span><span class=n>HOME</span><span class=p>}</span><span class=o>/.</span><span class=n>pyenv</span><span class=o>/</span><span class=n>versions</span><span class=o>/</span><span class=mf>3.5</span><span class=o>.</span><span class=mi>4</span><span class=o>/</span><span class=nb>bin</span><span class=o>/</span><span class=n>python3</span><span class=o>.</span><span class=mi>5</span>
 </pre></div>
 
 
@@ -163,36 +163,36 @@ wheels for a <a href="https://pypi.org/project/bezier/0.5.0/">package</a> of min
 executables from Python.org.</p>
 <p>The primary difference between a <code>pyenv</code> installed Python and an official
 one can be seen in the platform tag:</p>
-<div class="highlight"><pre><span></span><span class="err">$</span> <span class="n">cat</span> <span class="n">get_platform</span><span class="o">.</span><span class="n">py</span>
-<span class="kn">import</span> <span class="nn">distutils.util</span>
-<span class="k">print</span><span class="p">(</span><span class="n">distutils</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">get_platform</span><span class="p">())</span>
-<span class="err">$</span> <span class="err">$</span><span class="p">{</span><span class="n">HOME</span><span class="p">}</span><span class="o">/.</span><span class="n">pyenv</span><span class="o">/</span><span class="n">versions</span><span class="o">/</span><span class="mf">3.6</span><span class="o">.</span><span class="mi">2</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python</span> <span class="n">get_platform</span><span class="o">.</span><span class="n">py</span>
-<span class="n">macosx</span><span class="o">-</span><span class="mf">10.11</span><span class="o">-</span><span class="n">x86_64</span>
-<span class="err">$</span> <span class="o">/</span><span class="n">Library</span><span class="o">/</span><span class="n">Frameworks</span><span class="o">/</span><span class="n">Python</span><span class="o">.</span><span class="n">framework</span><span class="o">/</span><span class="n">Versions</span><span class="o">/</span><span class="mf">3.6</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python3</span> <span class="n">get_platform</span><span class="o">.</span><span class="n">py</span>
-<span class="n">macosx</span><span class="o">-</span><span class="mf">10.6</span><span class="o">-</span><span class="n">intel</span>
+<div class=highlight><pre><span></span><span class=err>$</span> <span class=n>cat</span> <span class=n>get_platform</span><span class=o>.</span><span class=n>py</span>
+<span class=kn>import</span> <span class=nn>distutils.util</span>
+<span class=k>print</span><span class=p>(</span><span class=n>distutils</span><span class=o>.</span><span class=n>util</span><span class=o>.</span><span class=n>get_platform</span><span class=p>())</span>
+<span class=err>$</span> <span class=err>$</span><span class=p>{</span><span class=n>HOME</span><span class=p>}</span><span class=o>/.</span><span class=n>pyenv</span><span class=o>/</span><span class=n>versions</span><span class=o>/</span><span class=mf>3.6</span><span class=o>.</span><span class=mi>2</span><span class=o>/</span><span class=nb>bin</span><span class=o>/</span><span class=n>python</span> <span class=n>get_platform</span><span class=o>.</span><span class=n>py</span>
+<span class=n>macosx</span><span class=o>-</span><span class=mf>10.11</span><span class=o>-</span><span class=n>x86_64</span>
+<span class=err>$</span> <span class=o>/</span><span class=n>Library</span><span class=o>/</span><span class=n>Frameworks</span><span class=o>/</span><span class=n>Python</span><span class=o>.</span><span class=n>framework</span><span class=o>/</span><span class=n>Versions</span><span class=o>/</span><span class=mf>3.6</span><span class=o>/</span><span class=nb>bin</span><span class=o>/</span><span class=n>python3</span> <span class=n>get_platform</span><span class=o>.</span><span class=n>py</span>
+<span class=n>macosx</span><span class=o>-</span><span class=mf>10.6</span><span class=o>-</span><span class=n>intel</span>
 </pre></div>
 
 
-<p>First, the Python.org Python<sup id="sf-python-on-os-x-3-back"><a href="#sf-python-on-os-x-3" class="simple-footnote" title="The one that starts with /Library/...">3</a></sup>
+<p>First, the Python.org Python<sup id=sf-python-on-os-x-3-back><a href=#sf-python-on-os-x-3 class=simple-footnote title="The one that starts with /Library/...">3</a></sup>
 supports an older SDK (10.6) which gives <strong>forward compatibility</strong> of any
 binaries produced for any SDK after 10.6.</p>
 <p>Second, the <code>intel</code> architecture means the executable is a <a href="https://en.wikipedia.org/wiki/Universal_binary">universal</a>
 (or "fat") binary. This means it can support both <a href="https://docs.python.org/3/library/platform.html#cross-platform">32-bit</a> and 64-bit
 architectures:</p>
-<div class="highlight"><pre><span></span><span class="err">$</span> <span class="n">cd</span> <span class="o">/</span><span class="n">Library</span><span class="o">/</span><span class="n">Frameworks</span><span class="o">/</span><span class="n">Python</span><span class="o">.</span><span class="n">framework</span><span class="o">/</span><span class="n">Versions</span><span class="o">/</span><span class="mf">3.6</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span>
-<span class="err">$</span> <span class="o">./</span><span class="n">python3</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sys</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span>
-<span class="mi">9223372036854775807</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span> <span class="o">==</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="mi">64</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-<span class="bp">True</span>
-<span class="err">$</span>
-<span class="err">$</span> <span class="c1"># OR arch -32</span>
-<span class="err">$</span> <span class="n">arch</span> <span class="o">-</span><span class="n">i386</span>   <span class="o">./</span><span class="n">python3</span> <span class="o">-</span><span class="n">c</span> <span class="s1">'import sys; print(sys.maxsize == 2**(32 - 1) - 1)'</span>
-<span class="bp">True</span>
-<span class="err">$</span> <span class="c1"># OR arch -64</span>
-<span class="err">$</span> <span class="n">arch</span> <span class="o">-</span><span class="n">x86_64</span> <span class="o">./</span><span class="n">python3</span> <span class="o">-</span><span class="n">c</span> <span class="s1">'import sys; print(sys.maxsize == 2**(64 - 1) - 1)'</span>
-<span class="bp">True</span>
+<div class=highlight><pre><span></span><span class=err>$</span> <span class=n>cd</span> <span class=o>/</span><span class=n>Library</span><span class=o>/</span><span class=n>Frameworks</span><span class=o>/</span><span class=n>Python</span><span class=o>.</span><span class=n>framework</span><span class=o>/</span><span class=n>Versions</span><span class=o>/</span><span class=mf>3.6</span><span class=o>/</span><span class=nb>bin</span><span class=o>/</span>
+<span class=err>$</span> <span class=o>./</span><span class=n>python3</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>sys</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>sys</span><span class=o>.</span><span class=n>maxsize</span>
+<span class=mi>9223372036854775807</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>sys</span><span class=o>.</span><span class=n>maxsize</span> <span class=o>==</span> <span class=mi>2</span><span class=o>**</span><span class=p>(</span><span class=mi>64</span> <span class=o>-</span> <span class=mi>1</span><span class=p>)</span> <span class=o>-</span> <span class=mi>1</span>
+<span class=bp>True</span>
+<span class=err>$</span>
+<span class=err>$</span> <span class=c1># OR arch -32</span>
+<span class=err>$</span> <span class=n>arch</span> <span class=o>-</span><span class=n>i386</span>   <span class=o>./</span><span class=n>python3</span> <span class=o>-</span><span class=n>c</span> <span class=s1>'import sys; print(sys.maxsize == 2**(32 - 1) - 1)'</span>
+<span class=bp>True</span>
+<span class=err>$</span> <span class=c1># OR arch -64</span>
+<span class=err>$</span> <span class=n>arch</span> <span class=o>-</span><span class=n>x86_64</span> <span class=o>./</span><span class=n>python3</span> <span class=o>-</span><span class=n>c</span> <span class=s1>'import sys; print(sys.maxsize == 2**(64 - 1) - 1)'</span>
+<span class=bp>True</span>
 </pre></div>
 
 
@@ -213,30 +213,30 @@ from <code>pyenv</code>:</p>
 <li>(Optional) Add a <code>python</code> executable for the installed Python 3 versions
    (they don't come with <code>python</code>, see <a href="https://www.python.org/dev/peps/pep-0394/">PEP 394</a>).</li>
 </ul>
-<div class="highlight"><pre><span></span>$ <span class="o">(</span><span class="nb">cd</span> /Library/Frameworks/Python.framework/Versions/3.5/bin/ <span class="o">&amp;&amp;</span> <span class="se">\</span>
-&gt;    ln -s python3 python<span class="o">)</span>
-$ <span class="o">(</span><span class="nb">cd</span> /Library/Frameworks/Python.framework/Versions/3.6/bin/ <span class="o">&amp;&amp;</span> <span class="se">\</span>
-&gt;    ln -s python3 python<span class="o">)</span>
+<div class=highlight><pre><span></span>$ <span class=o>(</span><span class=nb>cd</span> /Library/Frameworks/Python.framework/Versions/3.5/bin/ <span class=o>&amp;&amp;</span> <span class=se>\</span>
+&gt;    ln -s python3 python<span class=o>)</span>
+$ <span class=o>(</span><span class=nb>cd</span> /Library/Frameworks/Python.framework/Versions/3.6/bin/ <span class=o>&amp;&amp;</span> <span class=se>\</span>
+&gt;    ln -s python3 python<span class=o>)</span>
 </pre></div>
 
 
 <ul>
 <li>Convince <code>pyenv</code> that these are installed versions:</li>
 </ul>
-<div class="highlight"><pre><span></span>$ ln -s /Library/Frameworks/Python.framework/Versions/2.7 <span class="se">\</span>
-&gt;   <span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/.pyenv/versions/python-dot-org-2.7
-$ ln -s /Library/Frameworks/Python.framework/Versions/3.5 <span class="se">\</span>
-&gt;   <span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/.pyenv/versions/python-dot-org-3.5
-$ ln -s /Library/Frameworks/Python.framework/Versions/3.6 <span class="se">\</span>
-&gt;   <span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/.pyenv/versions/python-dot-org-3.6
+<div class=highlight><pre><span></span>$ ln -s /Library/Frameworks/Python.framework/Versions/2.7 <span class=se>\</span>
+&gt;   <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.pyenv/versions/python-dot-org-2.7
+$ ln -s /Library/Frameworks/Python.framework/Versions/3.5 <span class=se>\</span>
+&gt;   <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.pyenv/versions/python-dot-org-3.5
+$ ln -s /Library/Frameworks/Python.framework/Versions/3.6 <span class=se>\</span>
+&gt;   <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.pyenv/versions/python-dot-org-3.6
 </pre></div>
 
 
 <ul>
 <li>(Optional) Un-confuse <code>pyenv</code> about what the <strong>actual</strong> system Python is:</li>
 </ul>
-<div class="highlight"><pre><span></span>$ ln -s /System/Library/Frameworks/Python.framework/Versions/2.7 <span class="se">\</span>
-&gt;   <span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/.pyenv/versions/system-2.7
+<div class=highlight><pre><span></span>$ ln -s /System/Library/Frameworks/Python.framework/Versions/2.7 <span class=se>\</span>
+&gt;   <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.pyenv/versions/system-2.7
 </pre></div>
 
 
@@ -245,20 +245,20 @@ $ ln -s /Library/Frameworks/Python.framework/Versions/3.6 <span class="se">\</sp
    registered with <code>pyenv</code>.</li>
 </ul>
 <p>Once done:</p>
-<div class="highlight"><pre><span></span>$ pyenv versions
+<div class=highlight><pre><span></span>$ pyenv versions
   system
-* <span class="m">2</span>.7.14 <span class="o">(</span><span class="nb">set</span> by <span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/.pyenv/version<span class="o">)</span>
-* <span class="m">3</span>.5.4 <span class="o">(</span><span class="nb">set</span> by <span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/.pyenv/version<span class="o">)</span>
-* <span class="m">3</span>.6.2 <span class="o">(</span><span class="nb">set</span> by <span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/.pyenv/version<span class="o">)</span>
-* pypy2.7-5.8.0 <span class="o">(</span><span class="nb">set</span> by <span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/.pyenv/version<span class="o">)</span>
+* <span class=m>2</span>.7.14 <span class=o>(</span><span class=nb>set</span> by <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.pyenv/version<span class=o>)</span>
+* <span class=m>3</span>.5.4 <span class=o>(</span><span class=nb>set</span> by <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.pyenv/version<span class=o>)</span>
+* <span class=m>3</span>.6.2 <span class=o>(</span><span class=nb>set</span> by <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.pyenv/version<span class=o>)</span>
+* pypy2.7-5.8.0 <span class=o>(</span><span class=nb>set</span> by <span class=si>${</span><span class=nv>HOME</span><span class=si>}</span>/.pyenv/version<span class=o>)</span>
   python-dot-org-2.7
   python-dot-org-3.5
   python-dot-org-3.6
   system-2.7
-</pre></div><ol class="simple-footnotes"><li id="sf-python-on-os-x-1">2.7.14 came out
-only a few days before this post <a href="#sf-python-on-os-x-1-back" class="simple-footnote-back">↩</a></li><li id="sf-python-on-os-x-2">I would like
+</pre></div><ol class=simple-footnotes><li id=sf-python-on-os-x-1>2.7.14 came out
+only a few days before this post <a href=#sf-python-on-os-x-1-back class=simple-footnote-back>↩</a></li><li id=sf-python-on-os-x-2>I would like
 to <a href="https://pythonclock.org">encourage</a> you to use Python 3, and am just using 2.7 here
-because that is the system Python <a href="#sf-python-on-os-x-2-back" class="simple-footnote-back">↩</a></li><li id="sf-python-on-os-x-3">The one that starts with <code>/Library/...</code> <a href="#sf-python-on-os-x-3-back" class="simple-footnote-back">↩</a></li></ol></div>
+because that is the system Python <a href=#sf-python-on-os-x-2-back class=simple-footnote-back>↩</a></li><li id=sf-python-on-os-x-3>The one that starts with <code>/Library/...</code> <a href=#sf-python-on-os-x-3-back class=simple-footnote-back>↩</a></li></ol></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">
