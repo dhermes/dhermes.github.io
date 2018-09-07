@@ -1,5 +1,182 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2017-09-19T00:00:00-07:00</updated><entry><title>Installing Python on OS X</title><link href="https://blog.bossylobster.com/2017/09/python-on-os-x.html" rel="alternate"></link><published>2017-09-19T00:00:00-07:00</published><updated>2017-09-19T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2017-09-19:/2017/09/python-on-os-x.html</id><summary type="html">&lt;blockquote&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2018-09-07T00:00:00-07:00</updated><entry><title>Graduated</title><link href="https://blog.bossylobster.com/2018/09/graduated.html" rel="alternate"></link><published>2018-09-07T00:00:00-07:00</published><updated>2018-09-07T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-07:/2018/09/graduated.html</id><summary type="html">&lt;p&gt;After five years, I'm excited to say I've finished &lt;a href="https://github.com/dhermes/phd-thesis"&gt;my PhD&lt;/a&gt;. I certainly
+learned a lot and met a lot of great people along the way.&lt;/p&gt;
+&lt;p&gt;One of the biggest lessons I learned was about myself: I need to &lt;strong&gt;say no&lt;/strong&gt;
+more often. I continued to say yes, to &lt;a href="https://github.com/GoogleCloudPlatform/google-cloud-python/"&gt;side …&lt;/a&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;After five years, I'm excited to say I've finished &lt;a href="https://github.com/dhermes/phd-thesis"&gt;my PhD&lt;/a&gt;. I certainly
+learned a lot and met a lot of great people along the way.&lt;/p&gt;
+&lt;p&gt;One of the biggest lessons I learned was about myself: I need to &lt;strong&gt;say no&lt;/strong&gt;
+more often. I continued to say yes, to &lt;a href="https://github.com/GoogleCloudPlatform/google-cloud-python/"&gt;side projects&lt;/a&gt;, to coffee in SF, to
+doing Python training on the side, etc. Saying no a bit more frequently
+would have allowed me to spend more time on research and to finish sooner as
+I'd originally hoped.&lt;/p&gt;
+&lt;p&gt;While the many diversions did make me appreciate the need for &lt;strong&gt;focus&lt;/strong&gt;, I am
+also happy that my time in school gave me an opportunity to go down rabbit
+holes and winding paths to learn.&lt;/p&gt;
+&lt;p&gt;For readers in a hurry, the TL;DR:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#advising&gt;Advising and Peers&lt;/a&gt;: I was lucky to be in a great learning and
+  research environment&lt;/li&gt;
+&lt;li&gt;&lt;a href=#teaching&gt;Teaching&lt;/a&gt;: I enjoyed teaching undergraduates but wish some things
+  were different about the university model&lt;/li&gt;
+&lt;li&gt;&lt;a href=#research&gt;Research&lt;/a&gt;: I had a chance to make incremental progress on a tool
+  that can be useful for physical simulations&lt;/li&gt;
+&lt;li&gt;&lt;a href=#software&gt;Software&lt;/a&gt;: I wrote a lot of code both for science and for Google;
+  in particular, I learned to appreciate modern Fortran and struggled with
+  building binary extensions for Python&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=advising&gt;Advising and Peers&lt;/h3&gt;
+&lt;p&gt;I was lucky to have a great advisor, &lt;a href="http://persson.berkeley.edu"&gt;Per-Olof Persson&lt;/a&gt;.
+When I was deciding which graduate school to attend, a chat with Per
+was one of the clinching factors in choosing UC Berkeley. Since his
+research (CFD) was not quite in line with my interests (e.g. Numerical
+Linear Algebra), I hesitated in asking him to advise me. However,
+I gave the personality fit more weight than the research fit and am happy
+about the outcome.&lt;/p&gt;
+&lt;p&gt;The UC Berkeley Math department is a very welcoming place and I really
+enjoyed teaching undergraduates and taking classes with my fellow
+graduate students. A few of my peers had somewhat inaccessible
+advisors (e.g. they only met once a year) and these students did
+feel a sense of &lt;a href="http://www.fast.ai/2018/08/27/grad-school/"&gt;isolation&lt;/a&gt;. It made a big difference having an advisor that
+was easy to get in touch with and eager to help.&lt;/p&gt;
+&lt;h3 id=teaching&gt;Teaching&lt;/h3&gt;
+&lt;p&gt;I really enjoyed teaching and had some great interactions with students:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Danny manages to be relaxed, funny, and watchable AND very knowledgeable
+about the material AND a stickler about teaching it AND good at explaining
+it clearly and quickly. This is a combination of strengths so rare around
+here that I thought it was mythical.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Though the interactions were great, there were a few things I wished were
+different.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;I wish the lower-division classes were changed to utilize computers both
+  for rote computation and visualization of concepts. (I taught Calculus I and
+  II and Linear Algebra.)&lt;/li&gt;
+&lt;li&gt;I was a bit disappointed at the preparedness and more importantly the
+  enthusiasm of students in upper-division courses (I taught Numerical Analysis
+  five times). It seemed that for many, taking courses in their major was
+  a chore rather than a joy. This is as much (if not more) a reflection on the
+  system as it is on the students.&lt;/li&gt;
+&lt;li&gt;Numerical Analysis is an opportunity to learn how "classical" algorithms
+  break down on a computer (i.e. in the presence of rounding). Having the
+  ability to program is a must to really solidify the concepts. However, once
+  a class hits 150 students, the grading must be "standardized". In this case,
+  that meant student evaluation was done via traditional pen and paper
+  assignments and exams. Coupled with the absence of a programming
+  prerequisite, this made the amount of &lt;strong&gt;computing&lt;/strong&gt; in the class
+  a small fraction of the course.&lt;/li&gt;
+&lt;li&gt;I was continually frustrated by the prevalence of MATLAB usage in the
+  math department. MATLAB certainly has strengths, but it's kitchen sink
+  approach to namespaces (similar to that of PHP) really makes it hard to
+  teach. It's lack of a packaging story and reliance on a proprietary IDE
+  makes it hard for students to understand what code "is" (or even &lt;strong&gt;where&lt;/strong&gt;
+  it is on their filesystem). The IPython notebook was created at UC
+  Berkeley and I wish the math department would get on board. Perhaps more
+  relevantly, using MATLAB does little to prepare students for the real world
+  because it is used almost exclusively in academic or lab settings.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=research&gt;Research&lt;/h3&gt;
+&lt;p&gt;I enjoyed the research I did, but wish there was more time to keep doing it.
+&lt;sup id=sf-graduated-1-back&gt;&lt;a href=#sf-graduated-1 class=simple-footnote title="I suppose there would be if I were to stay in academia, but that path is not for me"&gt;1&lt;/a&gt;&lt;/sup&gt; I thoroughly enjoyed diving into Numerical Linear Algebra
+papers and implementing some of the more classical results. The most satisfying
+of course were the ones that took a few attempts to get right.&lt;/p&gt;
+&lt;p&gt;In my dissertation, I describe a method for solution transfer between
+curved meshes. In layman's terms:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A &lt;strong&gt;mesh&lt;/strong&gt; is an approximation of some physical domain, e.g. the surface
+  of a frying pan (in 2D) or the wing of an airplane (in 3D)&lt;/li&gt;
+&lt;li&gt;A mesh is composed of small &lt;strong&gt;elements&lt;/strong&gt; that are well understood, e.g.
+  triangles, rectangles, tetrahedra, cubes, etc.&lt;/li&gt;
+&lt;li&gt;A &lt;strong&gt;curved&lt;/strong&gt; mesh is one in which the edges / faces of the elements are
+  allowed to curve&lt;/li&gt;
+&lt;li&gt;A &lt;strong&gt;solution&lt;/strong&gt; (or field) on a mesh is a numerical representation of
+  some physical quantity, e.g. velocity, pressure, density or energy&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Solution transfer&lt;/strong&gt; is the process of reintepreting (or interpolating)
+  a solution from one mesh onto another&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;During commonly used simulation techniques, one or several physical quantities
+are represented on a mesh and change over time according to some law
+of physics (usually represented by a partial differential equation). When the
+process involves a fluid (the F in CFD), it's common to allow the mesh to
+"travel" over time with the fluid. For &lt;a href="https://www.cs.cmu.edu/~tp517/papers/cardoze04bezier-b.pdf"&gt;example&lt;/a&gt;, when simulating blood flow
+within a rigid cavity (e.g. a heart or vein) the mesh can represent a membrane
+that flows as the blood moves.&lt;/p&gt;
+&lt;p&gt;In such simulations, the mesh can become tangled after a certain amount of
+time moving along the flow. It is these cases where mesh quality begins to
+deteroriate that benefit from &lt;strong&gt;solution transfer&lt;/strong&gt;. Once a mesh becomes too
+low-quality to use in simulation, a new mesh must be used to represent the
+physical domain. Once the new mesh is chosen, the physical quantities being
+tracked must be transferred from the low-quality mesh to the new one.&lt;/p&gt;
+&lt;p&gt;This work was certainly incremental, as much research is. Solution transfer
+has already been &lt;a href="https://doi.org/10.1016/j.cma.2010.07.015"&gt;described&lt;/a&gt; for straight sided meshes (i.e. meshes
+where the elements are not curved). However, the work required to intersect
+curved triangles is considerably more involved than that required to
+intersect straight sided triangles. Peter Thiel would have you
+believe (in &lt;a href="https://en.wikipedia.org/wiki/Zero_to_One"&gt;Zero to One&lt;/a&gt;) that the hardest step is the initial idea and
+everything else is incremental. However, I can say that the incremental
+step from straight sided to curved elements was a &lt;strong&gt;considerable&lt;/strong&gt; jump in
+difficulty.&lt;/p&gt;
+&lt;h3 id=software&gt;Software&lt;/h3&gt;
+&lt;p&gt;During graduate school, I wrote a lot of code, as I usually do. However,
+two projects in particular stick out:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The &lt;code&gt;google-cloud-python&lt;/code&gt; &lt;a href="https://github.com/GoogleCloudPlatform/google-cloud-python/"&gt;collection&lt;/a&gt; of packages&lt;/li&gt;
+&lt;li&gt;My &lt;code&gt;bezier&lt;/code&gt; &lt;a href="https://bezier.readthedocs.io/en/latest/"&gt;library&lt;/a&gt; (&lt;a href="http://joss.theoj.org/papers/10.21105/joss.00267"&gt;published&lt;/a&gt; in JOSS)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I've worked on Google client libraries in one form or another since 2011 and
+somehow managed to keep doing this after leaving Google for UC Berkeley. I
+had a great opportunity to be one of the main drivers of the
+&lt;code&gt;google-cloud-python&lt;/code&gt; library and it allowed me to stay current on how
+software is built. Among other things I gained an appreciation for testing,
+continuous integration and documentation that I didn't have before.&lt;/p&gt;
+&lt;p&gt;As part of my &lt;a href=#research&gt;research&lt;/a&gt;, I needed to be able to intersect
+millions of pairs of Bézier curves in a single simulation. I was worried
+that doing this in my language of choice (Python) would be too slow, so I
+decided to write the computation in a compiled language and wrap the interface
+with a &lt;a href="https://packaging.python.org/guides/packaging-binary-extensions/#an-overview-of-binary-extensions"&gt;binary extension&lt;/a&gt;. Building binary wheels for Linux, Mac OS X and
+Windows was a struggle, to say the least, but I'm happy I went through the
+process. If I can find the time, I hope to write a bit more about some of
+the amusing packaging bugs I created and had to track down. I hope that
+&lt;a href="https://scikit-build.readthedocs.io/en/latest/"&gt;scikit-build&lt;/a&gt; or a similar effort can once and for all demystify the
+process of invoking native code from Python.&lt;/p&gt;
+&lt;p&gt;I chose Fortran for the implementation, which is likely a shock to most
+people outside of academia. In Silicon Valley, Fortran is usually a punchline
+rather than a language choice. However, I discovered early in my program that
+modern Fortran is a wonderful language. Writing vanilla Fortran is essentially
+just like writing NumPy code with all square brackets (&lt;code&gt;[&lt;/code&gt;) swapped
+for parentheses (&lt;code&gt;(&lt;/code&gt;). With the Fortran 90 specification, the FORTRAN (yes, all
+caps) language was no more and the modern features actually make it an
+appealing language.&lt;/p&gt;
+&lt;p&gt;I legitimately think people should consider Fortran first for computational
+workloads, if not for more general purpose tasks. Having a sponsor has made
+the Go (Google) and Rust (Firefox) communities vibrant places with great
+documentation and ever-expanding choices for libraries. Intel is the closest
+it comes to a Fortran steward due to their forums for the wonderful
+&lt;code&gt;ifort&lt;/code&gt; compiler. However, there is no community-led Fortran
+documentation&lt;sup id=sf-graduated-2-back&gt;&lt;a href=#sf-graduated-2 class=simple-footnote title="An equivalent of golang.org or docs.python.org"&gt;2&lt;/a&gt;&lt;/sup&gt;
+and this makes it a bit hard to develop code in Fortran. The amazing
+&lt;code&gt;fortran90&lt;/code&gt; &lt;a href="https://www.fortran90.org/"&gt;site&lt;/a&gt; from Ondřej Čertík fills many gaps, but
+is mostly a one-person effort.&lt;/p&gt;
+&lt;p&gt;I started the &lt;code&gt;foreign-fortran&lt;/code&gt; &lt;a href="https://foreign-fortran.readthedocs.io/en/latest/"&gt;project&lt;/a&gt; to make my little contribution
+back to the Fortran community. The project is essentially documentation only
+and gives examples of how Fortran libraries can be used from other programming
+languages.&lt;/p&gt;
+&lt;h2&gt;Parting Words&lt;/h2&gt;
+&lt;p&gt;I really enjoyed my time in graduate school and wish I was able to better
+utilize the awesome communities on UC Berkeley's campus. Though I'm happy I
+did it, I'm equally happy that I spent three years in the real world working
+at companies&lt;sup id=sf-graduated-3-back&gt;&lt;a href=#sf-graduated-3 class=simple-footnote title="Or &amp;quot;industry&amp;quot; as it's called in academia"&gt;3&lt;/a&gt;&lt;/sup&gt; before
+starting. I would recommend that all undergraduate students go get a "real job"
+before deciding to commit several years of their life to a PhD. There's a whole
+world out there outside of the ivory tower and too often it's not clear to
+students what their options are if they don't end up in that tenure track
+job.&lt;/p&gt;
+&lt;p&gt;As I said, my fellow graduate students with and from whom I have learned were
+a great part of the experience. In particular Will Pazner&lt;sup id=sf-graduated-4-back&gt;&lt;a href=#sf-graduated-4 class=simple-footnote title="Thanks to Will for reviewing this post"&gt;4&lt;/a&gt;&lt;/sup&gt;, Chris Miller and Qiaochu Yuan as well as my
+undergraduate classmate Wade Hindes have been a source of many great
+discussions.&lt;/p&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-graduated-1&gt;I suppose there would be if I were to stay in academia, but that path is
+not for me &lt;a href=#sf-graduated-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-graduated-2&gt;An equivalent of &lt;code&gt;golang.org&lt;/code&gt; or &lt;code&gt;docs.python.org&lt;/code&gt; &lt;a href=#sf-graduated-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-graduated-3&gt;Or "industry" as it's called in academia &lt;a href=#sf-graduated-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-graduated-4&gt;Thanks to Will
+for reviewing this post &lt;a href=#sf-graduated-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="Education"></category><category term="Research"></category><category term="Applied Mathematics"></category><category term="PhD"></category></entry><entry><title>Installing Python on OS X</title><link href="https://blog.bossylobster.com/2017/09/python-on-os-x.html" rel="alternate"></link><published>2017-09-19T00:00:00-07:00</published><updated>2017-09-19T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2017-09-19:/2017/09/python-on-os-x.html</id><summary type="html">&lt;blockquote&gt;
 &lt;p&gt;&lt;strong&gt;Caveat&lt;/strong&gt;: I stopped using a Mac for my development machine way
 back in the fall of 2014. You probably shouldn't listen to me.&lt;/p&gt;
 &lt;/blockquote&gt;
