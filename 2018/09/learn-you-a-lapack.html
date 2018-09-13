@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Learn You a LAPACK for Great Good &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="A small explainer on the core Linear Algebra package" />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+<script src="/js/katex.min.js" type="text/javascript"></script>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="Learn You a LAPACK for Great Good" />
+<meta itemprop="description" content="A small explainer on the core Linear Algebra package" />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/lu_factorization.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Learn You a LAPACK for Great Good" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/lu_factorization.png" />
+<meta property="og:description" content="A small explainer on the core Linear Algebra package" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="Learn You a LAPACK for Great Good" />
+<meta name="twitter:description" content="A small explainer on the core Linear Algebra package" />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/lu_factorization.png" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2018-09-13-learn-you-a-lapack.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Learn You a LAPACK for Great Good</h1>
+    <p class="meta">
+<time datetime="2018-09-13T00:00:00-07:00" pubdate>Sep 13, 2018</time>    </p>
+</header>
+
+  <div class="entry-content"><p>Linear Algebra is an incredibly powerful tool. A joke among mathematicians
+is that the only way we can solve a hard problem is to boil it down to
+Linear Algebra<sup id=sf-learn-you-a-lapack-1-back><a href=#sf-learn-you-a-lapack-1 class=simple-footnote title="This actually happened to me. My undergraduate research project (REU) eventually boiled down to showing that a particularly special matrix had a nonzero determinant.">1</a></sup>. Harnessing the <strong>numerical</strong> power of
+Linear Algebra has been done via <a href="https://en.wikipedia.org/wiki/LAPACK">LAPACK</a> for the last 40+ years.</p>
+<p>In my first semester of graduate school, I took UC Berkeley's Math 221, i.e.
+Numerical Linear Algebra. So in my second semester, I was ready to put my
+new skills to use. However, when I tried to use LAPACK from C and C++ code for
+an assignment, I gave up before getting anything working. I was frustrated
+by my deadline, by the LAPACK <a href="http://www.netlib.org/lapack/explore-html/">documentation</a> (I didn't know where to look
+or how to read what I did find), by actually forming the arguments correctly
+and by getting the compiler flags right. I just gave up and turned to my trusty
+friend Python; I used a combination of NumPy and the low-level
+<code>scipy.linalg.lapack</code> package when necessary.</p>
+<p>I wished then that there was a blog post exactly like this one. Our goal here
+is to call a single LAPACK routine (<code>dgetrf</code>) from a few different contexts
+to get a feel for the library structure, argument specification, reading
+documentation and linking / building code.</p>
+<h3>Contents</h3>
+<ul>
+<li><a href=#lu-factorization>LU Factorization</a></li>
+<li><a href=#high-level-py>High-Level Python</a></li>
+<li><a href=#finding-lapack>Finding LAPACK</a></li>
+<li><a href=#low-level-py>Low-Level Python</a></li>
+<li><a href=#c>C</a></li>
+<li><a href=#compiling-on-os-x>Compiling on OS X</a></li>
+<li><a href=#cpp>C++</a></li>
+<li><a href=#conclusion>Conclusion</a></li>
+</ul>
+<h3 id=lu-factorization>LU Factorization</h3>
+<p>As mentioned, we'll focus on the <code>dgetrf</code> method for performing
+<a href="https://en.wikipedia.org/wiki/LU_decomposition">LU Factorization</a>. The names themselves can be confusing to newcomers.
+Luckily the Wikipedia <a href="https://en.wikipedia.org/wiki/LAPACK">page</a> does a great job describing what is happening:</p>
+<ul>
+<li><code>d</code>: the matrix entries are of type <code>double</code> (i.e. a 64-bit IEEE-754
+  floating point number)</li>
+<li><code>ge</code>: the matrix is in <strong>ge</strong>neral form, as opposed to triangular, banded,
+  symmetric, or many other types of matrix where information need not be
+  repeated</li>
+<li><code>trf</code>: triangular factorization</li>
+</ul>
+<p>We'll focus on factoring a particular matrix <span class=katex><span class=katex-mathml><math><semantics><mrow><mi>A</mi><mo>=</mo><mi>L</mi><mi>U</mi></mrow><annotation encoding="application/x-tex">A = LU</annotation></semantics></math></span><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:0.68333em;vertical-align:0em;></span><span class="mord mathit">A</span><span class=mspace style=margin-right:0.2777777777777778em;></span><span class=mrel>=</span><span class=mspace style=margin-right:0.2777777777777778em;></span></span><span class=base><span class=strut style=height:0.68333em;vertical-align:0em;></span><span class="mord mathit">L</span><span class="mord mathit" style=margin-right:0.10903em;>U</span></span></span></span>:</p>
+<div class=katex-elt><blockquote>
+<span class=katex-display><span class=katex><span class=katex-mathml><math><semantics><mrow><munder><munder><mrow><mo fence=true>[</mo><mtable><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>4</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>4</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mrow><mo>−</mo><mn>3</mn></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>4</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mrow><mo>−</mo><mn>1</mn></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>1</mn></mstyle></mtd></mtr></mtable><mo fence=true>]</mo></mrow><mo stretchy=true>⎵</mo></munder><mi>A</mi></munder><mo>=</mo><munder><munder><mrow><mo fence=true>[</mo><mtable><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>1</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>0.25</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>1</mn></mstyle></mtd></mtr></mtable><mo fence=true>]</mo></mrow><mo stretchy=true>⎵</mo></munder><mi>L</mi></munder><munder><munder><mrow><mo fence=true>[</mo><mtable><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>4</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>4</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mrow><mo>−</mo><mn>3</mn></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>4</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mrow><mo>−</mo><mn>1</mn></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel=0 displaystyle=false><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>0</mn></mstyle></mtd><mtd><mstyle scriptlevel=0 displaystyle=false><mn>1.75</mn></mstyle></mtd></mtr></mtable><mo fence=true>]</mo></mrow><mo stretchy=true>⎵</mo></munder><mi>U</mi></munder></mrow><annotation encoding="application/x-tex">\underbrace{\left[\begin{array}{c c c} 4 &amp; 4 &amp; -3 \\ 0 &amp; 4 &amp; -1 \\ 1 &amp; 1 &amp; 1 \end{array}\right]}_{A} = \underbrace{\left[\begin{array}{c c c} 1 &amp; &amp; \\ 0 &amp; 1 &amp; \\ 0.25 &amp; 0 &amp; 1 \end{array}\right]}_{L} \underbrace{\left[\begin{array}{c c c} 4 &amp; 4 &amp; -3 \\ 0 &amp; 4 &amp; -1 \\ 0 &amp; 0 &amp; 1.75 \end{array}\right]}_{U}</annotation></semantics></math></span><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:4.926371em;vertical-align:-2.876351em;></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.0500199999999995em;><span style=top:-1.1736689999999999em;><span class=pstrut style=height:4.05002em;></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathit mtight">A</span></span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:4.05002em;></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span class=svg-align style=top:-1.8519999999999999em;><span class=pstrut style=height:4.05002em;></span><span class=stretchy style=height:0.548em;min-width:1.6em;><span class=brace-left style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMinYMin slice"><path d="M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z"></path></svg></span><span class=brace-center style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMidYMin slice"><path d="M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z"></path></svg></span><span class=brace-right style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMaxYMin slice"><path d="M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z"></path></svg></span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:4.05002em;></span><span class=mord><span class=minner><span class=mopen><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span style=top:-2.2500000000000004em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎣</span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎡</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.55002em;><span></span></span></span></span></span></span><span class=mord><span class=mtable><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>4</span></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>0</span></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>1</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>4</span></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>4</span></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>1</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>−</span><span class=mord>3</span></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>−</span><span class=mord>1</span></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>1</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span></span></span><span class=mclose><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span style=top:-2.2500000000000004em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎦</span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎤</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.55002em;><span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:2.19802em;><span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:2.876351em;><span></span></span></span></span></span><span class=mspace style=margin-right:0.2777777777777778em;></span><span class=mrel>=</span><span class=mspace style=margin-right:0.2777777777777778em;></span></span><span class=base><span class=strut style=height:4.926371em;vertical-align:-2.876351em;></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.0500199999999995em;><span style=top:-1.1736689999999999em;><span class=pstrut style=height:4.05002em;></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathit mtight">L</span></span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:4.05002em;></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span class=svg-align style=top:-1.8519999999999999em;><span class=pstrut style=height:4.05002em;></span><span class=stretchy style=height:0.548em;min-width:1.6em;><span class=brace-left style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMinYMin slice"><path d="M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z"></path></svg></span><span class=brace-center style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMidYMin slice"><path d="M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z"></path></svg></span><span class=brace-right style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMaxYMin slice"><path d="M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z"></path></svg></span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:4.05002em;></span><span class=mord><span class=minner><span class=mopen><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span style=top:-2.2500000000000004em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎣</span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎡</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.55002em;><span></span></span></span></span></span></span><span class=mord><span class=mtable><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>1</span></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>0</span></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>0</span><span class=mord>.</span><span class=mord>2</span><span class=mord>5</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>1</span></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>0</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>1</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span></span></span><span class=mclose><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span style=top:-2.2500000000000004em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎦</span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎤</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.55002em;><span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:2.19802em;><span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:2.876351em;><span></span></span></span></span></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.0500199999999995em;><span style=top:-1.1736689999999999em;><span class=pstrut style=height:4.05002em;></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathit mtight" style=margin-right:0.10903em;>U</span></span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:4.05002em;></span><span class="mord munder"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span class=svg-align style=top:-1.8519999999999999em;><span class=pstrut style=height:4.05002em;></span><span class=stretchy style=height:0.548em;min-width:1.6em;><span class=brace-left style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMinYMin slice"><path d="M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z"></path></svg></span><span class=brace-center style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMidYMin slice"><path d="M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z"></path></svg></span><span class=brace-right style=height:0.548em;><svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMaxYMin slice"><path d="M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z"></path></svg></span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:4.05002em;></span><span class=mord><span class=minner><span class=mopen><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span style=top:-2.2500000000000004em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎣</span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎡</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.55002em;><span></span></span></span></span></span></span><span class=mord><span class=mtable><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>4</span></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>0</span></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>0</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>4</span></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>4</span></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>0</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span><span class=arraycolsep style=width:0.5em;></span><span class=col-align-c><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05em;><span style=top:-4.21em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>−</span><span class=mord>3</span></span></span><span style=top:-3.0099999999999993em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>−</span><span class=mord>1</span></span></span><span style=top:-1.8099999999999994em;><span class=pstrut style=height:3em;></span><span class=mord><span class=mord>1</span><span class=mord>.</span><span class=mord>7</span><span class=mord>5</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.5500000000000007em;><span></span></span></span></span></span><span class=arraycolsep style=width:0.5em;></span></span></span><span class=mclose><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class=vlist-r><span class=vlist style=height:2.05002em;><span style=top:-2.2500000000000004em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎦</span></span></span><span style=top:-4.05002em;><span class=pstrut style=height:3.1550000000000002em;></span><span class="delimsizinginner delim-size4"><span>⎤</span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:1.55002em;><span></span></span></span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:2.19802em;><span></span></span></span></span></span></span></span><span class=vlist-s>​</span></span><span class=vlist-r><span class=vlist style=height:2.876351em;><span></span></span></span></span></span></span></span></span></span>
+</blockquote></div>
+
+<p>The method actually allows row pivoting, so in this case we should have
+<span class=katex><span class=katex-mathml><math><semantics><mrow><mi>A</mi><mo>=</mo><mi>P</mi><mi>L</mi><mi>U</mi></mrow><annotation encoding="application/x-tex">A = PLU</annotation></semantics></math></span><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:0.68333em;vertical-align:0em;></span><span class="mord mathit">A</span><span class=mspace style=margin-right:0.2777777777777778em;></span><span class=mrel>=</span><span class=mspace style=margin-right:0.2777777777777778em;></span></span><span class=base><span class=strut style=height:0.68333em;vertical-align:0em;></span><span class="mord mathit" style=margin-right:0.13889em;>P</span><span class="mord mathit">L</span><span class="mord mathit" style=margin-right:0.10903em;>U</span></span></span></span> where the pivot matrix <span class=katex><span class=katex-mathml><math><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:0.68333em;vertical-align:0em;></span><span class="mord mathit" style=margin-right:0.13889em;>P</span></span></span></span>
+is just the identity matrix.</p>
+<p>To actually call this method, we'll need to study the <a href="http://www.netlib.org/lapack/explore-html/">documentation</a>.
+I learned software in the web development world, so I was used to "modern"
+documentation like <code>readthedocs.org</code>. When I first saw the <a href="http://www.doxygen.nl/">Doxygen</a>-based
+LAPACK docs, I was intimidated. It's a bit of a different style and many
+URLs are not human readable (for example, the <a href="http://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_ga0019443faea08275ca60a734d0593e60.html">URL</a> for <code>dgetrf</code>).
+In addition, the arguments often have short or abbreviated names that can be
+hard to parse and each argument has an <strong>intent</strong> of <code>in</code>, <code>out</code> or <code>inout</code>.
+The concept of an argument's intent is a Fortran feature and at first I
+didn't understand the purpose of it.</p>
+<p>Let's break down the arguments to <code>dgetrf</code>:</p>
+<p><strong>Constant Inputs</strong>:</p>
+<ul>
+<li><code>M</code> is an <code>integer</code>; the number of rows in the matrix <code>A</code>.</li>
+<li><code>N</code> is an <code>integer</code>; the number of columns in the matrix <code>A</code>.</li>
+<li><code>LDA</code> is an <code>integer</code>; the leading dimension (<strong>LD</strong>) of <code>A</code>. This would
+  initially seem to be redundant since the number of rows <code>M</code> should be
+  the leading dimension. However, by allowing <code>LDA</code> (the stride) to be
+  different from <code>M</code>, <code>A</code> can be taken as a submatrix of a larger array without
+  having to copy the data.</li>
+</ul>
+<p><strong>Outputs</strong>:</p>
+<ul>
+<li><code>IPIV</code> is a vector <code>integer</code> values of dimension <code>min(M, N)</code>; it describes
+  the row pivots used and is a more compact representation of the matrix <code>P</code>.</li>
+<li><code>INFO</code> is an integer <code>integer</code>; this returns <code>0</code> if the method succeeded,
+  uses negative return values to indicate invalid inputs (e.g. a matrix can't
+  have <code>N = -2</code> rows) and positive return values to indicate if a division
+  by zero occurred during Gaussian elimination.</li>
+</ul>
+<p><strong>Mutated Inputs</strong> (i.e. intent <code>inout</code>):</p>
+<ul>
+<li><code>A</code> is a 2D array of <code>double</code> precision values of dimension <code>LDA x N</code>;
+  on input this is the matrix that is being factored. When the routine exits,
+  the lower triangle of <code>A</code> will contain the below diagonal elements of <code>L</code>
+  (the diagonal of <code>L</code> is already known to be all ones) and the upper triangle
+  of <code>A</code> will contain <code>U</code>.</li>
+</ul>
+<p>Since the original LAPACK implementation (and many current implementations)
+are written in Fortran, all arguments are passed by reference.</p>
+<h3 id=high-level-py>High-Level Python</h3>
+<p>There are two functions in SciPy for performaing an LU decomposition:
+<code>scipy.linalg.lapack.dgetrf</code> and <code>scipy.linalg.lu</code>. The former is a "direct"
+wrapper but the wrapper handles allocating the outputs and allows a flag
+<code>overwrite_a</code> which will determine if a copy of the input matrix is used
+when computing the factorization. The other function <code>scipy.linalg.lu</code> varies
+slightly, but not enough to warrant a separate discussion here.</p>
+<p>Now, we'll call <code>dgetrf</code> with our sample matrix. To avoid any overhead
+from copies we make sure <code>A</code> is in Fortran order (<code>"F"</code>) and set the
+<code>overwrite_a</code> flag to <code>True</code>:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>numpy</span> <span class=kn>as</span> <span class=nn>np</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>scipy.linalg.lapack</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>A</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>([</span>
+<span class=o>...</span>     <span class=p>[</span><span class=mf>4.</span><span class=p>,</span> <span class=mf>4.</span><span class=p>,</span> <span class=o>-</span><span class=mf>3.</span><span class=p>],</span>
+<span class=o>...</span>     <span class=p>[</span><span class=mf>0.</span><span class=p>,</span> <span class=mf>4.</span><span class=p>,</span> <span class=o>-</span><span class=mf>1.</span><span class=p>],</span>
+<span class=o>...</span>     <span class=p>[</span><span class=mf>1.</span><span class=p>,</span> <span class=mf>1.</span><span class=p>,</span>  <span class=mf>1.</span><span class=p>],</span>
+<span class=o>...</span> <span class=p>],</span> <span class=n>order</span><span class=o>=</span><span class=s2>"F"</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>lu_mat</span><span class=p>,</span> <span class=n>ipiv</span><span class=p>,</span> <span class=n>info</span> <span class=o>=</span> <span class=n>scipy</span><span class=o>.</span><span class=n>linalg</span><span class=o>.</span><span class=n>lapack</span><span class=o>.</span><span class=n>dgetrf</span><span class=p>(</span><span class=n>A</span><span class=p>,</span> <span class=n>overwrite_a</span><span class=o>=</span><span class=bp>True</span><span class=p>)</span>
+</pre></div>
+
+
+<p>The method succeeded and the pivots are "trivial", i.e. the identity matrix</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>info</span>
+<span class=mi>0</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>ipiv</span>
+<span class=n>array</span><span class=p>([</span><span class=mi>0</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=mi>2</span><span class=p>],</span> <span class=n>dtype</span><span class=o>=</span><span class=n>int32</span><span class=p>)</span>
+</pre></div>
+
+
+<p>Our returned <code>lu_mat</code> is really just our input <code>A</code>, which has been mutated
+to contain <code>L</code> and <code>U</code> in the lower and upper triangles:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>lu_mat</span> <span class=ow>is</span> <span class=n>A</span>
+<span class=bp>True</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>A</span>
+<span class=n>array</span><span class=p>([[</span> <span class=mf>4.</span>  <span class=p>,</span>  <span class=mf>4.</span>  <span class=p>,</span> <span class=o>-</span><span class=mf>3.</span>  <span class=p>],</span>
+       <span class=p>[</span> <span class=mf>0.</span>  <span class=p>,</span>  <span class=mf>4.</span>  <span class=p>,</span> <span class=o>-</span><span class=mf>1.</span>  <span class=p>],</span>
+       <span class=p>[</span> <span class=mf>0.25</span><span class=p>,</span>  <span class=mf>0.</span>  <span class=p>,</span>  <span class=mf>1.75</span><span class=p>]])</span>
+</pre></div>
+
+
+<h3 id=finding-lapack>Finding LAPACK</h3>
+<blockquote>
+<p>This section can be freely skipped. <strong>TL;DR</strong>: the <code>liblapack</code> shared library
+contains the routine <code>dgetrf_</code>. In other words, the name in the symbol table
+has an underscore appended to it.</p>
+</blockquote>
+<p>Before moving on to C, C++ and other low-level languages we need to
+understand the exported interface of LAPACK. To do this, we'll get
+a little help from the <code>ctypes</code> <a href="https://docs.python.org/3/library/ctypes.html">library</a>:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes.util</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>util</span><span class=o>.</span><span class=n>find_library</span><span class=p>(</span><span class=s2>"lapack"</span><span class=p>)</span>
+<span class=s1>'liblapack.so.3'</span>
+</pre></div>
+
+
+<p>Viewing the <a href="https://github.com/python/cpython/blob/v3.7.0/Lib/ctypes/util.py#L309-L312">source</a> in the Python standard library, we see that (on
+"most" posix systems) this is essentially equivalent to a direct usage
+of <code>ldconfig</code>:</p>
+<div class=highlight><pre><span></span>$ <span class=nv>LC_ALL</span><span class=o>=</span>C <span class=nv>LANG</span><span class=o>=</span>C ldconfig -p <span class=p>|</span> grep <span class=s1>'liblapack\.'</span>
+    liblapack.so.3 <span class=o>(</span>libc6,x86-64<span class=o>)</span> <span class=o>=</span>&gt; /usr/lib/x86_64-linux-gnu/liblapack.so.3
+    liblapack.so <span class=o>(</span>libc6,x86-64<span class=o>)</span> <span class=o>=</span>&gt; /usr/lib/x86_64-linux-gnu/liblapack.so
+</pre></div>
+
+
+<p>If that fails, including <code>-llapack</code> when compiling an empty file
+with <code>gcc</code> is used:</p>
+<div class=highlight><pre><span></span>$ <span class=nv>LC_ALL</span><span class=o>=</span>C <span class=nv>LANG</span><span class=o>=</span>C gcc -Wl,-t -o /dev/null -llapack <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep lapack
+-llapack <span class=o>(</span>/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/liblapack.so<span class=o>)</span>
+$ objdump -p -j .dynamic <span class=se>\</span>
+&gt;   /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/liblapack.so <span class=se>\</span>
+&gt;   <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep SONAME
+  SONAME               liblapack.so.3
+</pre></div>
+
+
+<p>If that also fails, <code>ld</code> (possibly extended by
+the <code>LD_LIBRARY_PATH</code> environment variable) is used:</p>
+<div class=highlight><pre><span></span>$ ld -t -llapack <span class=m>2</span>&gt; /dev/null
+ld: mode elf_x86_64
+-llapack <span class=o>(</span>//usr/lib/x86_64-linux-gnu/liblapack.so<span class=o>)</span>
+$ objdump -p -j .dynamic <span class=se>\</span>
+&gt;   //usr/lib/x86_64-linux-gnu/liblapack.so <span class=se>\</span>
+&gt;   <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep SONAME
+  SONAME               liblapack.so.3
+</pre></div>
+
+
+<p>Once we've found the shared library, we need to look in the symbol table
+(<code>-T</code> for table) for <code>dgetrf</code>:</p>
+<div class=highlight><pre><span></span>$ objdump -T /usr/lib/x86_64-linux-gnu/liblapack.so <span class=p>|</span> grep -i dgetrf
+00000000001273d0 g    DF .text  <span class=m>0000000000000158</span>  Base        clapack_dgetrf
+000000000002c520 g    DF .text  <span class=m>0000000000000025</span>  Base        ATL_dgetrf
+<span class=m>0000000000036630</span> g    DF .text  00000000000000d4  Base        atl_f77wrap_dgetrf_
+000000000002c550 g    DF .text  <span class=m>0000000000000778</span>  Base        ATL_dgetrfC
+000000000002ccd0 g    DF .text  00000000000002e0  Base        ATL_dgetrfR
+<span class=m>0000000000215590</span> g    DF .text  00000000000000b3  Base        dgetrf_
+<span class=m>0000000000215650</span> g    DF .text  <span class=m>0000000000000490</span>  Base        dgetrf2_
+</pre></div>
+
+
+<p>We see that there are quite a few <code>dgetrf</code> routines, but the one we'll use
+is <code>dgetrf_</code>. The <code>dgetrf2_</code> routine is a recursive <a href="http://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_gabdd3af29e9f6bbaf4b352341a1e8b464.html#gabdd3af29e9f6bbaf4b352341a1e8b464">version</a> of <code>dgetrf_</code>
+and the other routines are implementation details (specifically <a href="http://www.netlib.org/clapack/readme">CLAPACK</a>
+and <a href="http://math-atlas.sourceforge.net/">ATLAS</a>).</p>
+<p>This symbol name was a bit confusing to me when using LAPACK, but I took it
+on faith. The reason for it is <a href="https://www.math.utah.edu/software/c-with-fortran.html#routine-naming">historical</a>:</p>
+<blockquote>
+<p>The world's first Fortran 77 compiler ...
+appended an underscore on Fortran external names. Thus, Fortran
+<code>SUBROUTINE foo</code> is known as <code>foo_()</code> in C</p>
+</blockquote>
+<p>This convention has remained even as compilers have changed. For example
+CLAPACK (i.e. an implementation of LAPACK in C) follows this convention
+even though no Fortran compiler is used at all:</p>
+<blockquote>
+<p><code>f2c</code> has added this underscore to all the names in CLAPACK. So,
+a call that in Fortran would look like: <code>call dgetrf(...)</code> becomes in C:
+<code>dgetrf_(...);</code></p>
+</blockquote>
+<p>Now that we understand the shared library, let's actually figure out where
+it came from. Following the symbolic links we see</p>
+<div class=highlight><pre><span></span>/usr/lib/x86_64-linux-gnu/liblapack.so.3
+  -&gt; /etc/alternatives/liblapack.so.3-x86_64-linux-gnu
+    -&gt; /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3
+      -&gt; /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
+</pre></div>
+
+
+<p>Once the true location is given, we can find<sup id=sf-learn-you-a-lapack-2-back><a href=#sf-learn-you-a-lapack-2 class=simple-footnote title="On a Debian Linux. For example, I am running Ubuntu 18.04">2</a></sup> the package that owns the
+shared library</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> dpkg-query -S /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
+<span class=go>libatlas3-base:amd64: /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3</span>
+<span class=gp>$</span> <span class=c1># Find ATLAS reverse dependencies of libatlas3-base package</span>
+<span class=gp>$</span> apt rdepends libatlas3-base <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep Depends <span class=p>|</span> grep atlas
+<span class=go>  Depends: libatlas-base-dev (= 3.10.3-5)</span>
+</pre></div>
+
+
+<h3 id=low-level-py>Low-Level Python (<code>ctypes</code>)</h3>
+<p>Now that we know which shared library to use, we can dynamically load
+the library into Python and verify that <code>dgetrf_</code> is in the symbol table:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>liblapack</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>cdll</span><span class=o>.</span><span class=n>LoadLibrary</span><span class=p>(</span><span class=s2>"liblapack.so.3"</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>liblapack</span><span class=o>.</span><span class=n>dgetrf_</span>
+<span class=o>&lt;</span><span class=n>_FuncPtr</span> <span class=nb>object</span> <span class=n>at</span> <span class=mh>0x7f3fd33ba688</span><span class=o>&gt;</span>
+</pre></div>
+
+
+<p>We can also verify that the <code>dgetrf</code> symbol is <strong>not</strong> present (and the
+traceback will show us the actual path to the shared library):</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>liblapack</span><span class=o>.</span><span class=n>dgetrf</span>
+<span class=n>Traceback</span> <span class=p>(</span><span class=n>most</span> <span class=n>recent</span> <span class=n>call</span> <span class=n>last</span><span class=p>):</span>
+  <span class=n>File</span> <span class=s2>"&lt;stdin&gt;"</span><span class=p>,</span> <span class=n>line</span> <span class=mi>1</span><span class=p>,</span> <span class=ow>in</span> <span class=o>&lt;</span><span class=n>module</span><span class=o>&gt;</span>
+  <span class=n>File</span> <span class=s2>".../lib/python3.7/ctypes/__init__.py"</span><span class=p>,</span> <span class=n>line</span> <span class=mi>369</span><span class=p>,</span> <span class=ow>in</span> <span class=fm>__getattr__</span>
+    <span class=n>func</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=fm>__getitem__</span><span class=p>(</span><span class=n>name</span><span class=p>)</span>
+  <span class=n>File</span> <span class=s2>".../lib/python3.7/ctypes/__init__.py"</span><span class=p>,</span> <span class=n>line</span> <span class=mi>374</span><span class=p>,</span> <span class=ow>in</span> <span class=fm>__getitem__</span>
+    <span class=n>func</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_FuncPtr</span><span class=p>((</span><span class=n>name_or_ordinal</span><span class=p>,</span> <span class=bp>self</span><span class=p>))</span>
+<span class=ne>AttributeError</span><span class=p>:</span> <span class=o>/</span><span class=n>usr</span><span class=o>/</span><span class=n>lib</span><span class=o>/</span><span class=n>x86_64</span><span class=o>-</span><span class=n>linux</span><span class=o>-</span><span class=n>gnu</span><span class=o>/</span><span class=n>liblapack</span><span class=o>.</span><span class=n>so</span><span class=o>.</span><span class=mi>3</span><span class=p>:</span> <span class=n>undefined</span> <span class=n>symbol</span><span class=p>:</span> <span class=n>dgetrf</span>
+</pre></div>
+
+
+<p>To actually call this routine, we first specify the input and output types:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>dgetrf</span> <span class=o>=</span> <span class=n>liblapack</span><span class=o>.</span><span class=n>dgetrf_</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>int_ptr</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>POINTER</span><span class=p>(</span><span class=n>ctypes</span><span class=o>.</span><span class=n>c_int</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>double_ptr</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>POINTER</span><span class=p>(</span><span class=n>ctypes</span><span class=o>.</span><span class=n>c_double</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>dgetrf</span><span class=o>.</span><span class=n>argtypes</span> <span class=o>=</span> <span class=p>[</span><span class=n>int_ptr</span><span class=p>,</span> <span class=n>int_ptr</span><span class=p>,</span> <span class=n>double_ptr</span><span class=p>,</span> <span class=n>int_ptr</span><span class=p>,</span> <span class=n>int_ptr</span><span class=p>,</span> <span class=n>int_ptr</span><span class=p>]</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>dgetrf</span><span class=o>.</span><span class=n>restype</span> <span class=o>=</span> <span class=bp>None</span>
+</pre></div>
+
+
+<p>To call it, we use <code>ctypes</code> and NumPy to allocate all of our arguments:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>numpy</span> <span class=kn>as</span> <span class=nn>np</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>M</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>c_int</span><span class=p>(</span><span class=mi>3</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>N</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>c_int</span><span class=p>(</span><span class=mi>3</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>A</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>([</span>
+<span class=o>...</span>     <span class=p>[</span><span class=mf>4.</span><span class=p>,</span> <span class=mf>4.</span><span class=p>,</span> <span class=o>-</span><span class=mf>3.</span><span class=p>],</span>
+<span class=o>...</span>     <span class=p>[</span><span class=mf>0.</span><span class=p>,</span> <span class=mf>4.</span><span class=p>,</span> <span class=o>-</span><span class=mf>1.</span><span class=p>],</span>
+<span class=o>...</span>     <span class=p>[</span><span class=mf>1.</span><span class=p>,</span> <span class=mf>1.</span><span class=p>,</span>  <span class=mf>1.</span><span class=p>],</span>
+<span class=o>...</span> <span class=p>],</span> <span class=n>order</span><span class=o>=</span><span class=s2>"F"</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>LDA</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>c_int</span><span class=p>(</span><span class=mi>3</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>IPIV</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>empty</span><span class=p>(</span><span class=mi>3</span><span class=p>,</span> <span class=n>dtype</span><span class=o>=</span><span class=n>np</span><span class=o>.</span><span class=n>intc</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>INFO</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>c_int</span><span class=p>()</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=c1># Check Uninitialized</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>IPIV</span>
+<span class=n>array</span><span class=p>([</span><span class=mi>47155696</span><span class=p>,</span>        <span class=mi>0</span><span class=p>,</span>        <span class=mi>2</span><span class=p>],</span> <span class=n>dtype</span><span class=o>=</span><span class=n>int32</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>INFO</span>
+<span class=n>c_int</span><span class=p>(</span><span class=mi>50221552</span><span class=p>)</span>
+</pre></div>
+
+
+<p>Since LAPACK follows the pass by reference convention, we pass
+in a pointer to each of these arguments</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>return_value</span> <span class=o>=</span> <span class=n>dgetrf</span><span class=p>(</span>
+<span class=o>...</span>     <span class=n>ctypes</span><span class=o>.</span><span class=n>pointer</span><span class=p>(</span><span class=n>M</span><span class=p>),</span>
+<span class=o>...</span>     <span class=n>ctypes</span><span class=o>.</span><span class=n>pointer</span><span class=p>(</span><span class=n>N</span><span class=p>),</span>
+<span class=o>...</span>     <span class=n>A</span><span class=o>.</span><span class=n>ctypes</span><span class=o>.</span><span class=n>data_as</span><span class=p>(</span><span class=n>double_ptr</span><span class=p>),</span>
+<span class=o>...</span>     <span class=n>ctypes</span><span class=o>.</span><span class=n>pointer</span><span class=p>(</span><span class=n>LDA</span><span class=p>),</span>
+<span class=o>...</span>     <span class=n>IPIV</span><span class=o>.</span><span class=n>ctypes</span><span class=o>.</span><span class=n>data_as</span><span class=p>(</span><span class=n>int_ptr</span><span class=p>),</span>
+<span class=o>...</span>     <span class=n>ctypes</span><span class=o>.</span><span class=n>pointer</span><span class=p>(</span><span class=n>INFO</span><span class=p>),</span>
+<span class=o>...</span> <span class=p>)</span>
+</pre></div>
+
+
+<p>and the results match those from <code>scipy.linalg.lapack.dgetrf</code>:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>return_value</span> <span class=ow>is</span> <span class=bp>None</span>
+<span class=bp>True</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>INFO</span>
+<span class=n>c_int</span><span class=p>(</span><span class=mi>0</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>IPIV</span>
+<span class=n>array</span><span class=p>([</span><span class=mi>1</span><span class=p>,</span> <span class=mi>2</span><span class=p>,</span> <span class=mi>3</span><span class=p>],</span> <span class=n>dtype</span><span class=o>=</span><span class=n>int32</span><span class=p>)</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>A</span>
+<span class=n>array</span><span class=p>([[</span> <span class=mf>4.</span>  <span class=p>,</span>  <span class=mf>4.</span>  <span class=p>,</span> <span class=o>-</span><span class=mf>3.</span>  <span class=p>],</span>
+       <span class=p>[</span> <span class=mf>0.</span>  <span class=p>,</span>  <span class=mf>4.</span>  <span class=p>,</span> <span class=o>-</span><span class=mf>1.</span>  <span class=p>],</span>
+       <span class=p>[</span> <span class=mf>0.25</span><span class=p>,</span>  <span class=mf>0.</span>  <span class=p>,</span>  <span class=mf>1.75</span><span class=p>]])</span>
+</pre></div>
+
+
+<h3 id=c>C</h3>
+<p>Unfortunately, LAPACK doesn't come with a standard header file, so
+the <code>dgetrf_</code> symbol must be declared via <code>extern</code>:</p>
+<div class=highlight><pre><span></span><span class=k>extern</span> <span class=kt>void</span> <span class=nf>dgetrf_</span><span class=p>(</span><span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>M</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>N</span><span class=p>,</span> <span class=kt>double</span><span class=o>*</span> <span class=n>A</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>LDA</span><span class=p>,</span>
+    <span class=kt>int</span><span class=o>*</span> <span class=n>IPIV</span><span class=p>,</span> <span class=kt>int</span><span class=o>*</span> <span class=n>INFO</span><span class=p>);</span>
+</pre></div>
+
+
+<p>Notice that all arguments are pointers. We've marked the input only arguments
+as <code>const</code> to help the C compiler out. We've also used <code>int</code> (rather than
+<code>long</code>) for the integer arguments.</p>
+<p>When calling <code>dgetrf_</code> in the C <a href="/code/dgetrf_example.c">example</a>, we take
+care to lay out <code>A</code> in Fortran order:</p>
+<div class=highlight><pre><span></span><span class=kt>int</span> <span class=n>M</span> <span class=o>=</span> <span class=mi>3</span><span class=p>;</span>
+<span class=kt>int</span> <span class=n>N</span> <span class=o>=</span> <span class=mi>3</span><span class=p>;</span>
+<span class=kt>double</span> <span class=n>A</span><span class=p>[</span><span class=mi>9</span><span class=p>]</span> <span class=o>=</span> <span class=p>{</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=o>-</span><span class=mi>3</span><span class=p>,</span> <span class=o>-</span><span class=mi>1</span><span class=p>,</span> <span class=mi>1</span> <span class=p>};</span>
+<span class=kt>int</span> <span class=n>LDA</span> <span class=o>=</span> <span class=mi>3</span><span class=p>;</span>
+<span class=kt>int</span> <span class=n>IPIV</span><span class=p>[</span><span class=mi>3</span><span class=p>];</span>
+<span class=kt>int</span> <span class=n>INFO</span><span class=p>;</span>
+</pre></div>
+
+
+<p>Actually building code that uses <code>liblapack</code> confused me. On a Debian-based
+Linux system, I could install LAPACK via</p>
+<div class=highlight><pre><span></span>$ <span class=o>[</span>sudo<span class=o>]</span> apt install libatlas-base-dev
+</pre></div>
+
+
+<p>and be on my merry way with the <code>-llapack</code> flag:</p>
+<div class=highlight><pre><span></span>$ gcc -o main dgetrf_example.c -llapack
+$ ./main
+Inputs:
+  <span class=nv>M</span> <span class=o>=</span> <span class=m>3</span>
+  <span class=nv>N</span> <span class=o>=</span> <span class=m>3</span>
+  <span class=nv>A</span> <span class=o>=</span> <span class=o>[</span> <span class=m>4</span>.00,  <span class=m>4</span>.00, -3.00<span class=o>]</span>
+      <span class=o>[</span> <span class=m>0</span>.00,  <span class=m>4</span>.00, -1.00<span class=o>]</span>
+      <span class=o>[</span> <span class=m>1</span>.00,  <span class=m>1</span>.00,  <span class=m>1</span>.00<span class=o>]</span>
+  <span class=nv>LDA</span> <span class=o>=</span> <span class=m>3</span>
+Outputs:
+  <span class=nv>A</span> <span class=o>=</span> <span class=o>[</span> <span class=m>4</span>.00,  <span class=m>4</span>.00, -3.00<span class=o>]</span>
+      <span class=o>[</span> <span class=m>0</span>.00,  <span class=m>4</span>.00, -1.00<span class=o>]</span>
+      <span class=o>[</span> <span class=m>0</span>.25,  <span class=m>0</span>.00,  <span class=m>1</span>.75<span class=o>]</span>
+  <span class=nv>IPIV</span> <span class=o>=</span> <span class=o>[</span><span class=m>1</span>, <span class=m>2</span>, <span class=m>3</span><span class=o>]</span>
+  <span class=nv>INFO</span> <span class=o>=</span> <span class=m>0</span>
+</pre></div>
+
+
+<h3 id=compiling-on-os-x>Compiling on OS X</h3>
+<blockquote>
+<p><strong>TL;DR</strong>: As of Mac OS X High Sierra (10.13), your code can link to LAPACK
+via <code>-llapack</code> or <code>-framework Accelerate</code>. Also, when I started graduate
+school I didn't know much about compiling code.</p>
+</blockquote>
+<p>I was using Mac OS X Mountain Lion (10.8) at the time. Without
+using Homebrew to install LAPACK or OpenBLAS, compiling<sup id=sf-learn-you-a-lapack-3-back><a href=#sf-learn-you-a-lapack-3 class=simple-footnote title="Note that gcc is just an alias for clang on OS X">3</a></sup> with <code>-llapack</code> failed with something
+along the lines of:</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c -llapack
+<span class=go>ld: library not found for -llapack</span>
+<span class=go>clang: error: linker command failed with exit code 1 (use -v to see invocation)</span>
+</pre></div>
+
+
+<p>Just leaving out the flag entirely was also not an option:</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c
+<span class=go>Undefined symbols for architecture x86_64:</span>
+<span class=go>  "_dgetrf_", referenced from:</span>
+<span class=go>      _main in dgetrf_example-fcd533.o</span>
+<span class=go>ld: symbol(s) not found for architecture x86_64</span>
+<span class=go>clang: error: linker command failed with exit code 1 (use -v to see invocation)</span>
+</pre></div>
+
+
+<p>I would eventually find out that Apple provides a custom <a href="https://developer.apple.com/documentation/accelerate/veclib">framework</a>
+called <code>vecLib</code> that contained a LAPACK implementation / interface among other
+things. So the correct magical incantation (as of OS X 10.8) was</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c -framework vecLib
+</pre></div>
+
+
+<p>At some point<sup id=sf-learn-you-a-lapack-4-back><a href=#sf-learn-you-a-lapack-4 class=simple-footnote title="It seems it was in Mac OS X Yosemite (10.10).">4</a></sup>,
+things <strong>got better</strong> (<a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate">thanks</a> Apple). On a current<sup id=sf-learn-you-a-lapack-5-back><a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="Mac OS X High Sierra (10.13)">5</a></sup> version, <code>liblapack</code> comes with the OS:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes.util</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>util</span><span class=o>.</span><span class=n>find_library</span><span class=p>(</span><span class=s2>"lapack"</span><span class=p>)</span>
+<span class=s1>'/usr/lib/liblapack.dylib'</span>
+</pre></div>
+
+
+<p>Following symlinks, we see that this shared library is part of the
+<code>Accelerate</code> <a href="https://developer.apple.com/documentation/accelerate">framework</a>:</p>
+<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>os</span>
+<span class=o>&gt;&gt;&gt;</span> <span class=n>os</span><span class=o>.</span><span class=n>path</span><span class=o>.</span><span class=n>realpath</span><span class=p>(</span><span class=s2>"/usr/lib/liblapack.dylib"</span><span class=p>)</span>
+<span class=s1>'/System/Library/Frameworks/Accelerate.framework/.../A/libLAPACK.dylib'</span>
+</pre></div>
+
+
+<!---
+Full path:
+'/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libLAPACK.dylib'
+-->
+
+<p>Now <code>vecLib</code> is contained in <code>Accelerate</code> and can no longer be
+included directly:</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> readlink /System/Library/Frameworks/vecLib.framework
+<span class=go>Accelerate.framework//Versions/A/Frameworks/vecLib.framework</span>
+<span class=gp>$</span> clang -o main dgetrf_example.c -framework vecLib
+<span class=go>ld: cannot link directly with /System/Library/Frameworks//vecLib.framework/vecLib for architecture x86_64</span>
+<span class=go>clang: error: linker command failed with exit code 1 (use -v to see invocation)</span>
+</pre></div>
+
+
+<p>However, this means that LAPACK can be included the "Linux" way or via
+a framework:</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c -llapack
+<span class=gp>$</span> clang -o main dgetrf_example.c -framework Accelerate
+</pre></div>
+
+
+<h3 id=cpp>C++</h3>
+<blockquote>
+<p><strong>TL;DR</strong>: Use <code>extern "C"</code> instead of just <code>extern</code> when declaring
+LAPACK routines in C++ code.</p>
+</blockquote>
+<p>When I started graduate school I didn't know anything about shared libraries,
+symbol tables, <a href="https://en.wikipedia.org/wiki/Name_mangling">name mangling</a> or ABIs. It also didn't even occur to me
+that extra underscore in names of LAPACK routines in the shared library had
+anything to do with those topics.</p>
+<p>Luckily, after an hour or two<sup id=sf-learn-you-a-lapack-6-back><a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="I'm not joking, I was really stumped">6</a></sup>
+of Googling I learned about <code>extern "C"</code> and everything "made sense". Once
+you know about <code>extern "C"</code>, declaring the LAPACK routine in C++ is essentially
+the same as in C:</p>
+<div class=highlight><pre><span></span><span class=k>extern</span> <span class=s>"C"</span> <span class=kt>void</span> <span class=n>dgetrf_</span><span class=p>(</span><span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>M</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>N</span><span class=p>,</span> <span class=kt>double</span><span class=o>*</span> <span class=n>A</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>LDA</span><span class=p>,</span>
+    <span class=kt>int</span><span class=o>*</span> <span class=n>IPIV</span><span class=p>,</span> <span class=kt>int</span><span class=o>*</span> <span class=n>INFO</span><span class=p>);</span>
+</pre></div>
+
+
+<p>From there, <code>dgetrf_</code> can be used as it would in C. But I'd like to explain
+a bit further why we say <code>extern "C"</code> rather than <code>extern</code>. To explain,
+consider the simple program that is valid in C or C++:</p>
+<div class=highlight><pre><span></span><span class=kt>int</span> <span class=nf>together</span><span class=p>(</span><span class=kt>int</span> <span class=n>m</span><span class=p>,</span> <span class=kt>int</span> <span class=n>n</span><span class=p>)</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=n>m</span> <span class=o>+</span> <span class=n>n</span><span class=p>;</span>
+<span class=p>}</span>
+</pre></div>
+
+
+<p>If we compile this into an object file in C, we see the name <code>together</code>
+in the symbol table</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> gcc -c together.c
+<span class=gp>$</span> nm together.o
+<span class=go>0000000000000000 T together</span>
+</pre></div>
+
+
+<p>but if we compile the same code in C++, the name is mangled (to
+<code>_Z8togetherii</code>) before it is put in the symbol table:</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> g++ -c together.cpp
+<span class=gp>$</span> nm together.o
+<span class=go>0000000000000000 T _Z8togetherii</span>
+</pre></div>
+
+
+<p>This name mangling allows many features of C++. For example, we could
+provide a second implementation using the <strong>same</strong> name but with type
+<code>double</code>:</p>
+<div class=highlight><pre><span></span><span class=kt>double</span> <span class=nf>together</span><span class=p>(</span><span class=kt>double</span> <span class=n>m</span><span class=p>,</span> <span class=kt>double</span> <span class=n>n</span><span class=p>)</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=n>m</span> <span class=o>+</span> <span class=n>n</span><span class=p>;</span>
+<span class=p>}</span>
+</pre></div>
+
+
+<p>and the two functions can both be in the symbol table without "colliding"
+on their shared name:</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> g++ -c together.cpp
+<span class=gp>$</span> nm together.o
+<span class=go>0000000000000014 T _Z8togetherdd</span>
+<span class=go>0000000000000000 T _Z8togetherii</span>
+</pre></div>
+
+
+<p>For an example in the wild consider the <code>libjsoncpp</code> <a href="https://github.com/open-source-parsers/jsoncpp">package</a> (chosen at
+random since it is installed on my current system). The <code>valueToString</code> method
+in the <code>Json</code> namespace has six different implementations:</p>
+<div class=highlight><pre><span></span><span class=gp>$</span> objdump    -T /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4 <span class=p>|</span> grep valueToString
+<span class=go>0000000000020c30 ... _ZN4Json13valueToStringB5cxx11Eb</span>
+<span class=go>0000000000020be0 ... _ZN4Json13valueToStringB5cxx11Ed</span>
+<span class=go>0000000000020b60 ... _ZN4Json13valueToStringB5cxx11Ei</span>
+<span class=go>0000000000020ba0 ... _ZN4Json13valueToStringB5cxx11Ej</span>
+<span class=go>00000000000208c0 ... _ZN4Json13valueToStringB5cxx11Ex</span>
+<span class=go>0000000000020a80 ... _ZN4Json13valueToStringB5cxx11Ey</span>
+<span class=gp>$</span> objdump -C -T /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4 <span class=p>|</span> grep valueToString
+<span class=go>0000000000020c30 ... Json::valueToString[abi:cxx11](bool)</span>
+<span class=go>0000000000020be0 ... Json::valueToString[abi:cxx11](double)</span>
+<span class=go>0000000000020b60 ... Json::valueToString[abi:cxx11](int)</span>
+<span class=go>0000000000020ba0 ... Json::valueToString[abi:cxx11](unsigned int)</span>
+<span class=go>00000000000208c0 ... Json::valueToString[abi:cxx11](long long)</span>
+<span class=go>0000000000020a80 ... Json::valueToString[abi:cxx11](unsigned long long)</span>
+</pre></div>
+
+
+<p>Why did I just tell you all this? To make it clear why we say <code>extern "C"</code>
+instead of just <code>extern</code>. This indicates to the compiler that the symbol
+we want to refer to is <strong>literally</strong> <code>dgetrf_</code>. By using <code>extern</code>, that would
+tell the compiler to look for a mangled external name. For example with <code>g++</code>,
+it would look for the name <code>_Z7dgetrf_PKiS0_PdS0_PiS2_</code>.</p>
+<h3 id=conclusion>Conclusion</h3>
+<p>I hope this post has been informational. Now you should have a better idea
+how to</p>
+<ul>
+<li>Read LAPACK documentation to interpret and write the correct signature for
+  a LAPACK routine</li>
+<li>Reference the correct symbol when calling a LAPACK routine as a foreign
+  function</li>
+<li>Understand argument intent and pass by reference calling convention
+  for LAPACK's Fortran-like interface</li>
+<li>Use Python's <code>ctypes</code> module (and NumPy's <code>ctypes.data_as</code> method) to
+  invoke LAPACK routines for fast prototyping and debugging</li>
+</ul>
+<p>Thanks for reading!</p><ol class=simple-footnotes><li id=sf-learn-you-a-lapack-1>This actually happened to me. My undergraduate research
+project (REU) eventually boiled down to showing that a particularly special
+matrix had a nonzero determinant. <a href=#sf-learn-you-a-lapack-1-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-2>On a Debian Linux. For
+example, I am running Ubuntu 18.04 <a href=#sf-learn-you-a-lapack-2-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-3>Note that <code>gcc</code> is
+just an alias for <code>clang</code> on OS X <a href=#sf-learn-you-a-lapack-3-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-4>It <a href="https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16033">seems</a> it was in Mac OS X Yosemite (10.10). <a href=#sf-learn-you-a-lapack-4-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-5>Mac OS X High
+Sierra (10.13) <a href=#sf-learn-you-a-lapack-5-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-6>I'm not joking, I was really stumped <a href=#sf-learn-you-a-lapack-6-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2018-09-13T00:00:00-07:00" pubdate>Sep 13, 2018</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/linear-algebra.html">Linear Algebra</a>,    <a class="category" href="https://blog.bossylobster.com/tag/applied-mathematics.html">Applied Mathematics</a>,    <a class="category" href="https://blog.bossylobster.com/tag/mathematics.html">Mathematics</a>,    <a class="category" href="https://blog.bossylobster.com/tag/programming.html">Programming</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html">Learn You a LAPACK for Great Good</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2018/09/graduated.html">Graduated</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2017/09/python-on-os-x.html">Installing Python on OS X</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2017/02/golang-and-log-x.html">How Does Go Compute a Logarithm</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2016/11/newtons-failure.html">Newton's (Method's) Failure</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2018  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2018/09/learn-you-a-lapack.html';
+    var disqus_url = 'https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html';
+    var disqus_title = "Learn You a LAPACK for Great Good";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

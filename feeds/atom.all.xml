@@ -1,5 +1,561 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2018-09-07T00:00:00-07:00</updated><entry><title>Graduated</title><link href="https://blog.bossylobster.com/2018/09/graduated.html" rel="alternate"></link><published>2018-09-07T00:00:00-07:00</published><updated>2018-09-07T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-07:/2018/09/graduated.html</id><summary type="html">&lt;p&gt;After five years, I'm excited to say I've finished &lt;a href="https://github.com/dhermes/phd-thesis"&gt;my PhD&lt;/a&gt;. I certainly
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2018-09-13T00:00:00-07:00</updated><entry><title>Learn You a LAPACK for Great Good</title><link href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html" rel="alternate"></link><published>2018-09-13T00:00:00-07:00</published><updated>2018-09-13T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-13:/2018/09/learn-you-a-lapack.html</id><summary type="html">&lt;p&gt;Linear Algebra is an incredibly powerful tool. A joke among mathematicians
+is that the only way we can solve a hard problem is to boil it down to
+Linear Algebra&lt;sup id=sf-learn-you-a-lapack-1-back&gt;&lt;a href=#sf-learn-you-a-lapack-1 class=simple-footnote title="This actually happened to me. My undergraduate research project (REU) eventually boiled down to showing that a particularly special matrix had a nonzero determinant."&gt;1&lt;/a&gt;&lt;/sup&gt;. Harnessing the &lt;strong&gt;numerical&lt;/strong&gt; power of
+Linear Algebra has been done via &lt;a href="https://en.wikipedia.org/wiki/LAPACK"&gt;LAPACK&lt;/a&gt; for the last 40+ years.&lt;/p&gt;
+&lt;p&gt;In my …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Linear Algebra is an incredibly powerful tool. A joke among mathematicians
+is that the only way we can solve a hard problem is to boil it down to
+Linear Algebra&lt;sup id=sf-learn-you-a-lapack-1-back&gt;&lt;a href=#sf-learn-you-a-lapack-1 class=simple-footnote title="This actually happened to me. My undergraduate research project (REU) eventually boiled down to showing that a particularly special matrix had a nonzero determinant."&gt;1&lt;/a&gt;&lt;/sup&gt;. Harnessing the &lt;strong&gt;numerical&lt;/strong&gt; power of
+Linear Algebra has been done via &lt;a href="https://en.wikipedia.org/wiki/LAPACK"&gt;LAPACK&lt;/a&gt; for the last 40+ years.&lt;/p&gt;
+&lt;p&gt;In my first semester of graduate school, I took UC Berkeley's Math 221, i.e.
+Numerical Linear Algebra. So in my second semester, I was ready to put my
+new skills to use. However, when I tried to use LAPACK from C and C++ code for
+an assignment, I gave up before getting anything working. I was frustrated
+by my deadline, by the LAPACK &lt;a href="http://www.netlib.org/lapack/explore-html/"&gt;documentation&lt;/a&gt; (I didn't know where to look
+or how to read what I did find), by actually forming the arguments correctly
+and by getting the compiler flags right. I just gave up and turned to my trusty
+friend Python; I used a combination of NumPy and the low-level
+&lt;code&gt;scipy.linalg.lapack&lt;/code&gt; package when necessary.&lt;/p&gt;
+&lt;p&gt;I wished then that there was a blog post exactly like this one. Our goal here
+is to call a single LAPACK routine (&lt;code&gt;dgetrf&lt;/code&gt;) from a few different contexts
+to get a feel for the library structure, argument specification, reading
+documentation and linking / building code.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#lu-factorization&gt;LU Factorization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#high-level-py&gt;High-Level Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#finding-lapack&gt;Finding LAPACK&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#low-level-py&gt;Low-Level Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#c&gt;C&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#compiling-on-os-x&gt;Compiling on OS X&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#cpp&gt;C++&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#conclusion&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=lu-factorization&gt;LU Factorization&lt;/h3&gt;
+&lt;p&gt;As mentioned, we'll focus on the &lt;code&gt;dgetrf&lt;/code&gt; method for performing
+&lt;a href="https://en.wikipedia.org/wiki/LU_decomposition"&gt;LU Factorization&lt;/a&gt;. The names themselves can be confusing to newcomers.
+Luckily the Wikipedia &lt;a href="https://en.wikipedia.org/wiki/LAPACK"&gt;page&lt;/a&gt; does a great job describing what is happening:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;d&lt;/code&gt;: the matrix entries are of type &lt;code&gt;double&lt;/code&gt; (i.e. a 64-bit IEEE-754
+  floating point number)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ge&lt;/code&gt;: the matrix is in &lt;strong&gt;ge&lt;/strong&gt;neral form, as opposed to triangular, banded,
+  symmetric, or many other types of matrix where information need not be
+  repeated&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;trf&lt;/code&gt;: triangular factorization&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;We'll focus on factoring a particular matrix &lt;span class=katex&gt;&lt;span class=katex-mathml&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;L&lt;/mi&gt;&lt;mi&gt;U&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;A = LU&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=katex-html aria-hidden=true&gt;&lt;span class=base&gt;&lt;span class=strut style=height:0.68333em;vertical-align:0em;&gt;&lt;/span&gt;&lt;span class="mord mathit"&gt;A&lt;/span&gt;&lt;span class=mspace style=margin-right:0.2777777777777778em;&gt;&lt;/span&gt;&lt;span class=mrel&gt;=&lt;/span&gt;&lt;span class=mspace style=margin-right:0.2777777777777778em;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=base&gt;&lt;span class=strut style=height:0.68333em;vertical-align:0em;&gt;&lt;/span&gt;&lt;span class="mord mathit"&gt;L&lt;/span&gt;&lt;span class="mord mathit" style=margin-right:0.10903em;&gt;U&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;:&lt;/p&gt;
+&lt;div class=katex-elt&gt;&lt;blockquote&gt;
+&lt;span class=katex-display&gt;&lt;span class=katex&gt;&lt;span class=katex-mathml&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;munder&gt;&lt;munder&gt;&lt;mrow&gt;&lt;mo fence=true&gt;[&lt;/mo&gt;&lt;mtable&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mrow&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;3&lt;/mn&gt;&lt;/mrow&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mrow&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;/mtable&gt;&lt;mo fence=true&gt;]&lt;/mo&gt;&lt;/mrow&gt;&lt;mo stretchy=true&gt;⎵&lt;/mo&gt;&lt;/munder&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;/munder&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;munder&gt;&lt;munder&gt;&lt;mrow&gt;&lt;mo fence=true&gt;[&lt;/mo&gt;&lt;mtable&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mrow&gt;&lt;/mrow&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mrow&gt;&lt;/mrow&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mrow&gt;&lt;/mrow&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;0.25&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;/mtable&gt;&lt;mo fence=true&gt;]&lt;/mo&gt;&lt;/mrow&gt;&lt;mo stretchy=true&gt;⎵&lt;/mo&gt;&lt;/munder&gt;&lt;mi&gt;L&lt;/mi&gt;&lt;/munder&gt;&lt;munder&gt;&lt;munder&gt;&lt;mrow&gt;&lt;mo fence=true&gt;[&lt;/mo&gt;&lt;mtable&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mrow&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;3&lt;/mn&gt;&lt;/mrow&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mrow&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;mtr&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;mtd&gt;&lt;mstyle scriptlevel=0 displaystyle=false&gt;&lt;mn&gt;1.75&lt;/mn&gt;&lt;/mstyle&gt;&lt;/mtd&gt;&lt;/mtr&gt;&lt;/mtable&gt;&lt;mo fence=true&gt;]&lt;/mo&gt;&lt;/mrow&gt;&lt;mo stretchy=true&gt;⎵&lt;/mo&gt;&lt;/munder&gt;&lt;mi&gt;U&lt;/mi&gt;&lt;/munder&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;\underbrace{\left[\begin{array}{c c c} 4 &amp;amp; 4 &amp;amp; -3 \\ 0 &amp;amp; 4 &amp;amp; -1 \\ 1 &amp;amp; 1 &amp;amp; 1 \end{array}\right]}_{A} = \underbrace{\left[\begin{array}{c c c} 1 &amp;amp; &amp;amp; \\ 0 &amp;amp; 1 &amp;amp; \\ 0.25 &amp;amp; 0 &amp;amp; 1 \end{array}\right]}_{L} \underbrace{\left[\begin{array}{c c c} 4 &amp;amp; 4 &amp;amp; -3 \\ 0 &amp;amp; 4 &amp;amp; -1 \\ 0 &amp;amp; 0 &amp;amp; 1.75 \end{array}\right]}_{U}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=katex-html aria-hidden=true&gt;&lt;span class=base&gt;&lt;span class=strut style=height:4.926371em;vertical-align:-2.876351em;&gt;&lt;/span&gt;&lt;span class="mord munder"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.0500199999999995em;&gt;&lt;span style=top:-1.1736689999999999em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;&lt;span class="mord mathit mtight"&gt;A&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class="mord munder"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span class=svg-align style=top:-1.8519999999999999em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class=stretchy style=height:0.548em;min-width:1.6em;&gt;&lt;span class=brace-left style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMinYMin slice"&gt;&lt;path d="M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;span class=brace-center style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMidYMin slice"&gt;&lt;path d="M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;span class=brace-right style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMaxYMin slice"&gt;&lt;path d="M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=minner&gt;&lt;span class=mopen&gt;&lt;span class="delimsizing mult"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span style=top:-2.2500000000000004em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎣&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎡&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.55002em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mtable&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;−&lt;/span&gt;&lt;span class=mord&gt;3&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;−&lt;/span&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=mclose&gt;&lt;span class="delimsizing mult"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span style=top:-2.2500000000000004em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎦&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎤&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.55002em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.19802em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.876351em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=mspace style=margin-right:0.2777777777777778em;&gt;&lt;/span&gt;&lt;span class=mrel&gt;=&lt;/span&gt;&lt;span class=mspace style=margin-right:0.2777777777777778em;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=base&gt;&lt;span class=strut style=height:4.926371em;vertical-align:-2.876351em;&gt;&lt;/span&gt;&lt;span class="mord munder"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.0500199999999995em;&gt;&lt;span style=top:-1.1736689999999999em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;&lt;span class="mord mathit mtight"&gt;L&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class="mord munder"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span class=svg-align style=top:-1.8519999999999999em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class=stretchy style=height:0.548em;min-width:1.6em;&gt;&lt;span class=brace-left style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMinYMin slice"&gt;&lt;path d="M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;span class=brace-center style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMidYMin slice"&gt;&lt;path d="M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;span class=brace-right style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMaxYMin slice"&gt;&lt;path d="M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=minner&gt;&lt;span class=mopen&gt;&lt;span class="delimsizing mult"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span style=top:-2.2500000000000004em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎣&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎡&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.55002em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mtable&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;0&lt;/span&gt;&lt;span class=mord&gt;.&lt;/span&gt;&lt;span class=mord&gt;2&lt;/span&gt;&lt;span class=mord&gt;5&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=mclose&gt;&lt;span class="delimsizing mult"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span style=top:-2.2500000000000004em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎦&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎤&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.55002em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.19802em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.876351em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="mord munder"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.0500199999999995em;&gt;&lt;span style=top:-1.1736689999999999em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class="sizing reset-size6 size3 mtight"&gt;&lt;span class="mord mtight"&gt;&lt;span class="mord mathit mtight" style=margin-right:0.10903em;&gt;U&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class="mord munder"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span class=svg-align style=top:-1.8519999999999999em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class=stretchy style=height:0.548em;min-width:1.6em;&gt;&lt;span class=brace-left style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMinYMin slice"&gt;&lt;path d="M0 6l6-6h17c12.688 0 19.313.3 20 1 4 4 7.313 8.3 10 13
+ 35.313 51.3 80.813 93.8 136.5 127.5 55.688 33.7 117.188 55.8 184.5 66.5.688
+ 0 2 .3 4 1 18.688 2.7 76 4.3 172 5h399450v120H429l-6-1c-124.688-8-235-61.7
+-331-161C60.687 138.7 32.312 99.3 7 54L0 41V6z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;span class=brace-center style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMidYMin slice"&gt;&lt;path d="M199572 214
+c100.7 8.3 195.3 44 280 108 55.3 42 101.7 93 139 153l9 14c2.7-4 5.7-8.7 9-14
+ 53.3-86.7 123.7-153 211-199 66.7-36 137.3-56.3 212-62h199568v120H200432c-178.3
+ 11.7-311.7 78.3-403 201-6 8-9.7 12-11 12-.7.7-6.7 1-18 1s-17.3-.3-18-1c-1.3 0
+-5-4-11-12-44.7-59.3-101.3-106.3-170-141s-145.3-54.3-229-60H0V214z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;span class=brace-right style=height:0.548em;&gt;&lt;svg width=400em height=0.548em viewBox="0 0 400000 548" preserveAspectRatio="xMaxYMin slice"&gt;&lt;path d="M399994 0l6 6v35l-6 11c-56 104-135.3 181.3-238 232-57.3
+ 28.7-117 45-179 50H-300V214h399897c43.3-7 81-15 113-26 100.7-33 179.7-91 237
+-174 2.7-5 6-9 10-13 .7-1 7.3-1 20-1h17z"&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:4.05002em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=minner&gt;&lt;span class=mopen&gt;&lt;span class="delimsizing mult"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span style=top:-2.2500000000000004em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎣&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎡&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.55002em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mtable&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;span class=col-align-c&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05em;&gt;&lt;span style=top:-4.21em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;−&lt;/span&gt;&lt;span class=mord&gt;3&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-3.0099999999999993em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;−&lt;/span&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-1.8099999999999994em;&gt;&lt;span class=pstrut style=height:3em;&gt;&lt;/span&gt;&lt;span class=mord&gt;&lt;span class=mord&gt;1&lt;/span&gt;&lt;span class=mord&gt;.&lt;/span&gt;&lt;span class=mord&gt;7&lt;/span&gt;&lt;span class=mord&gt;5&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.5500000000000007em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=arraycolsep style=width:0.5em;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=mclose&gt;&lt;span class="delimsizing mult"&gt;&lt;span class="vlist-t vlist-t2"&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.05002em;&gt;&lt;span style=top:-2.2500000000000004em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎦&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=top:-4.05002em;&gt;&lt;span class=pstrut style=height:3.1550000000000002em;&gt;&lt;/span&gt;&lt;span class="delimsizinginner delim-size4"&gt;&lt;span&gt;⎤&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:1.55002em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.19802em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-s&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=vlist-r&gt;&lt;span class=vlist style=height:2.876351em;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;/blockquote&gt;&lt;/div&gt;
+
+&lt;p&gt;The method actually allows row pivoting, so in this case we should have
+&lt;span class=katex&gt;&lt;span class=katex-mathml&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;A&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mi&gt;P&lt;/mi&gt;&lt;mi&gt;L&lt;/mi&gt;&lt;mi&gt;U&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;A = PLU&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=katex-html aria-hidden=true&gt;&lt;span class=base&gt;&lt;span class=strut style=height:0.68333em;vertical-align:0em;&gt;&lt;/span&gt;&lt;span class="mord mathit"&gt;A&lt;/span&gt;&lt;span class=mspace style=margin-right:0.2777777777777778em;&gt;&lt;/span&gt;&lt;span class=mrel&gt;=&lt;/span&gt;&lt;span class=mspace style=margin-right:0.2777777777777778em;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=base&gt;&lt;span class=strut style=height:0.68333em;vertical-align:0em;&gt;&lt;/span&gt;&lt;span class="mord mathit" style=margin-right:0.13889em;&gt;P&lt;/span&gt;&lt;span class="mord mathit"&gt;L&lt;/span&gt;&lt;span class="mord mathit" style=margin-right:0.10903em;&gt;U&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt; where the pivot matrix &lt;span class=katex&gt;&lt;span class=katex-mathml&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;P&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding="application/x-tex"&gt;P&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=katex-html aria-hidden=true&gt;&lt;span class=base&gt;&lt;span class=strut style=height:0.68333em;vertical-align:0em;&gt;&lt;/span&gt;&lt;span class="mord mathit" style=margin-right:0.13889em;&gt;P&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;
+is just the identity matrix.&lt;/p&gt;
+&lt;p&gt;To actually call this method, we'll need to study the &lt;a href="http://www.netlib.org/lapack/explore-html/"&gt;documentation&lt;/a&gt;.
+I learned software in the web development world, so I was used to "modern"
+documentation like &lt;code&gt;readthedocs.org&lt;/code&gt;. When I first saw the &lt;a href="http://www.doxygen.nl/"&gt;Doxygen&lt;/a&gt;-based
+LAPACK docs, I was intimidated. It's a bit of a different style and many
+URLs are not human readable (for example, the &lt;a href="http://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_ga0019443faea08275ca60a734d0593e60.html"&gt;URL&lt;/a&gt; for &lt;code&gt;dgetrf&lt;/code&gt;).
+In addition, the arguments often have short or abbreviated names that can be
+hard to parse and each argument has an &lt;strong&gt;intent&lt;/strong&gt; of &lt;code&gt;in&lt;/code&gt;, &lt;code&gt;out&lt;/code&gt; or &lt;code&gt;inout&lt;/code&gt;.
+The concept of an argument's intent is a Fortran feature and at first I
+didn't understand the purpose of it.&lt;/p&gt;
+&lt;p&gt;Let's break down the arguments to &lt;code&gt;dgetrf&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Constant Inputs&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;M&lt;/code&gt; is an &lt;code&gt;integer&lt;/code&gt;; the number of rows in the matrix &lt;code&gt;A&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;N&lt;/code&gt; is an &lt;code&gt;integer&lt;/code&gt;; the number of columns in the matrix &lt;code&gt;A&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;LDA&lt;/code&gt; is an &lt;code&gt;integer&lt;/code&gt;; the leading dimension (&lt;strong&gt;LD&lt;/strong&gt;) of &lt;code&gt;A&lt;/code&gt;. This would
+  initially seem to be redundant since the number of rows &lt;code&gt;M&lt;/code&gt; should be
+  the leading dimension. However, by allowing &lt;code&gt;LDA&lt;/code&gt; (the stride) to be
+  different from &lt;code&gt;M&lt;/code&gt;, &lt;code&gt;A&lt;/code&gt; can be taken as a submatrix of a larger array without
+  having to copy the data.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Outputs&lt;/strong&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;IPIV&lt;/code&gt; is a vector &lt;code&gt;integer&lt;/code&gt; values of dimension &lt;code&gt;min(M, N)&lt;/code&gt;; it describes
+  the row pivots used and is a more compact representation of the matrix &lt;code&gt;P&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;INFO&lt;/code&gt; is an integer &lt;code&gt;integer&lt;/code&gt;; this returns &lt;code&gt;0&lt;/code&gt; if the method succeeded,
+  uses negative return values to indicate invalid inputs (e.g. a matrix can't
+  have &lt;code&gt;N = -2&lt;/code&gt; rows) and positive return values to indicate if a division
+  by zero occurred during Gaussian elimination.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Mutated Inputs&lt;/strong&gt; (i.e. intent &lt;code&gt;inout&lt;/code&gt;):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;A&lt;/code&gt; is a 2D array of &lt;code&gt;double&lt;/code&gt; precision values of dimension &lt;code&gt;LDA x N&lt;/code&gt;;
+  on input this is the matrix that is being factored. When the routine exits,
+  the lower triangle of &lt;code&gt;A&lt;/code&gt; will contain the below diagonal elements of &lt;code&gt;L&lt;/code&gt;
+  (the diagonal of &lt;code&gt;L&lt;/code&gt; is already known to be all ones) and the upper triangle
+  of &lt;code&gt;A&lt;/code&gt; will contain &lt;code&gt;U&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Since the original LAPACK implementation (and many current implementations)
+are written in Fortran, all arguments are passed by reference.&lt;/p&gt;
+&lt;h3 id=high-level-py&gt;High-Level Python&lt;/h3&gt;
+&lt;p&gt;There are two functions in SciPy for performaing an LU decomposition:
+&lt;code&gt;scipy.linalg.lapack.dgetrf&lt;/code&gt; and &lt;code&gt;scipy.linalg.lu&lt;/code&gt;. The former is a "direct"
+wrapper but the wrapper handles allocating the outputs and allows a flag
+&lt;code&gt;overwrite_a&lt;/code&gt; which will determine if a copy of the input matrix is used
+when computing the factorization. The other function &lt;code&gt;scipy.linalg.lu&lt;/code&gt; varies
+slightly, but not enough to warrant a separate discussion here.&lt;/p&gt;
+&lt;p&gt;Now, we'll call &lt;code&gt;dgetrf&lt;/code&gt; with our sample matrix. To avoid any overhead
+from copies we make sure &lt;code&gt;A&lt;/code&gt; is in Fortran order (&lt;code&gt;"F"&lt;/code&gt;) and set the
+&lt;code&gt;overwrite_a&lt;/code&gt; flag to &lt;code&gt;True&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;numpy&lt;/span&gt; &lt;span class=kn&gt;as&lt;/span&gt; &lt;span class=nn&gt;np&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;scipy.linalg.lapack&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;A&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;np&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;array&lt;/span&gt;&lt;span class=p&gt;([&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mf&gt;4.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mf&gt;4.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mf&gt;3.&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mf&gt;0.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mf&gt;4.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mf&gt;1.&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mf&gt;1.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mf&gt;1.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;1.&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt; &lt;span class=p&gt;],&lt;/span&gt; &lt;span class=n&gt;order&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"F"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;lu_mat&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;ipiv&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;info&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;scipy&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;linalg&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;lapack&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;dgetrf&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;A&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;overwrite_a&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=bp&gt;True&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The method succeeded and the pivots are "trivial", i.e. the identity matrix&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;info&lt;/span&gt;
+&lt;span class=mi&gt;0&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;ipiv&lt;/span&gt;
+&lt;span class=n&gt;array&lt;/span&gt;&lt;span class=p&gt;([&lt;/span&gt;&lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;2&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt; &lt;span class=n&gt;dtype&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;int32&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Our returned &lt;code&gt;lu_mat&lt;/code&gt; is really just our input &lt;code&gt;A&lt;/code&gt;, which has been mutated
+to contain &lt;code&gt;L&lt;/code&gt; and &lt;code&gt;U&lt;/code&gt; in the lower and upper triangles:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;lu_mat&lt;/span&gt; &lt;span class=ow&gt;is&lt;/span&gt; &lt;span class=n&gt;A&lt;/span&gt;
+&lt;span class=bp&gt;True&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;A&lt;/span&gt;
+&lt;span class=n&gt;array&lt;/span&gt;&lt;span class=p&gt;([[&lt;/span&gt; &lt;span class=mf&gt;4.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;4.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mf&gt;3.&lt;/span&gt;  &lt;span class=p&gt;],&lt;/span&gt;
+       &lt;span class=p&gt;[&lt;/span&gt; &lt;span class=mf&gt;0.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;4.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mf&gt;1.&lt;/span&gt;  &lt;span class=p&gt;],&lt;/span&gt;
+       &lt;span class=p&gt;[&lt;/span&gt; &lt;span class=mf&gt;0.25&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;0.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;1.75&lt;/span&gt;&lt;span class=p&gt;]])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=finding-lapack&gt;Finding LAPACK&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This section can be freely skipped. &lt;strong&gt;TL;DR&lt;/strong&gt;: the &lt;code&gt;liblapack&lt;/code&gt; shared library
+contains the routine &lt;code&gt;dgetrf_&lt;/code&gt;. In other words, the name in the symbol table
+has an underscore appended to it.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Before moving on to C, C++ and other low-level languages we need to
+understand the exported interface of LAPACK. To do this, we'll get
+a little help from the &lt;code&gt;ctypes&lt;/code&gt; &lt;a href="https://docs.python.org/3/library/ctypes.html"&gt;library&lt;/a&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;ctypes.util&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;util&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;find_library&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s2&gt;"lapack"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=s1&gt;'liblapack.so.3'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Viewing the &lt;a href="https://github.com/python/cpython/blob/v3.7.0/Lib/ctypes/util.py#L309-L312"&gt;source&lt;/a&gt; in the Python standard library, we see that (on
+"most" posix systems) this is essentially equivalent to a direct usage
+of &lt;code&gt;ldconfig&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LC_ALL&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;C &lt;span class=nv&gt;LANG&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;C ldconfig -p &lt;span class=p&gt;|&lt;/span&gt; grep &lt;span class=s1&gt;'liblapack\.'&lt;/span&gt;
+    liblapack.so.3 &lt;span class=o&gt;(&lt;/span&gt;libc6,x86-64&lt;span class=o&gt;)&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt;&amp;gt; /usr/lib/x86_64-linux-gnu/liblapack.so.3
+    liblapack.so &lt;span class=o&gt;(&lt;/span&gt;libc6,x86-64&lt;span class=o&gt;)&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt;&amp;gt; /usr/lib/x86_64-linux-gnu/liblapack.so
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If that fails, including &lt;code&gt;-llapack&lt;/code&gt; when compiling an empty file
+with &lt;code&gt;gcc&lt;/code&gt; is used:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LC_ALL&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;C &lt;span class=nv&gt;LANG&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;C gcc -Wl,-t -o /dev/null -llapack &lt;span class=m&gt;2&lt;/span&gt;&amp;gt; /dev/null &lt;span class=p&gt;|&lt;/span&gt; grep lapack
+-llapack &lt;span class=o&gt;(&lt;/span&gt;/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/liblapack.so&lt;span class=o&gt;)&lt;/span&gt;
+$ objdump -p -j .dynamic &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/liblapack.so &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   &lt;span class=m&gt;2&lt;/span&gt;&amp;gt; /dev/null &lt;span class=p&gt;|&lt;/span&gt; grep SONAME
+  SONAME               liblapack.so.3
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If that also fails, &lt;code&gt;ld&lt;/code&gt; (possibly extended by
+the &lt;code&gt;LD_LIBRARY_PATH&lt;/code&gt; environment variable) is used:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ld -t -llapack &lt;span class=m&gt;2&lt;/span&gt;&amp;gt; /dev/null
+ld: mode elf_x86_64
+-llapack &lt;span class=o&gt;(&lt;/span&gt;//usr/lib/x86_64-linux-gnu/liblapack.so&lt;span class=o&gt;)&lt;/span&gt;
+$ objdump -p -j .dynamic &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   //usr/lib/x86_64-linux-gnu/liblapack.so &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   &lt;span class=m&gt;2&lt;/span&gt;&amp;gt; /dev/null &lt;span class=p&gt;|&lt;/span&gt; grep SONAME
+  SONAME               liblapack.so.3
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Once we've found the shared library, we need to look in the symbol table
+(&lt;code&gt;-T&lt;/code&gt; for table) for &lt;code&gt;dgetrf&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ objdump -T /usr/lib/x86_64-linux-gnu/liblapack.so &lt;span class=p&gt;|&lt;/span&gt; grep -i dgetrf
+00000000001273d0 g    DF .text  &lt;span class=m&gt;0000000000000158&lt;/span&gt;  Base        clapack_dgetrf
+000000000002c520 g    DF .text  &lt;span class=m&gt;0000000000000025&lt;/span&gt;  Base        ATL_dgetrf
+&lt;span class=m&gt;0000000000036630&lt;/span&gt; g    DF .text  00000000000000d4  Base        atl_f77wrap_dgetrf_
+000000000002c550 g    DF .text  &lt;span class=m&gt;0000000000000778&lt;/span&gt;  Base        ATL_dgetrfC
+000000000002ccd0 g    DF .text  00000000000002e0  Base        ATL_dgetrfR
+&lt;span class=m&gt;0000000000215590&lt;/span&gt; g    DF .text  00000000000000b3  Base        dgetrf_
+&lt;span class=m&gt;0000000000215650&lt;/span&gt; g    DF .text  &lt;span class=m&gt;0000000000000490&lt;/span&gt;  Base        dgetrf2_
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We see that there are quite a few &lt;code&gt;dgetrf&lt;/code&gt; routines, but the one we'll use
+is &lt;code&gt;dgetrf_&lt;/code&gt;. The &lt;code&gt;dgetrf2_&lt;/code&gt; routine is a recursive &lt;a href="http://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_gabdd3af29e9f6bbaf4b352341a1e8b464.html#gabdd3af29e9f6bbaf4b352341a1e8b464"&gt;version&lt;/a&gt; of &lt;code&gt;dgetrf_&lt;/code&gt;
+and the other routines are implementation details (specifically &lt;a href="http://www.netlib.org/clapack/readme"&gt;CLAPACK&lt;/a&gt;
+and &lt;a href="http://math-atlas.sourceforge.net/"&gt;ATLAS&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;This symbol name was a bit confusing to me when using LAPACK, but I took it
+on faith. The reason for it is &lt;a href="https://www.math.utah.edu/software/c-with-fortran.html#routine-naming"&gt;historical&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The world's first Fortran 77 compiler ...
+appended an underscore on Fortran external names. Thus, Fortran
+&lt;code&gt;SUBROUTINE foo&lt;/code&gt; is known as &lt;code&gt;foo_()&lt;/code&gt; in C&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This convention has remained even as compilers have changed. For example
+CLAPACK (i.e. an implementation of LAPACK in C) follows this convention
+even though no Fortran compiler is used at all:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;f2c&lt;/code&gt; has added this underscore to all the names in CLAPACK. So,
+a call that in Fortran would look like: &lt;code&gt;call dgetrf(...)&lt;/code&gt; becomes in C:
+&lt;code&gt;dgetrf_(...);&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Now that we understand the shared library, let's actually figure out where
+it came from. Following the symbolic links we see&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/usr/lib/x86_64-linux-gnu/liblapack.so.3
+  -&amp;gt; /etc/alternatives/liblapack.so.3-x86_64-linux-gnu
+    -&amp;gt; /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3
+      -&amp;gt; /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Once the true location is given, we can find&lt;sup id=sf-learn-you-a-lapack-2-back&gt;&lt;a href=#sf-learn-you-a-lapack-2 class=simple-footnote title="On a Debian Linux. For example, I am running Ubuntu 18.04"&gt;2&lt;/a&gt;&lt;/sup&gt; the package that owns the
+shared library&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; dpkg-query -S /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
+&lt;span class=go&gt;libatlas3-base:amd64: /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3&lt;/span&gt;
+&lt;span class=gp&gt;$&lt;/span&gt; &lt;span class=c1&gt;# Find ATLAS reverse dependencies of libatlas3-base package&lt;/span&gt;
+&lt;span class=gp&gt;$&lt;/span&gt; apt rdepends libatlas3-base &lt;span class=m&gt;2&lt;/span&gt;&amp;gt; /dev/null &lt;span class=p&gt;|&lt;/span&gt; grep Depends &lt;span class=p&gt;|&lt;/span&gt; grep atlas
+&lt;span class=go&gt;  Depends: libatlas-base-dev (= 3.10.3-5)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=low-level-py&gt;Low-Level Python (&lt;code&gt;ctypes&lt;/code&gt;)&lt;/h3&gt;
+&lt;p&gt;Now that we know which shared library to use, we can dynamically load
+the library into Python and verify that &lt;code&gt;dgetrf_&lt;/code&gt; is in the symbol table:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;ctypes&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;liblapack&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;cdll&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;LoadLibrary&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s2&gt;"liblapack.so.3"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;liblapack&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;dgetrf_&lt;/span&gt;
+&lt;span class=o&gt;&amp;lt;&lt;/span&gt;&lt;span class=n&gt;_FuncPtr&lt;/span&gt; &lt;span class=nb&gt;object&lt;/span&gt; &lt;span class=n&gt;at&lt;/span&gt; &lt;span class=mh&gt;0x7f3fd33ba688&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We can also verify that the &lt;code&gt;dgetrf&lt;/code&gt; symbol is &lt;strong&gt;not&lt;/strong&gt; present (and the
+traceback will show us the actual path to the shared library):&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;liblapack&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;dgetrf&lt;/span&gt;
+&lt;span class=n&gt;Traceback&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;most&lt;/span&gt; &lt;span class=n&gt;recent&lt;/span&gt; &lt;span class=n&gt;call&lt;/span&gt; &lt;span class=n&gt;last&lt;/span&gt;&lt;span class=p&gt;):&lt;/span&gt;
+  &lt;span class=n&gt;File&lt;/span&gt; &lt;span class=s2&gt;"&amp;lt;stdin&amp;gt;"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;line&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=ow&gt;in&lt;/span&gt; &lt;span class=o&gt;&amp;lt;&lt;/span&gt;&lt;span class=n&gt;module&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=n&gt;File&lt;/span&gt; &lt;span class=s2&gt;".../lib/python3.7/ctypes/__init__.py"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;line&lt;/span&gt; &lt;span class=mi&gt;369&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=ow&gt;in&lt;/span&gt; &lt;span class=fm&gt;__getattr__&lt;/span&gt;
+    &lt;span class=n&gt;func&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=bp&gt;self&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=fm&gt;__getitem__&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;name&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+  &lt;span class=n&gt;File&lt;/span&gt; &lt;span class=s2&gt;".../lib/python3.7/ctypes/__init__.py"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;line&lt;/span&gt; &lt;span class=mi&gt;374&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=ow&gt;in&lt;/span&gt; &lt;span class=fm&gt;__getitem__&lt;/span&gt;
+    &lt;span class=n&gt;func&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=bp&gt;self&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;_FuncPtr&lt;/span&gt;&lt;span class=p&gt;((&lt;/span&gt;&lt;span class=n&gt;name_or_ordinal&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=bp&gt;self&lt;/span&gt;&lt;span class=p&gt;))&lt;/span&gt;
+&lt;span class=ne&gt;AttributeError&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=o&gt;/&lt;/span&gt;&lt;span class=n&gt;usr&lt;/span&gt;&lt;span class=o&gt;/&lt;/span&gt;&lt;span class=n&gt;lib&lt;/span&gt;&lt;span class=o&gt;/&lt;/span&gt;&lt;span class=n&gt;x86_64&lt;/span&gt;&lt;span class=o&gt;-&lt;/span&gt;&lt;span class=n&gt;linux&lt;/span&gt;&lt;span class=o&gt;-&lt;/span&gt;&lt;span class=n&gt;gnu&lt;/span&gt;&lt;span class=o&gt;/&lt;/span&gt;&lt;span class=n&gt;liblapack&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;so&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=n&gt;undefined&lt;/span&gt; &lt;span class=n&gt;symbol&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=n&gt;dgetrf&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To actually call this routine, we first specify the input and output types:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;dgetrf&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;liblapack&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;dgetrf_&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;int_ptr&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;POINTER&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;c_int&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;double_ptr&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;POINTER&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;c_double&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;dgetrf&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;argtypes&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=n&gt;int_ptr&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;int_ptr&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;double_ptr&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;int_ptr&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;int_ptr&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;int_ptr&lt;/span&gt;&lt;span class=p&gt;]&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;dgetrf&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;restype&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=bp&gt;None&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To call it, we use &lt;code&gt;ctypes&lt;/code&gt; and NumPy to allocate all of our arguments:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;numpy&lt;/span&gt; &lt;span class=kn&gt;as&lt;/span&gt; &lt;span class=nn&gt;np&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;M&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;c_int&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;N&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;c_int&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;A&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;np&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;array&lt;/span&gt;&lt;span class=p&gt;([&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mf&gt;4.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mf&gt;4.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mf&gt;3.&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mf&gt;0.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mf&gt;4.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mf&gt;1.&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mf&gt;1.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mf&gt;1.&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;1.&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt; &lt;span class=p&gt;],&lt;/span&gt; &lt;span class=n&gt;order&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"F"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;LDA&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;c_int&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;IPIV&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;np&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;empty&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;dtype&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;np&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;intc&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;INFO&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;c_int&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=c1&gt;# Check Uninitialized&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;IPIV&lt;/span&gt;
+&lt;span class=n&gt;array&lt;/span&gt;&lt;span class=p&gt;([&lt;/span&gt;&lt;span class=mi&gt;47155696&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;        &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;        &lt;span class=mi&gt;2&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt; &lt;span class=n&gt;dtype&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;int32&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;INFO&lt;/span&gt;
+&lt;span class=n&gt;c_int&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;50221552&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Since LAPACK follows the pass by reference convention, we pass
+in a pointer to each of these arguments&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;return_value&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;dgetrf&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;pointer&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;M&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;pointer&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;N&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=n&gt;A&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;data_as&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;double_ptr&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;pointer&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;LDA&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=n&gt;IPIV&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;data_as&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;int_ptr&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt;     &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;pointer&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;INFO&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=o&gt;...&lt;/span&gt; &lt;span class=p&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and the results match those from &lt;code&gt;scipy.linalg.lapack.dgetrf&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;return_value&lt;/span&gt; &lt;span class=ow&gt;is&lt;/span&gt; &lt;span class=bp&gt;None&lt;/span&gt;
+&lt;span class=bp&gt;True&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;INFO&lt;/span&gt;
+&lt;span class=n&gt;c_int&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;IPIV&lt;/span&gt;
+&lt;span class=n&gt;array&lt;/span&gt;&lt;span class=p&gt;([&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;2&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt; &lt;span class=n&gt;dtype&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;int32&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;A&lt;/span&gt;
+&lt;span class=n&gt;array&lt;/span&gt;&lt;span class=p&gt;([[&lt;/span&gt; &lt;span class=mf&gt;4.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;4.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mf&gt;3.&lt;/span&gt;  &lt;span class=p&gt;],&lt;/span&gt;
+       &lt;span class=p&gt;[&lt;/span&gt; &lt;span class=mf&gt;0.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;4.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mf&gt;1.&lt;/span&gt;  &lt;span class=p&gt;],&lt;/span&gt;
+       &lt;span class=p&gt;[&lt;/span&gt; &lt;span class=mf&gt;0.25&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;0.&lt;/span&gt;  &lt;span class=p&gt;,&lt;/span&gt;  &lt;span class=mf&gt;1.75&lt;/span&gt;&lt;span class=p&gt;]])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=c&gt;C&lt;/h3&gt;
+&lt;p&gt;Unfortunately, LAPACK doesn't come with a standard header file, so
+the &lt;code&gt;dgetrf_&lt;/code&gt; symbol must be declared via &lt;code&gt;extern&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=k&gt;extern&lt;/span&gt; &lt;span class=kt&gt;void&lt;/span&gt; &lt;span class=nf&gt;dgetrf_&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=k&gt;const&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;M&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=k&gt;const&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;N&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;double&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;A&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=k&gt;const&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;LDA&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;IPIV&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;INFO&lt;/span&gt;&lt;span class=p&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Notice that all arguments are pointers. We've marked the input only arguments
+as &lt;code&gt;const&lt;/code&gt; to help the C compiler out. We've also used &lt;code&gt;int&lt;/code&gt; (rather than
+&lt;code&gt;long&lt;/code&gt;) for the integer arguments.&lt;/p&gt;
+&lt;p&gt;When calling &lt;code&gt;dgetrf_&lt;/code&gt; in the C &lt;a href="/code/dgetrf_example.c"&gt;example&lt;/a&gt;, we take
+care to lay out &lt;code&gt;A&lt;/code&gt; in Fortran order:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kt&gt;int&lt;/span&gt; &lt;span class=n&gt;M&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=kt&gt;int&lt;/span&gt; &lt;span class=n&gt;N&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=kt&gt;double&lt;/span&gt; &lt;span class=n&gt;A&lt;/span&gt;&lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mi&gt;9&lt;/span&gt;&lt;span class=p&gt;]&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt; &lt;span class=mi&gt;4&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;4&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;4&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=p&gt;};&lt;/span&gt;
+&lt;span class=kt&gt;int&lt;/span&gt; &lt;span class=n&gt;LDA&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=kt&gt;int&lt;/span&gt; &lt;span class=n&gt;IPIV&lt;/span&gt;&lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;];&lt;/span&gt;
+&lt;span class=kt&gt;int&lt;/span&gt; &lt;span class=n&gt;INFO&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Actually building code that uses &lt;code&gt;liblapack&lt;/code&gt; confused me. On a Debian-based
+Linux system, I could install LAPACK via&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=o&gt;[&lt;/span&gt;sudo&lt;span class=o&gt;]&lt;/span&gt; apt install libatlas-base-dev
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and be on my merry way with the &lt;code&gt;-llapack&lt;/code&gt; flag:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gcc -o main dgetrf_example.c -llapack
+$ ./main
+Inputs:
+  &lt;span class=nv&gt;M&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=m&gt;3&lt;/span&gt;
+  &lt;span class=nv&gt;N&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=m&gt;3&lt;/span&gt;
+  &lt;span class=nv&gt;A&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=o&gt;[&lt;/span&gt; &lt;span class=m&gt;4&lt;/span&gt;.00,  &lt;span class=m&gt;4&lt;/span&gt;.00, -3.00&lt;span class=o&gt;]&lt;/span&gt;
+      &lt;span class=o&gt;[&lt;/span&gt; &lt;span class=m&gt;0&lt;/span&gt;.00,  &lt;span class=m&gt;4&lt;/span&gt;.00, -1.00&lt;span class=o&gt;]&lt;/span&gt;
+      &lt;span class=o&gt;[&lt;/span&gt; &lt;span class=m&gt;1&lt;/span&gt;.00,  &lt;span class=m&gt;1&lt;/span&gt;.00,  &lt;span class=m&gt;1&lt;/span&gt;.00&lt;span class=o&gt;]&lt;/span&gt;
+  &lt;span class=nv&gt;LDA&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=m&gt;3&lt;/span&gt;
+Outputs:
+  &lt;span class=nv&gt;A&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=o&gt;[&lt;/span&gt; &lt;span class=m&gt;4&lt;/span&gt;.00,  &lt;span class=m&gt;4&lt;/span&gt;.00, -3.00&lt;span class=o&gt;]&lt;/span&gt;
+      &lt;span class=o&gt;[&lt;/span&gt; &lt;span class=m&gt;0&lt;/span&gt;.00,  &lt;span class=m&gt;4&lt;/span&gt;.00, -1.00&lt;span class=o&gt;]&lt;/span&gt;
+      &lt;span class=o&gt;[&lt;/span&gt; &lt;span class=m&gt;0&lt;/span&gt;.25,  &lt;span class=m&gt;0&lt;/span&gt;.00,  &lt;span class=m&gt;1&lt;/span&gt;.75&lt;span class=o&gt;]&lt;/span&gt;
+  &lt;span class=nv&gt;IPIV&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=o&gt;[&lt;/span&gt;&lt;span class=m&gt;1&lt;/span&gt;, &lt;span class=m&gt;2&lt;/span&gt;, &lt;span class=m&gt;3&lt;/span&gt;&lt;span class=o&gt;]&lt;/span&gt;
+  &lt;span class=nv&gt;INFO&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=m&gt;0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=compiling-on-os-x&gt;Compiling on OS X&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt;: As of Mac OS X High Sierra (10.13), your code can link to LAPACK
+via &lt;code&gt;-llapack&lt;/code&gt; or &lt;code&gt;-framework Accelerate&lt;/code&gt;. Also, when I started graduate
+school I didn't know much about compiling code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I was using Mac OS X Mountain Lion (10.8) at the time. Without
+using Homebrew to install LAPACK or OpenBLAS, compiling&lt;sup id=sf-learn-you-a-lapack-3-back&gt;&lt;a href=#sf-learn-you-a-lapack-3 class=simple-footnote title="Note that gcc is just an alias for clang on OS X"&gt;3&lt;/a&gt;&lt;/sup&gt; with &lt;code&gt;-llapack&lt;/code&gt; failed with something
+along the lines of:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; clang -o main dgetrf_example.c -llapack
+&lt;span class=go&gt;ld: library not found for -llapack&lt;/span&gt;
+&lt;span class=go&gt;clang: error: linker command failed with exit code 1 (use -v to see invocation)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Just leaving out the flag entirely was also not an option:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; clang -o main dgetrf_example.c
+&lt;span class=go&gt;Undefined symbols for architecture x86_64:&lt;/span&gt;
+&lt;span class=go&gt;  "_dgetrf_", referenced from:&lt;/span&gt;
+&lt;span class=go&gt;      _main in dgetrf_example-fcd533.o&lt;/span&gt;
+&lt;span class=go&gt;ld: symbol(s) not found for architecture x86_64&lt;/span&gt;
+&lt;span class=go&gt;clang: error: linker command failed with exit code 1 (use -v to see invocation)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I would eventually find out that Apple provides a custom &lt;a href="https://developer.apple.com/documentation/accelerate/veclib"&gt;framework&lt;/a&gt;
+called &lt;code&gt;vecLib&lt;/code&gt; that contained a LAPACK implementation / interface among other
+things. So the correct magical incantation (as of OS X 10.8) was&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; clang -o main dgetrf_example.c -framework vecLib
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At some point&lt;sup id=sf-learn-you-a-lapack-4-back&gt;&lt;a href=#sf-learn-you-a-lapack-4 class=simple-footnote title="It seems it was in Mac OS X Yosemite (10.10)."&gt;4&lt;/a&gt;&lt;/sup&gt;,
+things &lt;strong&gt;got better&lt;/strong&gt; (&lt;a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate"&gt;thanks&lt;/a&gt; Apple). On a current&lt;sup id=sf-learn-you-a-lapack-5-back&gt;&lt;a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="Mac OS X High Sierra (10.13)"&gt;5&lt;/a&gt;&lt;/sup&gt; version, &lt;code&gt;liblapack&lt;/code&gt; comes with the OS:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;ctypes.util&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;util&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;find_library&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s2&gt;"lapack"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=s1&gt;'/usr/lib/liblapack.dylib'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Following symlinks, we see that this shared library is part of the
+&lt;code&gt;Accelerate&lt;/code&gt; &lt;a href="https://developer.apple.com/documentation/accelerate"&gt;framework&lt;/a&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;os&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;os&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;path&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;realpath&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s2&gt;"/usr/lib/liblapack.dylib"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=s1&gt;'/System/Library/Frameworks/Accelerate.framework/.../A/libLAPACK.dylib'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;!---
+Full path:
+'/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libLAPACK.dylib'
+--&gt;
+
+&lt;p&gt;Now &lt;code&gt;vecLib&lt;/code&gt; is contained in &lt;code&gt;Accelerate&lt;/code&gt; and can no longer be
+included directly:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; readlink /System/Library/Frameworks/vecLib.framework
+&lt;span class=go&gt;Accelerate.framework//Versions/A/Frameworks/vecLib.framework&lt;/span&gt;
+&lt;span class=gp&gt;$&lt;/span&gt; clang -o main dgetrf_example.c -framework vecLib
+&lt;span class=go&gt;ld: cannot link directly with /System/Library/Frameworks//vecLib.framework/vecLib for architecture x86_64&lt;/span&gt;
+&lt;span class=go&gt;clang: error: linker command failed with exit code 1 (use -v to see invocation)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;However, this means that LAPACK can be included the "Linux" way or via
+a framework:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; clang -o main dgetrf_example.c -llapack
+&lt;span class=gp&gt;$&lt;/span&gt; clang -o main dgetrf_example.c -framework Accelerate
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=cpp&gt;C++&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt;: Use &lt;code&gt;extern "C"&lt;/code&gt; instead of just &lt;code&gt;extern&lt;/code&gt; when declaring
+LAPACK routines in C++ code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;When I started graduate school I didn't know anything about shared libraries,
+symbol tables, &lt;a href="https://en.wikipedia.org/wiki/Name_mangling"&gt;name mangling&lt;/a&gt; or ABIs. It also didn't even occur to me
+that extra underscore in names of LAPACK routines in the shared library had
+anything to do with those topics.&lt;/p&gt;
+&lt;p&gt;Luckily, after an hour or two&lt;sup id=sf-learn-you-a-lapack-6-back&gt;&lt;a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="I'm not joking, I was really stumped"&gt;6&lt;/a&gt;&lt;/sup&gt;
+of Googling I learned about &lt;code&gt;extern "C"&lt;/code&gt; and everything "made sense". Once
+you know about &lt;code&gt;extern "C"&lt;/code&gt;, declaring the LAPACK routine in C++ is essentially
+the same as in C:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=k&gt;extern&lt;/span&gt; &lt;span class=s&gt;"C"&lt;/span&gt; &lt;span class=kt&gt;void&lt;/span&gt; &lt;span class=n&gt;dgetrf_&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=k&gt;const&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;M&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=k&gt;const&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;N&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;double&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;A&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=k&gt;const&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;LDA&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;IPIV&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt; &lt;span class=n&gt;INFO&lt;/span&gt;&lt;span class=p&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;From there, &lt;code&gt;dgetrf_&lt;/code&gt; can be used as it would in C. But I'd like to explain
+a bit further why we say &lt;code&gt;extern "C"&lt;/code&gt; rather than &lt;code&gt;extern&lt;/code&gt;. To explain,
+consider the simple program that is valid in C or C++:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kt&gt;int&lt;/span&gt; &lt;span class=nf&gt;together&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=kt&gt;int&lt;/span&gt; &lt;span class=n&gt;m&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;int&lt;/span&gt; &lt;span class=n&gt;n&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=n&gt;m&lt;/span&gt; &lt;span class=o&gt;+&lt;/span&gt; &lt;span class=n&gt;n&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If we compile this into an object file in C, we see the name &lt;code&gt;together&lt;/code&gt;
+in the symbol table&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; gcc -c together.c
+&lt;span class=gp&gt;$&lt;/span&gt; nm together.o
+&lt;span class=go&gt;0000000000000000 T together&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;but if we compile the same code in C++, the name is mangled (to
+&lt;code&gt;_Z8togetherii&lt;/code&gt;) before it is put in the symbol table:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; g++ -c together.cpp
+&lt;span class=gp&gt;$&lt;/span&gt; nm together.o
+&lt;span class=go&gt;0000000000000000 T _Z8togetherii&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This name mangling allows many features of C++. For example, we could
+provide a second implementation using the &lt;strong&gt;same&lt;/strong&gt; name but with type
+&lt;code&gt;double&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kt&gt;double&lt;/span&gt; &lt;span class=nf&gt;together&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=kt&gt;double&lt;/span&gt; &lt;span class=n&gt;m&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;double&lt;/span&gt; &lt;span class=n&gt;n&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=n&gt;m&lt;/span&gt; &lt;span class=o&gt;+&lt;/span&gt; &lt;span class=n&gt;n&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and the two functions can both be in the symbol table without "colliding"
+on their shared name:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; g++ -c together.cpp
+&lt;span class=gp&gt;$&lt;/span&gt; nm together.o
+&lt;span class=go&gt;0000000000000014 T _Z8togetherdd&lt;/span&gt;
+&lt;span class=go&gt;0000000000000000 T _Z8togetherii&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;For an example in the wild consider the &lt;code&gt;libjsoncpp&lt;/code&gt; &lt;a href="https://github.com/open-source-parsers/jsoncpp"&gt;package&lt;/a&gt; (chosen at
+random since it is installed on my current system). The &lt;code&gt;valueToString&lt;/code&gt; method
+in the &lt;code&gt;Json&lt;/code&gt; namespace has six different implementations:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; objdump    -T /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4 &lt;span class=p&gt;|&lt;/span&gt; grep valueToString
+&lt;span class=go&gt;0000000000020c30 ... _ZN4Json13valueToStringB5cxx11Eb&lt;/span&gt;
+&lt;span class=go&gt;0000000000020be0 ... _ZN4Json13valueToStringB5cxx11Ed&lt;/span&gt;
+&lt;span class=go&gt;0000000000020b60 ... _ZN4Json13valueToStringB5cxx11Ei&lt;/span&gt;
+&lt;span class=go&gt;0000000000020ba0 ... _ZN4Json13valueToStringB5cxx11Ej&lt;/span&gt;
+&lt;span class=go&gt;00000000000208c0 ... _ZN4Json13valueToStringB5cxx11Ex&lt;/span&gt;
+&lt;span class=go&gt;0000000000020a80 ... _ZN4Json13valueToStringB5cxx11Ey&lt;/span&gt;
+&lt;span class=gp&gt;$&lt;/span&gt; objdump -C -T /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4 &lt;span class=p&gt;|&lt;/span&gt; grep valueToString
+&lt;span class=go&gt;0000000000020c30 ... Json::valueToString[abi:cxx11](bool)&lt;/span&gt;
+&lt;span class=go&gt;0000000000020be0 ... Json::valueToString[abi:cxx11](double)&lt;/span&gt;
+&lt;span class=go&gt;0000000000020b60 ... Json::valueToString[abi:cxx11](int)&lt;/span&gt;
+&lt;span class=go&gt;0000000000020ba0 ... Json::valueToString[abi:cxx11](unsigned int)&lt;/span&gt;
+&lt;span class=go&gt;00000000000208c0 ... Json::valueToString[abi:cxx11](long long)&lt;/span&gt;
+&lt;span class=go&gt;0000000000020a80 ... Json::valueToString[abi:cxx11](unsigned long long)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Why did I just tell you all this? To make it clear why we say &lt;code&gt;extern "C"&lt;/code&gt;
+instead of just &lt;code&gt;extern&lt;/code&gt;. This indicates to the compiler that the symbol
+we want to refer to is &lt;strong&gt;literally&lt;/strong&gt; &lt;code&gt;dgetrf_&lt;/code&gt;. By using &lt;code&gt;extern&lt;/code&gt;, that would
+tell the compiler to look for a mangled external name. For example with &lt;code&gt;g++&lt;/code&gt;,
+it would look for the name &lt;code&gt;_Z7dgetrf_PKiS0_PdS0_PiS2_&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=conclusion&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;I hope this post has been informational. Now you should have a better idea
+how to&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Read LAPACK documentation to interpret and write the correct signature for
+  a LAPACK routine&lt;/li&gt;
+&lt;li&gt;Reference the correct symbol when calling a LAPACK routine as a foreign
+  function&lt;/li&gt;
+&lt;li&gt;Understand argument intent and pass by reference calling convention
+  for LAPACK's Fortran-like interface&lt;/li&gt;
+&lt;li&gt;Use Python's &lt;code&gt;ctypes&lt;/code&gt; module (and NumPy's &lt;code&gt;ctypes.data_as&lt;/code&gt; method) to
+  invoke LAPACK routines for fast prototyping and debugging&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Thanks for reading!&lt;/p&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-learn-you-a-lapack-1&gt;This actually happened to me. My undergraduate research
+project (REU) eventually boiled down to showing that a particularly special
+matrix had a nonzero determinant. &lt;a href=#sf-learn-you-a-lapack-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-2&gt;On a Debian Linux. For
+example, I am running Ubuntu 18.04 &lt;a href=#sf-learn-you-a-lapack-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-3&gt;Note that &lt;code&gt;gcc&lt;/code&gt; is
+just an alias for &lt;code&gt;clang&lt;/code&gt; on OS X &lt;a href=#sf-learn-you-a-lapack-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-4&gt;It &lt;a href="https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16033"&gt;seems&lt;/a&gt; it was in Mac OS X Yosemite (10.10). &lt;a href=#sf-learn-you-a-lapack-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-5&gt;Mac OS X High
+Sierra (10.13) &lt;a href=#sf-learn-you-a-lapack-5-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-6&gt;I'm not joking, I was really stumped &lt;a href=#sf-learn-you-a-lapack-6-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="Linear Algebra"></category><category term="Applied Mathematics"></category><category term="Mathematics"></category><category term="Programming"></category></entry><entry><title>Graduated</title><link href="https://blog.bossylobster.com/2018/09/graduated.html" rel="alternate"></link><published>2018-09-07T00:00:00-07:00</published><updated>2018-09-07T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-07:/2018/09/graduated.html</id><summary type="html">&lt;p&gt;After five years, I'm excited to say I've finished &lt;a href="https://github.com/dhermes/phd-thesis"&gt;my PhD&lt;/a&gt;. I certainly
 learned a lot and met a lot of great people along the way.&lt;/p&gt;
 &lt;p&gt;One of the biggest lessons I learned was about myself: I need to &lt;strong&gt;say no&lt;/strong&gt;
 more often. I continued to say yes, to &lt;a href="https://github.com/GoogleCloudPlatform/google-cloud-python/"&gt;side …&lt;/a&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;After five years, I'm excited to say I've finished &lt;a href="https://github.com/dhermes/phd-thesis"&gt;my PhD&lt;/a&gt;. I certainly
