@@ -100,9 +100,9 @@ didn't understand the purpose of it.&lt;/p&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;strong&gt;Outputs&lt;/strong&gt;:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;code&gt;IPIV&lt;/code&gt; is a vector &lt;code&gt;integer&lt;/code&gt; values of dimension &lt;code&gt;min(M, N)&lt;/code&gt;; it describes
+&lt;li&gt;&lt;code&gt;IPIV&lt;/code&gt; is a vector of &lt;code&gt;integer&lt;/code&gt; values of dimension &lt;code&gt;min(M, N)&lt;/code&gt;; it describes
   the row pivots used and is a more compact representation of the matrix &lt;code&gt;P&lt;/code&gt;.&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;INFO&lt;/code&gt; is an integer &lt;code&gt;integer&lt;/code&gt;; this returns &lt;code&gt;0&lt;/code&gt; if the method succeeded,
+&lt;li&gt;&lt;code&gt;INFO&lt;/code&gt; is an &lt;code&gt;integer&lt;/code&gt;; this returns &lt;code&gt;0&lt;/code&gt; if the method succeeded,
   uses negative return values to indicate invalid inputs (e.g. a matrix can't
   have &lt;code&gt;N = -2&lt;/code&gt; rows) and positive return values to indicate if a division
   by zero occurred during Gaussian elimination.&lt;/li&gt;

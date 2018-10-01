@@ -194,9 +194,9 @@ didn't understand the purpose of it.</p>
 </ul>
 <p><strong>Outputs</strong>:</p>
 <ul>
-<li><code>IPIV</code> is a vector <code>integer</code> values of dimension <code>min(M, N)</code>; it describes
+<li><code>IPIV</code> is a vector of <code>integer</code> values of dimension <code>min(M, N)</code>; it describes
   the row pivots used and is a more compact representation of the matrix <code>P</code>.</li>
-<li><code>INFO</code> is an integer <code>integer</code>; this returns <code>0</code> if the method succeeded,
+<li><code>INFO</code> is an <code>integer</code>; this returns <code>0</code> if the method succeeded,
   uses negative return values to indicate invalid inputs (e.g. a matrix can't
   have <code>N = -2</code> rows) and positive return values to indicate if a division
   by zero occurred during Gaussian elimination.</li>
