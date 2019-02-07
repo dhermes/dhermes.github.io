@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2018-09-13T00:00:00-07:00</updated><entry><title>Learn You a LAPACK for Great Good</title><link href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html" rel="alternate"></link><published>2018-09-13T00:00:00-07:00</published><updated>2018-09-13T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-13:/2018/09/learn-you-a-lapack.html</id><summary type="html">&lt;p&gt;Linear Algebra is an incredibly powerful tool. A joke among mathematicians
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2018-09-13T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Learn You a LAPACK for Great Good</title><link href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html" rel="alternate"></link><published>2018-09-13T00:00:00-07:00</published><updated>2018-09-13T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-13:/2018/09/learn-you-a-lapack.html</id><summary type="html">&lt;p&gt;Linear Algebra is an incredibly powerful tool. A joke among mathematicians
 is that the only way we can solve a hard problem is to boil it down to
 Linear Algebra&lt;sup id=sf-learn-you-a-lapack-1-back&gt;&lt;a href=#sf-learn-you-a-lapack-1 class=simple-footnote title="This actually happened to me. My undergraduate research project (REU) eventually boiled down to showing that a particularly special matrix had a nonzero determinant."&gt;1&lt;/a&gt;&lt;/sup&gt;. Harnessing the &lt;strong&gt;numerical&lt;/strong&gt; power of
 Linear Algebra has been done via &lt;a href="https://en.wikipedia.org/wiki/LAPACK"&gt;LAPACK&lt;/a&gt; for the last 40+ years.&lt;/p&gt;
@@ -118,7 +118,7 @@ didn't understand the purpose of it.&lt;/p&gt;
 &lt;p&gt;Since the original LAPACK implementation (and many current implementations)
 are written in Fortran, all arguments are passed by reference.&lt;/p&gt;
 &lt;h3 id=high-level-py&gt;High-Level Python&lt;/h3&gt;
-&lt;p&gt;There are two functions in SciPy for performaing an LU decomposition:
+&lt;p&gt;There are two functions in SciPy for performing an LU decomposition:
 &lt;code&gt;scipy.linalg.lapack.dgetrf&lt;/code&gt; and &lt;code&gt;scipy.linalg.lu&lt;/code&gt;. The former is a "direct"
 wrapper but the wrapper handles allocating the outputs and allows a flag
 &lt;code&gt;overwrite_a&lt;/code&gt; which will determine if a copy of the input matrix is used
@@ -138,7 +138,8 @@ from copies we make sure &lt;code&gt;A&lt;/code&gt; is in Fortran order (&lt;cod
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;The method succeeded and the pivots are "trivial", i.e. the identity matrix&lt;/p&gt;
+&lt;p&gt;The method succeeded and the pivots are "trivial", i.e. the identity
+matrix&lt;sup id=sf-learn-you-a-lapack-2-back&gt;&lt;a href=#sf-learn-you-a-lapack-2 class=simple-footnote title="Though SciPy has returned 0-based pivots rather than the 1-based indices returned from LAPACK)"&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;info&lt;/span&gt;
 &lt;span class=mi&gt;0&lt;/span&gt;
 &lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;ipiv&lt;/span&gt;
@@ -245,7 +246,7 @@ it came from. Following the symbolic links we see&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;Once the true location is given, we can find&lt;sup id=sf-learn-you-a-lapack-2-back&gt;&lt;a href=#sf-learn-you-a-lapack-2 class=simple-footnote title="On a Debian Linux. For example, I am running Ubuntu 18.04"&gt;2&lt;/a&gt;&lt;/sup&gt; the package that owns the
+&lt;p&gt;Once the true location is given, we can find&lt;sup id=sf-learn-you-a-lapack-3-back&gt;&lt;a href=#sf-learn-you-a-lapack-3 class=simple-footnote title="On a Debian Linux. For example, I am running Ubuntu 18.04"&gt;3&lt;/a&gt;&lt;/sup&gt; the package that owns the
 shared library&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; dpkg-query -S /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
 &lt;span class=go&gt;libatlas3-base:amd64: /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3&lt;/span&gt;
@@ -388,7 +389,7 @@ via &lt;code&gt;-llapack&lt;/code&gt; or &lt;code&gt;-framework Accelerate&lt;/c
 school I didn't know much about compiling code.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;I was using Mac OS X Mountain Lion (10.8) at the time. Without
-using Homebrew to install LAPACK or OpenBLAS, compiling&lt;sup id=sf-learn-you-a-lapack-3-back&gt;&lt;a href=#sf-learn-you-a-lapack-3 class=simple-footnote title="Note that gcc is just an alias for clang on OS X"&gt;3&lt;/a&gt;&lt;/sup&gt; with &lt;code&gt;-llapack&lt;/code&gt; failed with something
+using Homebrew to install LAPACK or OpenBLAS, compiling&lt;sup id=sf-learn-you-a-lapack-4-back&gt;&lt;a href=#sf-learn-you-a-lapack-4 class=simple-footnote title="Note that gcc is just an alias for clang on OS X"&gt;4&lt;/a&gt;&lt;/sup&gt; with &lt;code&gt;-llapack&lt;/code&gt; failed with something
 along the lines of:&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; clang -o main dgetrf_example.c -llapack
 &lt;span class=go&gt;ld: library not found for -llapack&lt;/span&gt;
@@ -413,8 +414,8 @@ things. So the correct magical incantation (as of OS X 10.8) was&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;At some point&lt;sup id=sf-learn-you-a-lapack-4-back&gt;&lt;a href=#sf-learn-you-a-lapack-4 class=simple-footnote title="It seems it was in Mac OS X Yosemite (10.10)."&gt;4&lt;/a&gt;&lt;/sup&gt;,
-things &lt;strong&gt;got better&lt;/strong&gt; (&lt;a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate"&gt;thanks&lt;/a&gt; Apple). On a current&lt;sup id=sf-learn-you-a-lapack-5-back&gt;&lt;a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="Mac OS X High Sierra (10.13)"&gt;5&lt;/a&gt;&lt;/sup&gt; version, &lt;code&gt;liblapack&lt;/code&gt; comes with the OS:&lt;/p&gt;
+&lt;p&gt;At some point&lt;sup id=sf-learn-you-a-lapack-5-back&gt;&lt;a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="It seems it was in Mac OS X Yosemite (10.10)."&gt;5&lt;/a&gt;&lt;/sup&gt;,
+things &lt;strong&gt;got better&lt;/strong&gt; (&lt;a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate"&gt;thanks&lt;/a&gt; Apple). On a current&lt;sup id=sf-learn-you-a-lapack-6-back&gt;&lt;a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="Mac OS X High Sierra (10.13)"&gt;6&lt;/a&gt;&lt;/sup&gt; version, &lt;code&gt;liblapack&lt;/code&gt; comes with the OS:&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;ctypes.util&lt;/span&gt;
 &lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;ctypes&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;util&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;find_library&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s2&gt;"lapack"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
 &lt;span class=s1&gt;'/usr/lib/liblapack.dylib'&lt;/span&gt;
@@ -460,7 +461,7 @@ LAPACK routines in C++ code.&lt;/p&gt;
 symbol tables, &lt;a href="https://en.wikipedia.org/wiki/Name_mangling"&gt;name mangling&lt;/a&gt; or ABIs. It also didn't even occur to me
 that extra underscore in names of LAPACK routines in the shared library had
 anything to do with those topics.&lt;/p&gt;
-&lt;p&gt;Luckily, after an hour or two&lt;sup id=sf-learn-you-a-lapack-6-back&gt;&lt;a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="I'm not joking, I was really stumped"&gt;6&lt;/a&gt;&lt;/sup&gt;
+&lt;p&gt;Luckily, after an hour or two&lt;sup id=sf-learn-you-a-lapack-7-back&gt;&lt;a href=#sf-learn-you-a-lapack-7 class=simple-footnote title="I'm not joking, I was really stumped"&gt;7&lt;/a&gt;&lt;/sup&gt;
 of Googling I learned about &lt;code&gt;extern "C"&lt;/code&gt; and everything "made sense". Once
 you know about &lt;code&gt;extern "C"&lt;/code&gt;, declaring the LAPACK routine in C++ is essentially
 the same as in C:&lt;/p&gt;
@@ -552,10 +553,11 @@ how to&lt;/p&gt;
 &lt;/ul&gt;
 &lt;p&gt;Thanks for reading!&lt;/p&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-learn-you-a-lapack-1&gt;This actually happened to me. My undergraduate research
 project (REU) eventually boiled down to showing that a particularly special
-matrix had a nonzero determinant. &lt;a href=#sf-learn-you-a-lapack-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-2&gt;On a Debian Linux. For
-example, I am running Ubuntu 18.04 &lt;a href=#sf-learn-you-a-lapack-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-3&gt;Note that &lt;code&gt;gcc&lt;/code&gt; is
-just an alias for &lt;code&gt;clang&lt;/code&gt; on OS X &lt;a href=#sf-learn-you-a-lapack-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-4&gt;It &lt;a href="https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16033"&gt;seems&lt;/a&gt; it was in Mac OS X Yosemite (10.10). &lt;a href=#sf-learn-you-a-lapack-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-5&gt;Mac OS X High
-Sierra (10.13) &lt;a href=#sf-learn-you-a-lapack-5-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-6&gt;I'm not joking, I was really stumped &lt;a href=#sf-learn-you-a-lapack-6-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="Linear Algebra"></category><category term="Applied Mathematics"></category><category term="Mathematics"></category><category term="Programming"></category></entry><entry><title>Graduated</title><link href="https://blog.bossylobster.com/2018/09/graduated.html" rel="alternate"></link><published>2018-09-07T00:00:00-07:00</published><updated>2018-09-07T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-07:/2018/09/graduated.html</id><summary type="html">&lt;p&gt;After five years, I'm excited to say I've finished &lt;a href="https://github.com/dhermes/phd-thesis"&gt;my PhD&lt;/a&gt;. I certainly
+matrix had a nonzero determinant. &lt;a href=#sf-learn-you-a-lapack-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-2&gt;Though SciPy has returned 0-based pivots rather than the 1-based
+indices returned from LAPACK) &lt;a href=#sf-learn-you-a-lapack-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-3&gt;On a Debian Linux. For
+example, I am running Ubuntu 18.04 &lt;a href=#sf-learn-you-a-lapack-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-4&gt;Note that &lt;code&gt;gcc&lt;/code&gt; is
+just an alias for &lt;code&gt;clang&lt;/code&gt; on OS X &lt;a href=#sf-learn-you-a-lapack-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-5&gt;It &lt;a href="https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16033"&gt;seems&lt;/a&gt; it was in Mac OS X Yosemite (10.10). &lt;a href=#sf-learn-you-a-lapack-5-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-6&gt;Mac OS X High
+Sierra (10.13) &lt;a href=#sf-learn-you-a-lapack-6-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-learn-you-a-lapack-7&gt;I'm not joking, I was really stumped &lt;a href=#sf-learn-you-a-lapack-7-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="Linear Algebra"></category><category term="Applied Mathematics"></category><category term="Mathematics"></category><category term="Programming"></category></entry><entry><title>Graduated</title><link href="https://blog.bossylobster.com/2018/09/graduated.html" rel="alternate"></link><published>2018-09-07T00:00:00-07:00</published><updated>2018-09-07T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-07:/2018/09/graduated.html</id><summary type="html">&lt;p&gt;After five years, I'm excited to say I've finished &lt;a href="https://github.com/dhermes/phd-thesis"&gt;my PhD&lt;/a&gt;. I certainly
 learned a lot and met a lot of great people along the way.&lt;/p&gt;
 &lt;p&gt;One of the biggest lessons I learned was about myself: I need to &lt;strong&gt;say no&lt;/strong&gt;
 more often. I continued to say yes, to &lt;a href="https://github.com/GoogleCloudPlatform/google-cloud-python/"&gt;side …&lt;/a&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;After five years, I'm excited to say I've finished &lt;a href="https://github.com/dhermes/phd-thesis"&gt;my PhD&lt;/a&gt;. I certainly
@@ -3205,9 +3207,9 @@ add a unit of work to the batch&lt;/p&gt;
 
 
 &lt;p&gt;and specify&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;handlers&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt;
-&lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;url&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;/.*&lt;/span&gt;
-  &lt;span class="l l-Scalar l-Scalar-Plain"&gt;script&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;main.app&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;handlers&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="nt"&gt;url&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;/.*&lt;/span&gt;
+  &lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;main.app&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -4246,7 +4248,7 @@ is very helpful.&lt;/p&gt;
     &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;time&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;sleep&lt;/span&gt;
     &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;gdata.client&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;RedirectError&lt;/span&gt;
 
-    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;attempts&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;attempts&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
         &lt;span class="k"&gt;try&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
             &lt;span class="n"&gt;gcal&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;InsertEvent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
             &lt;span class="k"&gt;break&lt;/span&gt;
@@ -6711,14 +6713,14 @@ note, &lt;code&gt;startproject&lt;/code&gt; is the function name in the &lt;code
 
 &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;index&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
   &lt;span class="n"&gt;content&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;
-    &lt;span class="s1"&gt;&amp;#39;&amp;lt;html&amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="s1"&gt;&amp;#39; &amp;lt;head&amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="s1"&gt;&amp;#39;  &amp;lt;meta name=&amp;quot;google-site-verification&amp;quot; content=&amp;quot;XXXX&amp;quot; /&amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="s1"&gt;&amp;#39; &amp;lt;/head&amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="s1"&gt;&amp;#39; &amp;lt;body&amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;&amp;#39;&amp;amp;lt;html&amp;amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;&amp;#39; &amp;amp;lt;head&amp;amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;&amp;#39;  &amp;amp;lt;meta name=&amp;quot;google-site-verification&amp;quot; content=&amp;quot;XXXX&amp;quot; /&amp;amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;&amp;#39; &amp;amp;lt;/head&amp;amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;&amp;#39; &amp;amp;lt;body&amp;amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="s1"&gt;&amp;#39;  Hello world!&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="s1"&gt;&amp;#39; &amp;lt;/body&amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-    &lt;span class="s1"&gt;&amp;#39; &amp;lt;/html&amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;&amp;#39; &amp;amp;lt;/body&amp;amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;&amp;#39; &amp;amp;lt;/html&amp;amp;gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
   &lt;span class="p"&gt;])&lt;/span&gt;
   &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;HttpResponse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;

@@ -160,14 +160,14 @@ note, <code>startproject</code> is the function name in the <code>django-admin</
 
 <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
   <span class="n">content</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
-    <span class="s1">&#39;&lt;html&gt;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39; &lt;head&gt;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;  &lt;meta name=&quot;google-site-verification&quot; content=&quot;XXXX&quot; /&gt;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39; &lt;/head&gt;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39; &lt;body&gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;&amp;lt;html&amp;gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &amp;lt;head&amp;gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;  &amp;lt;meta name=&quot;google-site-verification&quot; content=&quot;XXXX&quot; /&amp;gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &amp;lt;/head&amp;gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &amp;lt;body&amp;gt;&#39;</span><span class="p">,</span>
     <span class="s1">&#39;  Hello world!&#39;</span><span class="p">,</span>
-    <span class="s1">&#39; &lt;/body&gt;&#39;</span><span class="p">,</span>
-    <span class="s1">&#39; &lt;/html&gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &amp;lt;/body&amp;gt;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39; &amp;lt;/html&amp;gt;&#39;</span><span class="p">,</span>
   <span class="p">])</span>
   <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
 </pre></div>

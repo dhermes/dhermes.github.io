@@ -212,7 +212,7 @@ didn't understand the purpose of it.</p>
 <p>Since the original LAPACK implementation (and many current implementations)
 are written in Fortran, all arguments are passed by reference.</p>
 <h3 id=high-level-py>High-Level Python</h3>
-<p>There are two functions in SciPy for performaing an LU decomposition:
+<p>There are two functions in SciPy for performing an LU decomposition:
 <code>scipy.linalg.lapack.dgetrf</code> and <code>scipy.linalg.lu</code>. The former is a "direct"
 wrapper but the wrapper handles allocating the outputs and allows a flag
 <code>overwrite_a</code> which will determine if a copy of the input matrix is used
@@ -232,7 +232,8 @@ from copies we make sure <code>A</code> is in Fortran order (<code>"F"</code>) a
 </pre></div>
 
 
-<p>The method succeeded and the pivots are "trivial", i.e. the identity matrix</p>
+<p>The method succeeded and the pivots are "trivial", i.e. the identity
+matrix<sup id=sf-learn-you-a-lapack-2-back><a href=#sf-learn-you-a-lapack-2 class=simple-footnote title="Though SciPy has returned 0-based pivots rather than the 1-based indices returned from LAPACK)">2</a></sup></p>
 <div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>info</span>
 <span class=mi>0</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>ipiv</span>
@@ -339,7 +340,7 @@ it came from. Following the symbolic links we see</p>
 </pre></div>
 
 
-<p>Once the true location is given, we can find<sup id=sf-learn-you-a-lapack-2-back><a href=#sf-learn-you-a-lapack-2 class=simple-footnote title="On a Debian Linux. For example, I am running Ubuntu 18.04">2</a></sup> the package that owns the
+<p>Once the true location is given, we can find<sup id=sf-learn-you-a-lapack-3-back><a href=#sf-learn-you-a-lapack-3 class=simple-footnote title="On a Debian Linux. For example, I am running Ubuntu 18.04">3</a></sup> the package that owns the
 shared library</p>
 <div class=highlight><pre><span></span><span class=gp>$</span> dpkg-query -S /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
 <span class=go>libatlas3-base:amd64: /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3</span>
@@ -482,7 +483,7 @@ via <code>-llapack</code> or <code>-framework Accelerate</code>. Also, when I st
 school I didn't know much about compiling code.</p>
 </blockquote>
 <p>I was using Mac OS X Mountain Lion (10.8) at the time. Without
-using Homebrew to install LAPACK or OpenBLAS, compiling<sup id=sf-learn-you-a-lapack-3-back><a href=#sf-learn-you-a-lapack-3 class=simple-footnote title="Note that gcc is just an alias for clang on OS X">3</a></sup> with <code>-llapack</code> failed with something
+using Homebrew to install LAPACK or OpenBLAS, compiling<sup id=sf-learn-you-a-lapack-4-back><a href=#sf-learn-you-a-lapack-4 class=simple-footnote title="Note that gcc is just an alias for clang on OS X">4</a></sup> with <code>-llapack</code> failed with something
 along the lines of:</p>
 <div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c -llapack
 <span class=go>ld: library not found for -llapack</span>
@@ -507,8 +508,8 @@ things. So the correct magical incantation (as of OS X 10.8) was</p>
 </pre></div>
 
 
-<p>At some point<sup id=sf-learn-you-a-lapack-4-back><a href=#sf-learn-you-a-lapack-4 class=simple-footnote title="It seems it was in Mac OS X Yosemite (10.10).">4</a></sup>,
-things <strong>got better</strong> (<a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate">thanks</a> Apple). On a current<sup id=sf-learn-you-a-lapack-5-back><a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="Mac OS X High Sierra (10.13)">5</a></sup> version, <code>liblapack</code> comes with the OS:</p>
+<p>At some point<sup id=sf-learn-you-a-lapack-5-back><a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="It seems it was in Mac OS X Yosemite (10.10).">5</a></sup>,
+things <strong>got better</strong> (<a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate">thanks</a> Apple). On a current<sup id=sf-learn-you-a-lapack-6-back><a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="Mac OS X High Sierra (10.13)">6</a></sup> version, <code>liblapack</code> comes with the OS:</p>
 <div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes.util</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>util</span><span class=o>.</span><span class=n>find_library</span><span class=p>(</span><span class=s2>"lapack"</span><span class=p>)</span>
 <span class=s1>'/usr/lib/liblapack.dylib'</span>
@@ -554,7 +555,7 @@ LAPACK routines in C++ code.</p>
 symbol tables, <a href="https://en.wikipedia.org/wiki/Name_mangling">name mangling</a> or ABIs. It also didn't even occur to me
 that extra underscore in names of LAPACK routines in the shared library had
 anything to do with those topics.</p>
-<p>Luckily, after an hour or two<sup id=sf-learn-you-a-lapack-6-back><a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="I'm not joking, I was really stumped">6</a></sup>
+<p>Luckily, after an hour or two<sup id=sf-learn-you-a-lapack-7-back><a href=#sf-learn-you-a-lapack-7 class=simple-footnote title="I'm not joking, I was really stumped">7</a></sup>
 of Googling I learned about <code>extern "C"</code> and everything "made sense". Once
 you know about <code>extern "C"</code>, declaring the LAPACK routine in C++ is essentially
 the same as in C:</p>
@@ -646,10 +647,11 @@ how to</p>
 </ul>
 <p>Thanks for reading!</p><ol class=simple-footnotes><li id=sf-learn-you-a-lapack-1>This actually happened to me. My undergraduate research
 project (REU) eventually boiled down to showing that a particularly special
-matrix had a nonzero determinant. <a href=#sf-learn-you-a-lapack-1-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-2>On a Debian Linux. For
-example, I am running Ubuntu 18.04 <a href=#sf-learn-you-a-lapack-2-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-3>Note that <code>gcc</code> is
-just an alias for <code>clang</code> on OS X <a href=#sf-learn-you-a-lapack-3-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-4>It <a href="https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16033">seems</a> it was in Mac OS X Yosemite (10.10). <a href=#sf-learn-you-a-lapack-4-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-5>Mac OS X High
-Sierra (10.13) <a href=#sf-learn-you-a-lapack-5-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-6>I'm not joking, I was really stumped <a href=#sf-learn-you-a-lapack-6-back class=simple-footnote-back>↩</a></li></ol></div>
+matrix had a nonzero determinant. <a href=#sf-learn-you-a-lapack-1-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-2>Though SciPy has returned 0-based pivots rather than the 1-based
+indices returned from LAPACK) <a href=#sf-learn-you-a-lapack-2-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-3>On a Debian Linux. For
+example, I am running Ubuntu 18.04 <a href=#sf-learn-you-a-lapack-3-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-4>Note that <code>gcc</code> is
+just an alias for <code>clang</code> on OS X <a href=#sf-learn-you-a-lapack-4-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-5>It <a href="https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16033">seems</a> it was in Mac OS X Yosemite (10.10). <a href=#sf-learn-you-a-lapack-5-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-6>Mac OS X High
+Sierra (10.13) <a href=#sf-learn-you-a-lapack-6-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-7>I'm not joking, I was really stumped <a href=#sf-learn-you-a-lapack-7-back class=simple-footnote-back>↩</a></li></ol></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">
