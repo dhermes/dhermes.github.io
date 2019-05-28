@@ -1,5 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2018-09-13T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Learn You a LAPACK for Great Good</title><link href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html" rel="alternate"></link><published>2018-09-13T00:00:00-07:00</published><updated>2018-09-13T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-13:/2018/09/learn-you-a-lapack.html</id><summary type="html">&lt;p&gt;Linear Algebra is an incredibly powerful tool. A joke among mathematicians
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2019-05-27T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Attack of Ruby Stack Traces</title><link href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html" rel="alternate"></link><published>2019-05-27T00:00:00-07:00</published><updated>2019-05-27T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2019-05-27:/2019/05/ruby-stack-traces.html</id><summary type="html">&lt;p&gt;First, let me say I'm not posting this to shame any company or language
+community. Getting to the scale Twitter reached in a short amount of time
+can quickly make past engineering decisions look foolish in hindsight. But
+almost always they are decisions made in good faith with the current …&lt;/p&gt;</summary><content type="html">&lt;p&gt;First, let me say I'm not posting this to shame any company or language
+community. Getting to the scale Twitter reached in a short amount of time
+can quickly make past engineering decisions look foolish in hindsight. But
+almost always they are decisions made in good faith with the current
+information.&lt;/p&gt;
+&lt;p&gt;Over the past 6 months, I've been trying my hardest to find an old talk I had
+watched about a bug at Twitter that was responsible for the fail whale. I
+&lt;strong&gt;could not&lt;/strong&gt; find the talk for all I tried. When trying to find the talk, I
+was searching for "memory leak" caused by "Ruby stack traces".&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Twitter Fail Whale" src="/images/fail-whale.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I couldn't find the talk for several reasons&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;I thought the speaker was &lt;a href="https://twitter.com/garybernhardt"&gt;Gary Bernhardt&lt;/a&gt;&lt;sup id=sf-ruby-stack-traces-1-back&gt;&lt;a href=#sf-ruby-stack-traces-1 class=simple-footnote title="His talk   The Birth &amp;amp; Death of JavaScript is so good"&gt;1&lt;/a&gt;&lt;/sup&gt; but it was actually
+  &lt;a href="https://twitter.com/bcantrill"&gt;Bryan Cantrill&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;I was searching for "memory leak" but the issue was actually caused by
+  excessive use of compute resources&lt;/li&gt;
+&lt;li&gt;The comment was just a small footnote in a much longer talk about
+  &lt;a href="https://www.youtube.com/watch?v=LjFM8vw3pbU"&gt;The Summer of Rust&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;When I finally found the talk, I was so excited. In order to make my future
+Google searches actually turn up results I wanted to write this blog post.
+Also, to make the searches a little more useful, please find the transcript
+starting at the 26:30 mark&lt;sup id=sf-ruby-stack-traces-2-back&gt;&lt;a href=#sf-ruby-stack-traces-2 class=simple-footnote title='Edited a slight bit by removing some words such as "like"'&gt;2&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;If you think Ruby's inefficient today ... Twitter was a big customer of ours
+and in 2007 I went into Twitter because – I feel like I'm the internet
+historian here – back in the day there was this thing called the fail
+whale on Twitter. Do you remember the fail whale? OK right.&lt;/p&gt;
+&lt;p&gt;So Twitter would constantly keel over, you'd get like this whale that was
+indicating that things were awful and it was threatening the company. People
+wanted to not use Twitter as a result of this. Little did they know that
+there would be lots of other reasons to not use Twitter in the future but
+this is back when the actual the reliability of the thing was the biggest
+problem not like you know the Pepes or whatever.&lt;/p&gt;
+&lt;p&gt;So we went into Twitter to try to help them understand what was going on and
+using &lt;a href="http://dtrace.org/blogs/about/"&gt;&lt;code&gt;dtrace&lt;/code&gt;&lt;/a&gt; to understand where it was spending time. I remember they
+were spending 460 milliseconds of compute for a request.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Bryan Cantrill&lt;/strong&gt; "Do you mean microseconds?"&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Twitter&lt;/strong&gt; "460 milliseconds"&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bryan Cantrill&lt;/strong&gt; "There's I/O. You're I/O bound."&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Twitter&lt;/strong&gt; "No no we're not I/O bound. It's 100% compute bound."&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bryan Cantrill&lt;/strong&gt; "Are you sure that's right, that you're spending ... For
+one request? &lt;strong&gt;One request&lt;/strong&gt; would spend 460 milliseconds? Are you
+sure ...?"&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;But it was, it was milliseconds. Actually turns out what they were doing is
+kind of interesting and it shows the peril of language choices. They were
+spending all of their time in &lt;code&gt;bcopy()&lt;/code&gt;, like 100% of their time in
+&lt;code&gt;bcopy()&lt;/code&gt;. Why are they in &lt;code&gt;bcopy()&lt;/code&gt;? They're in &lt;code&gt;bcopy()&lt;/code&gt; because they are
+&lt;code&gt;bcopy()&lt;/code&gt;-ing symbols out of their stack.&lt;/p&gt;
+&lt;p&gt;Why are they doing this? Because
+they are deep deep deep in their Rails app and it was thought that to
+actually iterate over all the elements of an array from zero to the length
+the array – that's way too pedestrian, that's like repeating yourself
+or whatever. That's not DRY or whatever I don't even know what the Dogma was
+at the time. The "right" way to do this is to just blast through the array
+until you fall off the end and get an exception thrown at you. Exactly,
+you're like (brakes screeching sound) well you know it was ... anyway I don't
+know what to say about it.&lt;/p&gt;
+&lt;p&gt;So what would happen is, it would go flying off the end of this array. It's
+like a four element array and it's hitting the fifth element and of course
+it's an exception and exceptions are really (should be) exceptional and when
+that exception is generated what Ruby would do is like "all right I now need
+to get a full stack back trace so you've got some hope in hell of figuring
+out where this random exception is" because the alternative is much worse.
+The alternative is like "something somewhere in there died and I got no idea
+where but we're now dead" so you don't want that, right? You want to have a
+stack backtrace.&lt;/p&gt;
+&lt;p&gt;So it would walk up whatever it was, 434 stack frames and
+for each stack frame – and this is where you get to the point where
+it's like Ruby could be a little bit more efficient – for each stack
+frame it's looking up this symbol (and this kind of very inefficient
+mechanism for looking up a symbol) it would generate this huge string buffer,
+this 16K string buffer and it would: "alright time to get this ocean liner
+upstairs". It would kick that up to literally the caller of this thing "oh I
+got it that's fine I'm off the end of the array, no problem. I get it. But
+I've done it the right way! I've done it without repeating myself or
+whatever." (Faceplam)&lt;/p&gt;
+&lt;p&gt;It's like "oh k". So that was obviously very bad. And it highlights a bunch
+of things. It highlights the cost of some of these abstractions, the runtime
+cost of some of these abstractions. How difficult it is to find these things
+when they misbehave that way. And how easy it is to abuse these things.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I've really enjoyed listening to both Bryan Cantrill and Gary Bernhardt talk
+about software and I highly recommend watching &lt;strong&gt;many&lt;/strong&gt; of their great talks.
+Also it was super cool that when I finally &lt;a href="https://twitter.com/bossylobster/status/1129873135132659714"&gt;tweeted&lt;/a&gt; about my search
+for this old Twitter bug both Gary and Bryan interacted on Twitter!&lt;/p&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-ruby-stack-traces-1&gt;His talk
+  &lt;a href="https://www.destroyallsoftware.com/talks/the-birth-and-death-of-javascript"&gt;The Birth &amp;amp; Death of JavaScript&lt;/a&gt; is so good &lt;a href=#sf-ruby-stack-traces-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-ruby-stack-traces-2&gt;Edited a
+slight bit by removing some words such as "like" &lt;a href=#sf-ruby-stack-traces-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="Twitter"></category><category term="Programming"></category><category term="Ruby"></category><category term="Abstractions"></category></entry><entry><title>Learn You a LAPACK for Great Good</title><link href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html" rel="alternate"></link><published>2018-09-13T00:00:00-07:00</published><updated>2018-09-13T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2018-09-13:/2018/09/learn-you-a-lapack.html</id><summary type="html">&lt;p&gt;Linear Algebra is an incredibly powerful tool. A joke among mathematicians
 is that the only way we can solve a hard problem is to boil it down to
 Linear Algebra&lt;sup id=sf-learn-you-a-lapack-1-back&gt;&lt;a href=#sf-learn-you-a-lapack-1 class=simple-footnote title="This actually happened to me. My undergraduate research project (REU) eventually boiled down to showing that a particularly special matrix had a nonzero determinant."&gt;1&lt;/a&gt;&lt;/sup&gt;. Harnessing the &lt;strong&gt;numerical&lt;/strong&gt; power of
 Linear Algebra has been done via &lt;a href="https://en.wikipedia.org/wiki/LAPACK"&gt;LAPACK&lt;/a&gt; for the last 40+ years.&lt;/p&gt;
