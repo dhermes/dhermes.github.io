@@ -82,7 +82,7 @@ this 16K string buffer and it would: "alright time to get this ocean liner
 upstairs". It would kick that up to literally the caller of this thing "oh I
 got it that's fine I'm off the end of the array, no problem. I get it. But
 I've done it the right way! I've done it without repeating myself or
-whatever." (Faceplam)&lt;/p&gt;
+whatever." (Facepalm)&lt;/p&gt;
 &lt;p&gt;It's like "oh k". So that was obviously very bad. And it highlights a bunch
 of things. It highlights the cost of some of these abstractions, the runtime
 cost of some of these abstractions. How difficult it is to find these things
