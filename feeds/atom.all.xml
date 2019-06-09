@@ -1,5 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2019-05-27T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Attack of Ruby Stack Traces</title><link href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html" rel="alternate"></link><published>2019-05-27T00:00:00-07:00</published><updated>2019-05-27T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2019-05-27:/2019/05/ruby-stack-traces.html</id><summary type="html">&lt;p&gt;First, let me say I'm not posting this to shame any company or language
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2019-06-09T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Type Guards for Union Types in TypeScript</title><link href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html" rel="alternate"></link><published>2019-06-09T00:00:00-07:00</published><updated>2019-06-09T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2019-06-09:/2019/06/type-guards-for-union-types.html</id><summary type="html">&lt;p&gt;In my day job at &lt;a href="https://blend.com/careers/"&gt;Blend&lt;/a&gt;, I write a lot of TypeScript&lt;sup id=sf-type-guards-for-union-types-1-back&gt;&lt;a href=#sf-type-guards-for-union-types-1 class=simple-footnote title="This may surprise many of my colleagues from the Python world"&gt;1&lt;/a&gt;&lt;/sup&gt;. One great feature of
+TypeScript is the ability to specify an enum with a finite set of values
+as a &lt;a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types"&gt;union type&lt;/a&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;type&lt;/span&gt; &lt;span class=nx&gt;Coordinate&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'x'&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=s1&gt;'y'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;which then gives compile time checking for values of this type …&lt;/p&gt;</summary><content type="html">&lt;p&gt;In my day job at &lt;a href="https://blend.com/careers/"&gt;Blend&lt;/a&gt;, I write a lot of TypeScript&lt;sup id=sf-type-guards-for-union-types-1-back&gt;&lt;a href=#sf-type-guards-for-union-types-1 class=simple-footnote title="This may surprise many of my colleagues from the Python world"&gt;1&lt;/a&gt;&lt;/sup&gt;. One great feature of
+TypeScript is the ability to specify an enum with a finite set of values
+as a &lt;a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types"&gt;union type&lt;/a&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;type&lt;/span&gt; &lt;span class=nx&gt;Coordinate&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'x'&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=s1&gt;'y'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;which then gives compile time checking for values of this type&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;coordinate&lt;/span&gt;: &lt;span class=kt&gt;Coordinate&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'x'&lt;/span&gt;
+&lt;span class=c1&gt;// This will not compile: const coordinate: Coordinate = 'donut'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#whats-missing&gt;What's Missing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#what-can-go-wrong&gt;What Can Go Wrong&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#how-can-we-fix-it&gt;How Can We Fix It&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#but-what-about&gt;But What About ...&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#related-approaches&gt;Related Approaches&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=whats-missing&gt;What's Missing&lt;/h3&gt;
+&lt;p&gt;Unfortunately, there is no utility built into the language that will provide
+an array of the values in the union type. I.e. for our &lt;code&gt;Coordinate&lt;/code&gt; type, we
+often want:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;COORDINATES&lt;/span&gt;: &lt;span class=kt&gt;Coordinate&lt;/span&gt;&lt;span class=p&gt;[]&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=s1&gt;'x'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s1&gt;'y'&lt;/span&gt;&lt;span class=p&gt;]&lt;/span&gt;
+&lt;span class=c1&gt;// Or even better, make it immutable: Object.freeze(['x', 'y'])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Such a &lt;code&gt;COORDINATES&lt;/code&gt; array has many uses. It's common to use such an array
+to write a &lt;a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types"&gt;type guard&lt;/a&gt;&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kd&gt;function&lt;/span&gt; &lt;span class=nx&gt;isCoordinate&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;value&lt;/span&gt;: &lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=nx&gt;value&lt;/span&gt; &lt;span class=nx&gt;is&lt;/span&gt; &lt;span class=nx&gt;Coordinate&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+  &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;COORDINATES&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;includes&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;value&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;or to specify a &lt;a href="https://github.com/hapijs/joi"&gt;&lt;code&gt;Joi&lt;/code&gt; schema&lt;/a&gt; for an external facing API:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;import&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt; &lt;span class=kr&gt;as&lt;/span&gt; &lt;span class=nx&gt;Joi&lt;/span&gt; &lt;span class=nx&gt;from&lt;/span&gt; &lt;span class=s1&gt;'@hapi/joi'&lt;/span&gt;
+
+&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;REPLACE_VALUE&lt;/span&gt;: &lt;span class=kt&gt;Joi.ObjectSchema&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nx&gt;Joi&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;object&lt;/span&gt;&lt;span class=p&gt;({&lt;/span&gt;
+  &lt;span class=nx&gt;id&lt;/span&gt;: &lt;span class=kt&gt;Joi.string&lt;/span&gt;&lt;span class=p&gt;().&lt;/span&gt;&lt;span class=nx&gt;guid&lt;/span&gt;&lt;span class=p&gt;().&lt;/span&gt;&lt;span class=nx&gt;required&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt;
+  &lt;span class=nx&gt;coordinate&lt;/span&gt;: &lt;span class=kt&gt;Joi.string&lt;/span&gt;&lt;span class=p&gt;().&lt;/span&gt;&lt;span class=nx&gt;valid&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;COORDINATES&lt;/span&gt;&lt;span class=p&gt;).&lt;/span&gt;&lt;span class=nx&gt;required&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt;
+  &lt;span class=nx&gt;value&lt;/span&gt;: &lt;span class=kt&gt;Joi.number&lt;/span&gt;&lt;span class=p&gt;().&lt;/span&gt;&lt;span class=nx&gt;required&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt;
+&lt;span class=p&gt;})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=what-can-go-wrong&gt;What Can Go Wrong&lt;/h3&gt;
+&lt;p&gt;It's easy enough to just hardcode &lt;code&gt;COORDINATES&lt;/code&gt; to exactly agree with your
+&lt;code&gt;Coordinate&lt;/code&gt; union type and feel happy that it's a comprehensive coverage of
+the values. Even better, since &lt;code&gt;COORDINATES&lt;/code&gt; has the type &lt;code&gt;Coordinate[]&lt;/code&gt;, you
+have a guarantee&lt;sup id=sf-type-guards-for-union-types-2-back&gt;&lt;a href=#sf-type-guards-for-union-types-2 class=simple-footnote title="Provided you don't use any as Coordinate[] type assertion funny business"&gt;2&lt;/a&gt;&lt;/sup&gt; from the &lt;code&gt;tsc&lt;/code&gt;
+compiler that you won't have any invalid values.&lt;/p&gt;
+&lt;p&gt;However, let's say one day your codebase decides to expand from 2D into 3D:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;type&lt;/span&gt; &lt;span class=nx&gt;Coordinate&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'x'&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=s1&gt;'y'&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=s1&gt;'z'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;None of the rest of your code will break, but it &lt;strong&gt;should have&lt;/strong&gt;! Your
+&lt;code&gt;COORDINATES&lt;/code&gt; covering set is no longer a covering set, but both &lt;code&gt;x&lt;/code&gt; and &lt;code&gt;y&lt;/code&gt;
+are valid. Calling &lt;code&gt;isCoordinate('z')&lt;/code&gt; will return &lt;code&gt;false&lt;/code&gt; (which is a lie)
+and your &lt;code&gt;REPLACE_VALUE&lt;/code&gt; schema will reject calls to your API that want to
+replace the &lt;code&gt;z&lt;/code&gt; value.&lt;/p&gt;
+&lt;h3 id=how-can-we-fix-it&gt;How Can We Fix It&lt;/h3&gt;
+&lt;p&gt;By hardcoding &lt;code&gt;COORDINATES&lt;/code&gt; we've accidentally made our codebase brittle. The
+&lt;code&gt;['x', 'y']&lt;/code&gt; &lt;a href="https://en.wikipedia.org/wiki/Literal_(computer_programming)"&gt;literal&lt;/a&gt; encodes an &lt;strong&gt;assumption&lt;/strong&gt; about our code that is not
+checked anywhere at all. Also, the &lt;code&gt;tsc&lt;/code&gt; compiler has no hope in helping us
+because &lt;code&gt;COORDINATES&lt;/code&gt; is a &lt;strong&gt;value&lt;/strong&gt;, not a &lt;strong&gt;type&lt;/strong&gt;, so &lt;code&gt;tsc&lt;/code&gt; isn't able to
+make any extra assertions to act as a guard rail.&lt;/p&gt;
+&lt;p&gt;Unit tests to the rescue! We can write a single unit test (&lt;a href="https://github.com/avajs/ava"&gt;with &lt;code&gt;ava&lt;/code&gt;&lt;/a&gt;)
+that is guaranteed to fail if either the &lt;code&gt;Coordinate&lt;/code&gt; union type or the
+&lt;code&gt;COORDINATES&lt;/code&gt; value is changed:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;import&lt;/span&gt; &lt;span class=nx&gt;test&lt;/span&gt; &lt;span class=nx&gt;from&lt;/span&gt; &lt;span class=s1&gt;'ava'&lt;/span&gt;
+
+&lt;span class=nx&gt;test&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s1&gt;'COORDINATES covers the Coordinate union type'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;t&lt;/span&gt; &lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+  &lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;asKeys&lt;/span&gt;: &lt;span class=kt&gt;Record&lt;/span&gt;&lt;span class=o&gt;&amp;lt;&lt;/span&gt;&lt;span class=nx&gt;Coordinate&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;number&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt; &lt;span class=nx&gt;x&lt;/span&gt;: &lt;span class=kt&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;y&lt;/span&gt;: &lt;span class=kt&gt;0&lt;/span&gt; &lt;span class=p&gt;}&lt;/span&gt;
+  &lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;expectedKeys&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nb&gt;Object&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;keys&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;asKeys&lt;/span&gt;&lt;span class=p&gt;).&lt;/span&gt;&lt;span class=nx&gt;sort&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+  &lt;span class=c1&gt;// NOTE: Sort `COORDINATES` without mutating it.&lt;/span&gt;
+  &lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;actualKeys&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nx&gt;COORDINATES&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;concat&lt;/span&gt;&lt;span class=p&gt;().&lt;/span&gt;&lt;span class=nx&gt;sort&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+  &lt;span class=nx&gt;t&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;deepEqual&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;expectedKeys&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;actualKeys&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=p&gt;})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Using the &lt;a href="https://stackoverflow.com/a/51937036/1068170"&gt;&lt;code&gt;Record&amp;lt;&amp;gt;&lt;/code&gt; type&lt;/a&gt; allows the &lt;strong&gt;compiler&lt;/strong&gt; to tell us if any
+members of the &lt;code&gt;Coordinate&lt;/code&gt; are absent keys in &lt;code&gt;asKeys&lt;/code&gt;. Then at &lt;strong&gt;runtime&lt;/strong&gt;
+we use &lt;code&gt;Object.keys()&lt;/code&gt; to convert those (already compiler checked) keys into
+a &lt;strong&gt;value&lt;/strong&gt; &lt;code&gt;expectedKeys&lt;/code&gt;. Then we can ensure that &lt;code&gt;expectedKeys&lt;/code&gt; is verified
+against &lt;code&gt;COORDINATES&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=but-what-about&gt;But What About ...&lt;/h3&gt;
+&lt;p&gt;The snippet in the unit test absolutely provides a template for doing this
+inline (i.e. without the support of a unit test):&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;type&lt;/span&gt; &lt;span class=nx&gt;Coordinate&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'x'&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=s1&gt;'y'&lt;/span&gt;
+&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;asKeys&lt;/span&gt;: &lt;span class=kt&gt;Record&lt;/span&gt;&lt;span class=o&gt;&amp;lt;&lt;/span&gt;&lt;span class=nx&gt;Coordinate&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;number&lt;/span&gt;&lt;span class=o&gt;&amp;gt;&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt; &lt;span class=nx&gt;x&lt;/span&gt;: &lt;span class=kt&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;y&lt;/span&gt;: &lt;span class=kt&gt;0&lt;/span&gt; &lt;span class=p&gt;}&lt;/span&gt;
+&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;COORDINATES&lt;/span&gt;: &lt;span class=kt&gt;Coordinate&lt;/span&gt;&lt;span class=p&gt;[]&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nb&gt;Object&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;keys&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;asKeys&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;however, this snippet of code will fail due to the return type of
+&lt;code&gt;Object.keys()&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gp&gt;$&lt;/span&gt; tsc snippet.ts
+&lt;span class=go&gt;snippet.ts:6:7 - error TS2322: Type 'string[]' is not assignable to type 'Coordinate[]'.&lt;/span&gt;
+&lt;span class=go&gt;  Type 'string' is not assignable to type 'Coordinate'.&lt;/span&gt;
+
+&lt;span class=go&gt;6 const COORDINATES: Coordinate[] = Object.keys(asKeys)&lt;/span&gt;
+&lt;span class=go&gt;        ~~~~~~~~~~~&lt;/span&gt;
+
+
+&lt;span class=go&gt;Found 1 error.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;So in order to use it, you'd need to resort back to a type assertion (and IMO
+type assertions should be avoided at all costs).&lt;/p&gt;
+&lt;p&gt;Additionally, though declaring &lt;code&gt;asKeys&lt;/code&gt; only takes up one line, it's a bit
+of an eyesore in &lt;strong&gt;source&lt;/strong&gt; code (vs. &lt;strong&gt;test&lt;/strong&gt; code). As the number of allowed
+values in a given union type goes up, declaring &lt;code&gt;asKeys&lt;/code&gt; inline will look even
+worse.&lt;/p&gt;
+&lt;h3 id=related-approaches&gt;Related Approaches&lt;/h3&gt;
+&lt;p&gt;I've also had cases where I had a use in my code for a mapping identical to what
+was provided by &lt;code&gt;Record&amp;lt;&amp;gt;&lt;/code&gt;. It's equally fine to define that mapping
+directly and derive the &lt;code&gt;Coordinate&lt;/code&gt; union type from it via the
+&lt;a href="https://mariusschulz.com/blog/typescript-2-1-keyof-and-lookup-types"&gt;&lt;code&gt;keyof&lt;/code&gt; keyword&lt;/a&gt;&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;interface&lt;/span&gt; &lt;span class=nx&gt;Point&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+  &lt;span class=nx&gt;x&lt;/span&gt;: &lt;span class=kt&gt;number&lt;/span&gt;
+  &lt;span class=nx&gt;y&lt;/span&gt;: &lt;span class=kt&gt;number&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;span class=nx&gt;type&lt;/span&gt; &lt;span class=nx&gt;Coordinate&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nx&gt;keyof&lt;/span&gt; &lt;span class=nx&gt;Point&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Then the unit test will change ever so slightly&lt;sup id=sf-type-guards-for-union-types-3-back&gt;&lt;a href=#sf-type-guards-for-union-types-3 class=simple-footnote title="In cases where some of the keys are optional, a Required&lt;Point&gt; must be used for the type of asKeys. The Required&lt;&gt; type was added in TypeScript 2.8.)"&gt;3&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;asKeys&lt;/span&gt;: &lt;span class=kt&gt;Point&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt; &lt;span class=nx&gt;x&lt;/span&gt;: &lt;span class=kt&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;y&lt;/span&gt;: &lt;span class=kt&gt;0&lt;/span&gt; &lt;span class=p&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In codebases where "no magic constants" is a rule&lt;sup id=sf-type-guards-for-union-types-4-back&gt;&lt;a href=#sf-type-guards-for-union-types-4 class=simple-footnote title="I.e. typing 'x' or 'y' would not be allowed"&gt;4&lt;/a&gt;&lt;/sup&gt;, a convenience &lt;code&gt;enum&lt;/code&gt; can
+be provided to give named variables for each value in the &lt;code&gt;Coordinate&lt;/code&gt; type:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;enum&lt;/span&gt; &lt;span class=nx&gt;CoordinateNames&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+  &lt;span class=nx&gt;x&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'x'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=nx&gt;y&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'y'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;span class=nx&gt;type&lt;/span&gt; &lt;span class=nx&gt;Coordinate&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nx&gt;keyof&lt;/span&gt; &lt;span class=k&gt;typeof&lt;/span&gt; &lt;span class=nx&gt;CoordinateNames&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Since a &lt;a href="https://www.typescriptlang.org/docs/handbook/enums.html"&gt;TypeScript &lt;code&gt;enum&lt;/code&gt;&lt;/a&gt; is really just an &lt;code&gt;object&lt;/code&gt;, we can use it
+directly in our unit test without having to form the stand-in &lt;code&gt;asKeys&lt;/code&gt; value&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;expectedKeys&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nb&gt;Object&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;keys&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;CoordinateNames&lt;/span&gt;&lt;span class=p&gt;).&lt;/span&gt;&lt;span class=nx&gt;sort&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-type-guards-for-union-types-1&gt;This may surprise
+many of my colleagues from the Python world &lt;a href=#sf-type-guards-for-union-types-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-type-guards-for-union-types-2&gt;Provided you don't use any
+&lt;code&gt;as Coordinate[]&lt;/code&gt; &lt;a href="https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions"&gt;type assertion&lt;/a&gt; funny business &lt;a href=#sf-type-guards-for-union-types-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-type-guards-for-union-types-3&gt;In cases where some of the
+keys are optional, a &lt;code&gt;Required&amp;lt;Point&amp;gt;&lt;/code&gt; must be used for the type of &lt;code&gt;asKeys&lt;/code&gt;.
+The &lt;code&gt;Required&amp;lt;&amp;gt;&lt;/code&gt; type was &lt;a href="https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html"&gt;added&lt;/a&gt; in TypeScript 2.8.) &lt;a href=#sf-type-guards-for-union-types-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-type-guards-for-union-types-4&gt;I.e. typing &lt;code&gt;'x'&lt;/code&gt; or
+&lt;code&gt;'y'&lt;/code&gt; would not be allowed &lt;a href=#sf-type-guards-for-union-types-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="Programming"></category><category term="TypeScript"></category><category term="Types"></category></entry><entry><title>Attack of Ruby Stack Traces</title><link href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html" rel="alternate"></link><published>2019-05-27T00:00:00-07:00</published><updated>2019-05-27T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2019-05-27:/2019/05/ruby-stack-traces.html</id><summary type="html">&lt;p&gt;First, let me say I'm not posting this to shame any company or language
 community. Getting to the scale Twitter reached in a short amount of time
 can quickly make past engineering decisions look foolish in hindsight. But
 almost always they are decisions made in good faith with the current …&lt;/p&gt;</summary><content type="html">&lt;p&gt;First, let me say I'm not posting this to shame any company or language
