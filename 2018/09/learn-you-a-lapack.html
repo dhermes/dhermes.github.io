@@ -478,11 +478,11 @@ Outputs:
 
 <h3 id=compiling-on-os-x>Compiling on OS X</h3>
 <blockquote>
-<p><strong>TL;DR</strong>: As of Mac OS X High Sierra (10.13), your code can link to LAPACK
+<p><strong>TL;DR</strong>: As of macOS High Sierra (10.13), your code can link to LAPACK
 via <code>-llapack</code> or <code>-framework Accelerate</code>. Also, when I started graduate
 school I didn't know much about compiling code.</p>
 </blockquote>
-<p>I was using Mac OS X Mountain Lion (10.8) at the time. Without
+<p>I was using OS X Mountain Lion (10.8) at the time. Without
 using Homebrew to install LAPACK or OpenBLAS, compiling<sup id=sf-learn-you-a-lapack-4-back><a href=#sf-learn-you-a-lapack-4 class=simple-footnote title="Note that gcc is just an alias for clang on OS X">4</a></sup> with <code>-llapack</code> failed with something
 along the lines of:</p>
 <div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c -llapack
@@ -508,8 +508,8 @@ things. So the correct magical incantation (as of OS X 10.8) was</p>
 </pre></div>
 
 
-<p>At some point<sup id=sf-learn-you-a-lapack-5-back><a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="It seems it was in Mac OS X Yosemite (10.10).">5</a></sup>,
-things <strong>got better</strong> (<a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate">thanks</a> Apple). On a current<sup id=sf-learn-you-a-lapack-6-back><a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="Mac OS X High Sierra (10.13)">6</a></sup> version, <code>liblapack</code> comes with the OS:</p>
+<p>At some point<sup id=sf-learn-you-a-lapack-5-back><a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="It seems it was in OS X Yosemite (10.10).">5</a></sup>,
+things <strong>got better</strong> (<a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate">thanks</a> Apple). On a current<sup id=sf-learn-you-a-lapack-6-back><a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="macOS High Sierra (10.13)">6</a></sup> version, <code>liblapack</code> comes with the OS:</p>
 <div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes.util</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>util</span><span class=o>.</span><span class=n>find_library</span><span class=p>(</span><span class=s2>"lapack"</span><span class=p>)</span>
 <span class=s1>'/usr/lib/liblapack.dylib'</span>
@@ -650,7 +650,7 @@ project (REU) eventually boiled down to showing that a particularly special
 matrix had a nonzero determinant. <a href=#sf-learn-you-a-lapack-1-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-2>Though SciPy has returned 0-based pivots rather than the 1-based
 indices returned from LAPACK) <a href=#sf-learn-you-a-lapack-2-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-3>On a Debian Linux. For
 example, I am running Ubuntu 18.04 <a href=#sf-learn-you-a-lapack-3-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-4>Note that <code>gcc</code> is
-just an alias for <code>clang</code> on OS X <a href=#sf-learn-you-a-lapack-4-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-5>It <a href="https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16033">seems</a> it was in Mac OS X Yosemite (10.10). <a href=#sf-learn-you-a-lapack-5-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-6>Mac OS X High
+just an alias for <code>clang</code> on OS X <a href=#sf-learn-you-a-lapack-4-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-5>It <a href="https://bugs.r-project.org/bugzilla/show_bug.cgi?id=16033">seems</a> it was in OS X Yosemite (10.10). <a href=#sf-learn-you-a-lapack-5-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-6>macOS High
 Sierra (10.13) <a href=#sf-learn-you-a-lapack-6-back class=simple-footnote-back>↩</a></li><li id=sf-learn-you-a-lapack-7>I'm not joking, I was really stumped <a href=#sf-learn-you-a-lapack-7-back class=simple-footnote-back>↩</a></li></ol></div>
     <footer>
 <p class="meta">
