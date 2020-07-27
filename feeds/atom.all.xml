@@ -1,5 +1,342 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-04-22T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>A Threadsafe Connection Pool for Requests</title><link href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html" rel="alternate"></link><published>2020-04-22T00:00:00-07:00</published><updated>2020-04-22T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-04-22:/2020/04/threadsafe-connection-pool.html</id><summary type="html">&lt;p&gt;I've been load testing quite a bit recently. So far I've been impressed by the
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-07-27T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>A Day in the Life of a (Secure) Request</title><link href="https://blog.bossylobster.com/2020/07/life-of-request.html" rel="alternate"></link><published>2020-07-27T00:00:00-07:00</published><updated>2020-07-27T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-07-27:/2020/07/life-of-request.html</id><summary type="html">&lt;p&gt;I recently&lt;sup id=sf-life-of-request-1-back&gt;&lt;a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020."&gt;1&lt;/a&gt;&lt;/sup&gt; had the
+privilege of co-authoring a blog post on the Blend &lt;a href="https://full-stack.blend.com/"&gt;engineering blog&lt;/a&gt; with
+my esteemed colleague &lt;a href="https://github.com/hapoore"&gt;Austin Poore&lt;/a&gt;. Our engineering organization is
+growing like crazy right now and it's a lot of fun so if any of this post is
+interesting to you, check out our …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I recently&lt;sup id=sf-life-of-request-1-back&gt;&lt;a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020."&gt;1&lt;/a&gt;&lt;/sup&gt; had the
+privilege of co-authoring a blog post on the Blend &lt;a href="https://full-stack.blend.com/"&gt;engineering blog&lt;/a&gt; with
+my esteemed colleague &lt;a href="https://github.com/hapoore"&gt;Austin Poore&lt;/a&gt;. Our engineering organization is
+growing like crazy right now and it's a lot of fun so if any of this post is
+interesting to you, check out our &lt;a href="https://blend.com/company/careers/"&gt;careers page&lt;/a&gt;. I copied this content
+over mostly as-is from the &lt;a href="https://full-stack.blend.com/a-day-in-the-life-of-a-secure-request.html"&gt;original post&lt;/a&gt; but wanted to preserve it here
+as well.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#introduction&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#example-express-server&gt;Example Express Server&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#tls-proxy&gt;TLS Proxy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#load-balancers-and-proxy-protocol&gt;Load Balancers and PROXY Protocol&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#putting-it-all-together&gt;Putting it all Together&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img alt="All hops" src="/images/life-of-a-secure-request.jpg"&gt;&lt;/p&gt;
+&lt;h3 id=introduction&gt;Introduction&lt;/h3&gt;
+&lt;p&gt;In this post, we will walk through the infrastructure components we use at
+Blend to secure incoming requests—a day in the life of a request, if you
+will. There are a variety of commonly-used mechanisms to secure cloud computing
+environments, which often involve load balancers and special-purpose proxy
+servers. As a result, requests from a client to an application server
+typically make a number of intermediate network hops en route to their final
+destination.&lt;/p&gt;
+&lt;p&gt;We'll provide a number of examples that you can run yourself as you follow
+along. Then, armed with our new understanding, we'll put it all together at the
+end and explain how, despite the intermediate hops, we can still accurately
+determine a client's IP address by the time a request makes it to our
+application servers.&lt;/p&gt;
+&lt;h3 id=example-express-server&gt;Example Express Server&lt;/h3&gt;
+&lt;p&gt;We'll start with the innermost server (our application server) and work our way
+outwards. We build many of our backend services at Blend using Node.js and
+Express, so that's what we'll use for our sample application server today.
+Though we primarily use TypeScript when writing Node.js applications, we'll
+use vanilla JavaScript for this example to make it accessible to a larger
+audience.&lt;/p&gt;
+&lt;p&gt;If you'd like to follow along, now is the time to fire up your favorite text
+editor. Here we go!
+We'll first create a web server&lt;sup id=sf-life-of-request-2-back&gt;&lt;a href=#sf-life-of-request-2 class=simple-footnote title="See source for server.js."&gt;2&lt;/a&gt;&lt;/sup&gt;
+using Node.js and Express:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;express&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nx&gt;require&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s1&gt;'express'&lt;/span&gt;&lt;span class=p&gt;);&lt;/span&gt;
+&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;app&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nx&gt;express&lt;/span&gt;&lt;span class=p&gt;();&lt;/span&gt;
+&lt;span class=kr&gt;const&lt;/span&gt; &lt;span class=nx&gt;port&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=mi&gt;3000&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=nx&gt;app&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;get&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s1&gt;'/'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;req&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;res&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;=&amp;gt;&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;msg&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;[&lt;/span&gt;
+    &lt;span class=sb&gt;`req.ip: &lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;JSON&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;stringify&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;req&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ip&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=sb&gt;`req.xff: &lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;JSON&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;stringify&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;req&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;get&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s1&gt;'x-forwarded-for'&lt;/span&gt;&lt;span class=p&gt;))&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=s1&gt;''&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=p&gt;].&lt;/span&gt;&lt;span class=nx&gt;join&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s1&gt;'\n'&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=nx&gt;res&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;send&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;msg&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=p&gt;});&lt;/span&gt;
+
+&lt;span class=nx&gt;app&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;listen&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;port&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=p&gt;()&lt;/span&gt; &lt;span class=p&gt;=&amp;gt;&lt;/span&gt; &lt;span class=nx&gt;console&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;log&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`Example app listening on port &lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;port&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;!`&lt;/span&gt;&lt;span class=p&gt;));&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In one terminal window, run this server&lt;sup id=sf-life-of-request-3-back&gt;&lt;a href=#sf-life-of-request-3 class=simple-footnote title="Running server.js will require having node and npm installed, in a directory with a package.json file. For our example we are using node@12.14.1, npm@6.13.4 and installing Express with npm install express@4.17.1 --save-exact."&gt;3&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ node server.js
+Example app listening on port &lt;span class=m&gt;3000&lt;/span&gt;!
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;In another terminal window, send a request to the server:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl http://localhost:3000
+req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.xff: undefined
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This server exposes one route, which returns the IP address and the value of
+the &lt;code&gt;X-Forwarded-For&lt;/code&gt; (XFF) &lt;a href="https://en.wikipedia.org/wiki/X-Forwarded-For"&gt;HTTP header&lt;/a&gt; on the request object (more on
+this later). By default, Express populates the &lt;code&gt;req.ip&lt;/code&gt; field with the address
+on the other end of the TCP socket making the connection to the server. As
+expected, when we send a request from our machine to the server (also running
+on our machine), we see that the requestor IP address is the familiar loopback
+IP for &lt;code&gt;localhost&lt;/code&gt; (&lt;code&gt;::1&lt;/code&gt; for IPv6, or &lt;code&gt;127.0.0.1&lt;/code&gt; for IPv4).&lt;/p&gt;
+&lt;h3 id=tls-proxy&gt;TLS Proxy&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="TLS Proxy" src="/images/life-of-a-secure-request-third-hop.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;In order to secure traffic, web servers use TLS (i.e. the protocol underlying
+&lt;code&gt;https://&lt;/code&gt; connections). Negotiating a TLS session is quite &lt;a href="https://tls13.ulfheim.net/"&gt;complex&lt;/a&gt;; we
+won't go into the full details here. In order to run and test a TLS server
+locally (as part of this blog post), we'll use a private key / public
+certificate pair and a certificate authority (CA) that can be added to a root
+of trust&lt;sup id=sf-life-of-request-4-back&gt;&lt;a href=#sf-life-of-request-4 class=simple-footnote title="See Generated Certificates for localhost."&gt;4&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;In a microservices architecture, having many services worrying about
+&lt;strong&gt;how&lt;/strong&gt; to handle TLS and all that goes into it (e.g. when to rotate
+certificates) doesn't scale well. Instead, a dedicated TLS proxy (commonly
+referred to as a reverse proxy or ingress proxy) can be used to secure incoming
+connections and shuffle traffic to and from the underlying microservices. In
+the sidecar model enabled by Kubernetes, such a TLS proxy can be a very
+lightweight Docker container running in the same pod as an application
+container and communicating with the application directly over &lt;code&gt;localhost&lt;/code&gt;
+while communicating with the outside world securely over TLS.&lt;/p&gt;
+&lt;p&gt;In order to approximate such a TLS proxy as part of our example, we'll
+use the handy &lt;code&gt;caddy&lt;/code&gt; &lt;a href="https://caddyserver.com/"&gt;server&lt;/a&gt;&lt;sup id=sf-life-of-request-5-back&gt;&lt;a href=#sf-life-of-request-5 class=simple-footnote title="We install version 1 of caddy with http.proxyprotocol enabled. The feature is not yet supported in version 2 of caddy."&gt;5&lt;/a&gt;&lt;/sup&gt;. We'll use this to run a TLS proxy on port 3443
+fronting the webserver on port 3000, with the following &lt;code&gt;Caddyfile&lt;/code&gt;&lt;sup id=sf-life-of-request-6-back&gt;&lt;a href=#sf-life-of-request-6 class=simple-footnote title="See source for tls.Caddyfile."&gt;6&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:3443
+proxy / localhost:3000
+tls ./localhost-cert.pem ./localhost-key.pem
+log stdout
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We can run this proxy server and communicate with it over TLS&lt;sup id=sf-life-of-request-7-back&gt;&lt;a href=#sf-life-of-request-7 class=simple-footnote title="See Why --cacert Flag."&gt;7&lt;/a&gt;&lt;/sup&gt; with &lt;code&gt;curl&lt;/code&gt; to verify that it proxies
+traffic to port 3000:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ caddy -conf ./tls.Caddyfile &lt;span class=p&gt;&amp;amp;&lt;/span&gt;
+Activating privacy features... &lt;span class=k&gt;done&lt;/span&gt;.
+
+Serving HTTPS on port &lt;span class=m&gt;3443&lt;/span&gt;
+https://:3443
+...
+$ curl --cacert ./rootCA-cert.pem https://localhost:3443
+req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.xff: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When a TLS sidecar container forwards an HTTP request to an application
+container, it attaches its view of the client IP address using the
+XFF HTTP header. This header is widely used, and can already contain a list of
+values. (For example, if a request was forwarded multiple times before entering
+our system, external proxies may have also written to the header.) The TLS
+proxy either sets the XFF header or adds an entry to the end of the XFF list if
+the header is already present:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --cacert ./rootCA-cert.pem &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --header &lt;span class=s1&gt;'X-Forwarded-For: 127.0.0.2'&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   https://localhost:3443
+req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.xff: &lt;span class=s2&gt;"127.0.0.2, ::1"&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=load-balancers-and-proxy-protocol&gt;Load Balancers and PROXY Protocol&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="Into ELB" src="/images/life-of-a-secure-request-first-hop.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;To secure cloud computing environments, it's common to isolate environments
+(test, beta, production, etc.) into virtual private networks. This way,
+traffic &lt;strong&gt;between&lt;/strong&gt; internal services is secured within the private network
+and traffic &lt;strong&gt;into&lt;/strong&gt; the network requires special access. Traffic is typically
+allowed &lt;strong&gt;into&lt;/strong&gt; the network with a load balancer, which means that
+a request passes through a load balancer before making it to an application
+server.&lt;/p&gt;
+&lt;p&gt;There are two common types of load balancer: &lt;a href="https://www.nginx.com/resources/glossary/layer-4-load-balancing/"&gt;L4 and L7&lt;/a&gt;. Layer 4 (in the
+&lt;a href="https://en.wikipedia.org/wiki/OSI_model"&gt;OSI model&lt;/a&gt;) represents the transport layer (e.g. TCP), whereas layer 7
+represents the application layer (e.g. HTTP). HTTP load balancing can be
+&lt;strong&gt;very&lt;/strong&gt; helpful since it can do load balancing based on path and header
+information and inject headers when passing traffic along. However, TLS traffic
+can't be decrypted unless a layer 7 load balancer is terminating the
+connection. As a result, layer 4 load balancers are still very common because
+they allow application code to handle TLS directly.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="OSI Model" src="/images/osi-model.svg"&gt;&lt;/p&gt;
+&lt;p&gt;At Blend, we use layer 4 load balancers so we can use a highly configurable
+TLS reverse proxy. Unfortunately, since a layer 4 load balancer cannot decrypt
+the TLS traffic, it can't add information about the originating client when
+forwarding requests along to an application server. However, the client's IP
+address can be a crucial piece of information when validating an incoming
+request, so the &lt;a href="http://www.haproxy.org/download/1.8/doc/proxy-protocol.txt"&gt;PROXY protocol spec&lt;/a&gt; defines a way to pass this along.
+Rather than modifying the encrypted bytes, a header is prepended to the TCP
+bytesteam&lt;sup id=sf-life-of-request-8-back&gt;&lt;a href=#sf-life-of-request-8 class=simple-footnote title="See Observing PROXY Protocol."&gt;8&lt;/a&gt;&lt;/sup&gt;.
+For &lt;a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-proxy-protocol.html"&gt;example&lt;/a&gt; with an IPv4 connection:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;PROXY TCP4 198.51.100.22 203.0.113.7 35646 80\r\n
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To utilize this information, we can modify our &lt;code&gt;Caddyfile&lt;/code&gt; to enable the
+&lt;a href="https://caddyserver.com/v1/docs/http.proxyprotocol"&gt;&lt;code&gt;http.proxyprotocol&lt;/code&gt; filter&lt;/a&gt;&lt;sup id=sf-life-of-request-9-back&gt;&lt;a href=#sf-life-of-request-9 class=simple-footnote title="See source for proxy-protocol.Caddyfile."&gt;9&lt;/a&gt;&lt;/sup&gt;. After doing this, we can use &lt;code&gt;curl&lt;/code&gt; to pass
+along a PROXY protocol prefix and verify the Caddy server handles it:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ caddy -conf ./proxy-protocol.Caddyfile &lt;span class=p&gt;&amp;amp;&lt;/span&gt;
+...
+$ curl --haproxy-protocol &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --cacert ./rootCA-cert.pem https://localhost:3443
+req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.xff: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img alt="From ELB" src="/images/life-of-a-secure-request-second-hop.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;However, since all IP addresses (including those in the PROXY protocol prefix)
+are &lt;code&gt;localhost&lt;/code&gt;, the example is somewhat unsatisfying. Instead, we'll use
+another of our favorite tools at Blend—the Go programming language—
+to simulate the example above involving &lt;code&gt;198.51.100.22&lt;/code&gt;. We can use a raw TCP
+socket, manually send the PROXY protocol prefix and then wrap the socket in a
+TLS connection&lt;sup id=sf-life-of-request-10-back&gt;&lt;a href=#sf-life-of-request-10 class=simple-footnote title="See source for wrapped-request.go."&gt;10&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ go run ./wrapped-request.go
+req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.xff: &lt;span class=s2&gt;"127.0.0.4, 127.0.0.3, 127.0.0.2, 198.51.100.22"&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=putting-it-all-together&gt;Putting it all Together&lt;/h3&gt;
+&lt;p&gt;At this point, we've developed an understanding of all of the individual
+pieces. In this section, we will put them all together from end-to-end and
+test our complete understanding by working through the full process by which
+we can preserve a requestor's IP address through multiple intermediate hops.&lt;/p&gt;
+&lt;p&gt;More precisely, we'd like to be able to determine the IP address used to
+connect directly to our system. If, for example, the caller is using an
+egress proxy that forwards requests from a group of machines, the address of
+that egress proxy is the only address that we are able to reliably verify,
+because anything that happened in the life of the request before the direct
+connection to Blend could be spoofed. To put it another way: we can only fully
+trust our own infrastructure.&lt;/p&gt;
+&lt;p&gt;As mentioned above, most of our backend services at Blend run with sidecar
+containers&lt;sup id=sf-life-of-request-11-back&gt;&lt;a href=#sf-life-of-request-11 class=simple-footnote title="Sidecars are separate containers that belong to the same Kubernetes pod."&gt;11&lt;/a&gt;&lt;/sup&gt; which handle TLS and forward traffic to our
+application server containers. This means that our application code does not
+need to be aware of TLS—it communicates with the TLS proxy in cleartext
+over &lt;code&gt;localhost&lt;/code&gt;. Since the proxy connects to the application server in this
+way, our Express server running with default settings would populate
+&lt;code&gt;req.ip&lt;/code&gt; using the address from the TCP socket (which would be &lt;code&gt;localhost&lt;/code&gt;, as
+in our initial example).&lt;/p&gt;
+&lt;p&gt;Luckily, Express is &lt;a href="https://expressjs.com/en/guide/behind-proxies.html"&gt;commonly used&lt;/a&gt; with proxies, so there is a helpful
+setting we can use to instruct our server to use the XFF information on the
+request to populate &lt;code&gt;req.ip&lt;/code&gt;. In particular, we know that there is a single
+trusted proxy in the request's path that is appending an entry to XFF: our TLS
+sidecar. Thus, we can set &lt;code&gt;app.set('trust proxy', 1)&lt;/code&gt; on our Express
+application, which tells our server that &lt;code&gt;req.ip&lt;/code&gt; should be set based on the
+last entry in XFF. Running our server&lt;sup id=sf-life-of-request-12-back&gt;&lt;a href=#sf-life-of-request-12 class=simple-footnote title="See source for server-trust.js."&gt;12&lt;/a&gt;&lt;/sup&gt; with "trust proxy", we see &lt;code&gt;req.ip&lt;/code&gt; derived from XFF
+rather than the TCP socket:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ node server-trust.js
+Example app listening on port &lt;span class=m&gt;3000&lt;/span&gt;!
+...
+$ go run wrapped-request.go
+req.ip: &lt;span class=s2&gt;"198.51.100.22"&lt;/span&gt;
+req.xff: &lt;span class=s2&gt;"127.0.0.4, 127.0.0.3, 127.0.0.2, 198.51.100.22"&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;So, a typical request&lt;sup id=sf-life-of-request-13-back&gt;&lt;a href=#sf-life-of-request-13 class=simple-footnote title="See Warning about trust proxy."&gt;13&lt;/a&gt;&lt;/sup&gt; will proceed from client
+to application server as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Request originates at the client (e.g. IP address &lt;code&gt;198.51.100.22&lt;/code&gt;) and gets
+    routed to the AWS load balancer.&lt;/li&gt;
+&lt;li&gt;The AWS load balancer reads the client IP address from the TCP socket,
+    and uses the PROXY protocol to attach that information to the beginning of
+    the TCP bytestream that it forwards to the TLS proxy sidecar container.&lt;/li&gt;
+&lt;li&gt;The TLS sidecar container reads the first set of bytes from the TCP stream,
+    sees that they say "PROXY", and strips those bytes (plus the IP address
+    information) off of the TCP stream. It negotiates the TLS handshake with
+    the client. It also attaches &lt;code&gt;X-Forwarded-For: 198.51.100.22&lt;/code&gt; to each
+    proxied HTTP request.&lt;/li&gt;
+&lt;li&gt;The application server, which is an Express server running with
+    &lt;code&gt;('trust proxy', 1)&lt;/code&gt;, automatically pulls the last entry from &lt;code&gt;X-Forwarded-For&lt;/code&gt; and
+    sets &lt;code&gt;req.ip&lt;/code&gt; to &lt;code&gt;198.51.100.22&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+
+&lt;h3&gt;Extended Footnotes&lt;/h3&gt;
+&lt;h4 id=netcat-proxy-protocol&gt;Observing PROXY Protocol&lt;/h4&gt;
+&lt;p&gt;To concretely understand how PROXY protocol works, we can use
+&lt;a href="https://en.wikipedia.org/wiki/Netcat"&gt;netcat&lt;/a&gt; (&lt;code&gt;nc&lt;/code&gt;) to print out the raw TCP stream sent in an HTTP
+request. Compare a regular HTTP GET&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=o&gt;(&lt;/span&gt;&lt;span class=nb&gt;echo&lt;/span&gt; WITHOUT &lt;span class=p&gt;|&lt;/span&gt; nc -l &lt;span class=m&gt;9876&lt;/span&gt; &lt;span class=p&gt;&amp;amp;&lt;/span&gt;&lt;span class=o&gt;)&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   curl http://localhost:9876
+GET / HTTP/1.1
+Host: localhost:9876
+User-Agent: curl/7.64.1
+Accept: */*
+
+WITHOUT
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;to an HTTP GET with the PROXY protocol prefix:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=o&gt;(&lt;/span&gt;&lt;span class=nb&gt;echo&lt;/span&gt; WITH &lt;span class=p&gt;|&lt;/span&gt; nc -l &lt;span class=m&gt;9876&lt;/span&gt; &lt;span class=p&gt;&amp;amp;&lt;/span&gt;&lt;span class=o&gt;)&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   curl --haproxy-protocol http://localhost:9876
+PROXY TCP4 &lt;span class=m&gt;127&lt;/span&gt;.0.0.1 &lt;span class=m&gt;127&lt;/span&gt;.0.0.1 &lt;span class=m&gt;53577&lt;/span&gt; &lt;span class=m&gt;9876&lt;/span&gt;
+GET / HTTP/1.1
+Host: localhost:9876
+User-Agent: curl/7.64.1
+Accept: */*
+
+WITH
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4 id=local-certificates&gt;Generated Certificates for &lt;code&gt;localhost&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;To generate a certificate authority (CA) and a certificate pair to be
+used during local development, we use the &lt;code&gt;mkcert&lt;/code&gt; &lt;a href="https://github.com/FiloSottile/mkcert"&gt;tool&lt;/a&gt;. Rather than
+installing this CA on our system, we'll generate it in a Docker container
+and bring the generated files back to our host operating system. The
+&lt;code&gt;generate-tls-certs.sh&lt;/code&gt; &lt;a href="/code/generate-tls-certs.sh"&gt;script&lt;/a&gt; can be used to generate four PEM
+files&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;localhost-cert.pem&lt;/code&gt; &lt;a href="/code/localhost-cert.pem"&gt;public certificate&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;localhost-key.pem&lt;/code&gt; &lt;a href="/code/localhost-key.pem"&gt;private key&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rootCA-cert.pem&lt;/code&gt; &lt;a href="/code/rootCA-cert.pem"&gt;public certificate&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rootCA-key.pem&lt;/code&gt; &lt;a href="/code/rootCA-key.pem"&gt;private key&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;and this script itself relies on the &lt;code&gt;generate-tls-certs-on-alpine.sh&lt;/code&gt;
+&lt;a href="/code/generate-tls-certs-on-alpine.sh"&gt;file&lt;/a&gt;.&lt;/p&gt;
+&lt;h4 id=warning-trust&gt;Warning about &lt;code&gt;trust proxy&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;Note that "trust proxy" &lt;strong&gt;requires&lt;/strong&gt; that the server trusts the proxy that
+it is communicating with. If the client communicates directly (rather than
+through the proxy), the XFF header can be spoofed&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl http://localhost:3000
+req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.xff: undefined
+$ curl &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --header &lt;span class=s1&gt;'X-Forwarded-For: 198.51.100.22'&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   http://localhost:3000
+req.ip: &lt;span class=s2&gt;"198.51.100.22"&lt;/span&gt;
+req.xff: &lt;span class=s2&gt;"198.51.100.22"&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4 id=curl-flag&gt;Why &lt;code&gt;--cacert&lt;/code&gt; Flag&lt;/h4&gt;
+&lt;p&gt;The &lt;code&gt;--cacert&lt;/code&gt; flag is required when using TLS to communicate with an
+untrusted local server. If not provided requests will fail:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl https://localhost:3443
+curl: &lt;span class=o&gt;(&lt;/span&gt;&lt;span class=m&gt;60&lt;/span&gt;&lt;span class=o&gt;)&lt;/span&gt; SSL certificate problem: unable to get &lt;span class=nb&gt;local&lt;/span&gt; issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This is because our private key / public certificate pair has been signed
+by the CA we generated above, which is not in the root of trust for &lt;code&gt;curl&lt;/code&gt;
+(or for the OS).&lt;/p&gt;
+&lt;hr&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-life-of-request-1&gt;It was recent when I wrote this on July 27, 2020. &lt;a href=#sf-life-of-request-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-2&gt;See &lt;a href="/code/server.js"&gt;source&lt;/a&gt; for &lt;code&gt;server.js&lt;/code&gt;. &lt;a href=#sf-life-of-request-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-3&gt;Running &lt;code&gt;server.js&lt;/code&gt; will require
+having &lt;code&gt;node&lt;/code&gt; and &lt;code&gt;npm&lt;/code&gt; installed, in a directory with a &lt;code&gt;package.json&lt;/code&gt; file.
+For our example we are using &lt;code&gt;node@12.14.1&lt;/code&gt;, &lt;code&gt;npm@6.13.4&lt;/code&gt; and installing
+Express with &lt;code&gt;npm install express@4.17.1 --save-exact&lt;/code&gt;. &lt;a href=#sf-life-of-request-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-4&gt;See &lt;a href=#local-certificates&gt;Generated Certificates&lt;/a&gt; for
+&lt;code&gt;localhost&lt;/code&gt;. &lt;a href=#sf-life-of-request-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-5&gt;We &lt;a href="https://caddyserver.com/v1/download"&gt;install&lt;/a&gt; version 1 of &lt;code&gt;caddy&lt;/code&gt;
+with &lt;code&gt;http.proxyprotocol&lt;/code&gt; enabled. The feature is &lt;a href="https://github.com/mastercactapus/caddy-proxyprotocol/issues/9"&gt;not yet supported&lt;/a&gt; in
+version 2 of &lt;code&gt;caddy&lt;/code&gt;. &lt;a href=#sf-life-of-request-5-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-6&gt;See
+&lt;a href="/code/tls.Caddyfile"&gt;source&lt;/a&gt; for &lt;code&gt;tls.Caddyfile&lt;/code&gt;. &lt;a href=#sf-life-of-request-6-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-7&gt;See
+&lt;a href=#curl-flag&gt;Why&lt;/a&gt; &lt;code&gt;--cacert&lt;/code&gt; Flag. &lt;a href=#sf-life-of-request-7-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-8&gt;See &lt;a href=#netcat-proxy-protocol&gt;Observing PROXY Protocol&lt;/a&gt;. &lt;a href=#sf-life-of-request-8-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-9&gt;See &lt;a href="/code/proxy-protocol.Caddyfile"&gt;source&lt;/a&gt; for
+&lt;code&gt;proxy-protocol.Caddyfile&lt;/code&gt;. &lt;a href=#sf-life-of-request-9-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-10&gt;See &lt;a href="/code/wrapped-request.go"&gt;source&lt;/a&gt; for &lt;code&gt;wrapped-request.go&lt;/code&gt;. &lt;a href=#sf-life-of-request-10-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-11&gt;Sidecars are separate containers that belong to the same
+Kubernetes pod. &lt;a href=#sf-life-of-request-11-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-12&gt;See &lt;a href="/code/server-trust.js"&gt;source&lt;/a&gt; for
+&lt;code&gt;server-trust.js&lt;/code&gt;. &lt;a href=#sf-life-of-request-12-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-life-of-request-13&gt;See
+&lt;a href=#warning-trust&gt;Warning about&lt;/a&gt; &lt;code&gt;trust proxy&lt;/code&gt;. &lt;a href=#sf-life-of-request-13-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="TLS"></category><category term="Reverse Proxy"></category><category term="ELB"></category><category term="HTTP"></category></entry><entry><title>A Threadsafe Connection Pool for Requests</title><link href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html" rel="alternate"></link><published>2020-04-22T00:00:00-07:00</published><updated>2020-04-22T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-04-22:/2020/04/threadsafe-connection-pool.html</id><summary type="html">&lt;p&gt;I've been load testing quite a bit recently. So far I've been impressed by the
 &lt;code&gt;wrk&lt;/code&gt; &lt;a href="https://github.com/wg/wrk"&gt;project's&lt;/a&gt; use of sockets to pour on a ridiculously high amount of
 load. When I had stretched the system under load &lt;strong&gt;past&lt;/strong&gt; its limits, finding
 the &lt;code&gt;fortio&lt;/code&gt; &lt;a href="https://github.com/fortio/fortio"&gt;project&lt;/a&gt; was a breath of fresh air …&lt;/p&gt;</summary><content type="html">&lt;p&gt;I've been load testing quite a bit recently. So far I've been impressed by the
