@@ -1,5 +1,255 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-07-27T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>A Day in the Life of a (Secure) Request</title><link href="https://blog.bossylobster.com/2020/07/life-of-request.html" rel="alternate"></link><published>2020-07-27T00:00:00-07:00</published><updated>2020-07-27T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-07-27:/2020/07/life-of-request.html</id><summary type="html">&lt;p&gt;I recently&lt;sup id=sf-life-of-request-1-back&gt;&lt;a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020."&gt;1&lt;/a&gt;&lt;/sup&gt; had the
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-09-01T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Preventing PostgreSQL Deadlocks in Go</title><link href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html" rel="alternate"></link><published>2020-09-01T00:00:00-07:00</published><updated>2020-09-01T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-09-01:/2020/09/go-pq-prevent-deadlock.html</id><summary type="html">&lt;p&gt;&lt;img alt="All About Locks" src="/images/Lock-Up-The-Forest.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;I've been writing a library for running PostgreSQL migrations in Go. One
+of the primary pieces of advice I &lt;a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/"&gt;keep&lt;/a&gt; coming &lt;a href="https://benchling.engineering/move-fast-and-migrate-things-how-we-automated-migrations-in-postgres-d60aba0fc3d4"&gt;across&lt;/a&gt; is&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Beware of lock queues, use lock timeouts&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In other words, each migration stage should happen &lt;strong&gt;instantaneously&lt;/strong&gt; (or
+almost instantaneously). For real-time applications, if a migration runs "for …&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;img alt="All About Locks" src="/images/Lock-Up-The-Forest.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;I've been writing a library for running PostgreSQL migrations in Go. One
+of the primary pieces of advice I &lt;a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/"&gt;keep&lt;/a&gt; coming &lt;a href="https://benchling.engineering/move-fast-and-migrate-things-how-we-automated-migrations-in-postgres-d60aba0fc3d4"&gt;across&lt;/a&gt; is&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Beware of lock queues, use lock timeouts&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In other words, each migration stage should happen &lt;strong&gt;instantaneously&lt;/strong&gt; (or
+almost instantaneously). For real-time applications, if a migration runs "for a
+long time" it can potentially hold a lock that blocks every query in the
+application. This post is about the mechanics of setting a &lt;code&gt;lock_timeout&lt;/code&gt; in
+PostgreSQL via the canonical &lt;code&gt;github.com/lib/pq&lt;/code&gt; driver. I'll dive into how it
+works, how it contrasts to equivalent connections via &lt;code&gt;psql&lt;/code&gt; and we'll go
+through four different deadlock scenarios that timeout.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#prerequisites&gt;Prerequisites&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#intentional-contention&gt;Intentional Contention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#example-set-up&gt;Example Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#failures&gt;Failures&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;lock_timeout&lt;/code&gt; &lt;a href=#lock-timeout-dsn&gt;in the DSN&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=prerequisites&gt;Prerequisites&lt;/h3&gt;
+&lt;!-- For posterity
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ docker version
+Client: Docker Engine - Community
+ Version:           &lt;span class="m"&gt;19&lt;/span&gt;.03.12
+$
+$ go version
+go version go1.14 darwin/amd64
+$
+$ git --git-dir &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;GOPATH&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/src/github.com/lib/pq/.git log -1 --pretty&lt;span class="o"&gt;=&lt;/span&gt;%H
+ef080b6a8f499b5d60fe9f24a2f8a8beb671566d
+$
+$ git --git-dir &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;GOPATH&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/src/github.com/hashicorp/go-multierror/.git log -1 --pretty&lt;span class="o"&gt;=&lt;/span&gt;%H
+0d28cf682dbe774898e42a3db11b7ce24b36751a
+$
+$ git --git-dir &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;GOPATH&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/src/github.com/hashicorp/errwrap/.git log -1 --pretty&lt;span class="o"&gt;=&lt;/span&gt;%H
+7b00e5db719c64d14dd0caaacbd13e76254d02c0
+&lt;/pre&gt;&lt;/div&gt;
+
+
+--&gt;
+
+&lt;p&gt;We'll be on a machine with Docker and Go installed. The Go packages
+&lt;code&gt;github.com/lib/pq&lt;/code&gt; and &lt;code&gt;github.com/hashicorp/go-multierror&lt;/code&gt; should be
+installed as well.&lt;/p&gt;
+&lt;p&gt;In order to run the examples, make sure a local &lt;code&gt;postgres&lt;/code&gt; server is
+running&lt;sup id=sf-go-pq-prevent-deadlock-1-back&gt;&lt;a href=#sf-go-pq-prevent-deadlock-1 class=simple-footnote title="Take note of the connection parameters"&gt;1&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker run \
+  --detach \
+  --hostname localhost \
+  --publish 28007:5432 \
+  --name dev-postgres-prevent-deadlock \
+  --env POSTGRES_DB=superuser_db \
+  --env POSTGRES_USER=superuser \
+  --env POSTGRES_PASSWORD=testpassword_superuser \
+  postgres:10.6-alpine
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=intentional-contention&gt;Intentional Contention&lt;/h3&gt;
+&lt;p&gt;In order to introduce a deadlock, we borrow an example from
+&lt;a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/"&gt;When Postgres blocks: 7 tips for dealing with locks&lt;/a&gt;.
+In the first transaction we update "hello" rows following by "world" rows&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;UPDATE&lt;/span&gt; &lt;span class=n&gt;might_deadlock&lt;/span&gt; &lt;span class=k&gt;SET&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;+&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;WHERE&lt;/span&gt; &lt;span class=k&gt;key&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'hello'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Sleep for 200ms&lt;/span&gt;
+&lt;span class=k&gt;UPDATE&lt;/span&gt; &lt;span class=n&gt;might_deadlock&lt;/span&gt; &lt;span class=k&gt;SET&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;+&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;WHERE&lt;/span&gt; &lt;span class=k&gt;key&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'world'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and in the second transaction we update the rows in the opposite order&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;UPDATE&lt;/span&gt; &lt;span class=n&gt;might_deadlock&lt;/span&gt; &lt;span class=k&gt;SET&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;+&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;WHERE&lt;/span&gt; &lt;span class=k&gt;key&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'world'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Sleep for 200ms&lt;/span&gt;
+&lt;span class=k&gt;UPDATE&lt;/span&gt; &lt;span class=n&gt;might_deadlock&lt;/span&gt; &lt;span class=k&gt;SET&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;+&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;WHERE&lt;/span&gt; &lt;span class=k&gt;key&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'hello'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=example-set-up&gt;Example Set Up&lt;/h3&gt;
+&lt;p&gt;In order to trigger different failure modes, we allow two different
+configurable durations:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;lock_timeout&lt;/code&gt; set directly in PostgreSQL (via &lt;code&gt;LOCK_TIMEOUT&lt;/code&gt; environment
+  variable)&lt;/li&gt;
+&lt;li&gt;Timeout / deadline on a Go &lt;code&gt;context.Context&lt;/code&gt; (via &lt;code&gt;CONTEXT_TIMEOUT&lt;/code&gt;
+  environment variable)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Additionally, we fix a third duration — the amount of time to sleep
+between statements in each transaction — to 200 milliseconds.
+By allowing the lock and context timeouts to vary, we can see a failure
+manifest in (hopefully) an exhaustive set of scenarios.&lt;/p&gt;
+&lt;p&gt;Really we are concerned here with checking a few cases:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;What does &lt;code&gt;postgres&lt;/code&gt; do when a lock is held for &lt;code&gt;lock_timeout&lt;/code&gt; seconds?&lt;/li&gt;
+&lt;li&gt;What does &lt;code&gt;postgres&lt;/code&gt; do when a lock is held and a Go context is canceled?&lt;/li&gt;
+&lt;li&gt;What does &lt;code&gt;postgres&lt;/code&gt; do when left on its own (i.e. no lock or context
+  timeout will relinquish the lock)?&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The &lt;code&gt;pq-prevent-deadlock.go&lt;/code&gt; &lt;a href="/code/pq-prevent-deadlock.go"&gt;script&lt;/a&gt; seeds the &lt;code&gt;might_deadlock&lt;/code&gt; table
+and then kicks off two simultaneous goroutines to intentionally cause
+deadlock. The places in the script relevant to the discussion are the usage of
+&lt;code&gt;lock_timeout&lt;/code&gt; in the mostly hardcoded connection string (more on this
+&lt;a href=#lock-timeout-dsn&gt;later&lt;/a&gt;):&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=nx&gt;createPool&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt; &lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Context&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;cfg&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;Config&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;sql&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;DB&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;dsnTemplate&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=s&gt;"postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?lock_timeout=%s&amp;amp;sslmode=disable"&lt;/span&gt;
+    &lt;span class=nx&gt;dsn&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;fmt&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Sprintf&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;dsnTemplate&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;cfg&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;LockTimeout&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=nx&gt;pool&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;sql&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Open&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"postgres"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;dsn&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and the creation of a Go context that sets a deadline based on the context
+timeout&lt;sup id=sf-go-pq-prevent-deadlock-2-back&gt;&lt;a href=#sf-go-pq-prevent-deadlock-2 class=simple-footnote title="It's crucial that we pass this context in to every database method that has a Context-accepting variant"&gt;2&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;deadline&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Now&lt;/span&gt;&lt;span class=p&gt;().&lt;/span&gt;&lt;span class=nx&gt;Add&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;cfg&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ContextTimeout&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;cancel&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;WithDeadline&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Background&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt; &lt;span class=nx&gt;deadline&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=k&gt;defer&lt;/span&gt; &lt;span class=nx&gt;cancel&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The deadlock itself happens in the function kicked off in the goroutines:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=nx&gt;contendReads&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt; &lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Context&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;wg&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;sync&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;WaitGroup&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;tx&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;sql&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Tx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;key1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;key2&lt;/span&gt; &lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;cfg&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;Config&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=k&gt;defer&lt;/span&gt; &lt;span class=nx&gt;wg&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Done&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+
+    &lt;span class=nx&gt;updateRows&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=s&gt;"UPDATE might_deadlock SET counter = counter + 1 WHERE key = $1;"&lt;/span&gt;
+    &lt;span class=nx&gt;_&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;tx&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ExecContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;updateRows&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;key1&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=k&gt;if&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;!=&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+
+    &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Sleep&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;200&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Millisecond&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=nx&gt;_&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=nx&gt;tx&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ExecContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;updateRows&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;key2&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=failures&gt;Failures&lt;/h3&gt;
+&lt;h4&gt;Via &lt;code&gt;lock_timeout&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;By setting &lt;code&gt;lock_timeout&lt;/code&gt; to 10 milliseconds, much shorter than the 200
+millisecond sleep between statements, we can induce &lt;a href="https://www.postgresql.org/docs/10/errcodes-appendix.html"&gt;error&lt;/a&gt;
+&lt;code&gt;55P03: lock_not_available&lt;/code&gt; directly from &lt;code&gt;postgres&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LOCK_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10ms &lt;span class=nv&gt;CONTEXT_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;600ms go run ./pq-prevent-deadlock.go
+&lt;span class=m&gt;0&lt;/span&gt;.039350 Starting transactions
+&lt;span class=m&gt;0&lt;/span&gt;.059424 Transactions opened
+&lt;span class=m&gt;0&lt;/span&gt;.286993 Error&lt;span class=o&gt;(&lt;/span&gt;s&lt;span class=o&gt;)&lt;/span&gt;:
+&lt;span class=m&gt;0&lt;/span&gt;.287104 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"55P03"&lt;/span&gt;, Message:&lt;span class=s2&gt;"canceling statement due to lock timeout"&lt;/span&gt;, Detail:&lt;span class=s2&gt;""&lt;/span&gt;, Hint:&lt;span class=s2&gt;""&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,1) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"postgres.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"2989"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"ProcessInterrupts"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
+&lt;span class=m&gt;0&lt;/span&gt;.287119 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"55P03"&lt;/span&gt;, Message:&lt;span class=s2&gt;"canceling statement due to lock timeout"&lt;/span&gt;, Detail:&lt;span class=s2&gt;""&lt;/span&gt;, Hint:&lt;span class=s2&gt;""&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,2) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"postgres.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"2989"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"ProcessInterrupts"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This shows that (A) putting &lt;code&gt;lock_timeout&lt;/code&gt; in the connection string used by
+Go actually sets a timeout and (B) the database engine does the work of
+canceling statements and providing a useful error to the client.&lt;/p&gt;
+&lt;h4&gt;Force a Deadlock&lt;/h4&gt;
+&lt;p&gt;By setting &lt;code&gt;lock_timeout&lt;/code&gt; &lt;strong&gt;and&lt;/strong&gt; the context timeout to 10 seconds, we can
+leave &lt;code&gt;postgres&lt;/code&gt; on its own to suffer with (and detect) the deadlock.
+After less than two seconds the deadlock is detected and error
+&lt;code&gt;40P01: deadlock_detected&lt;/code&gt; is returned:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LOCK_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10s &lt;span class=nv&gt;CONTEXT_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10s go run ./pq-prevent-deadlock.go
+&lt;span class=m&gt;0&lt;/span&gt;.043090 Starting transactions
+&lt;span class=m&gt;0&lt;/span&gt;.058350 Transactions opened
+&lt;span class=m&gt;1&lt;/span&gt;.276383 Error&lt;span class=o&gt;(&lt;/span&gt;s&lt;span class=o&gt;)&lt;/span&gt;:
+&lt;span class=m&gt;1&lt;/span&gt;.276474 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"40P01"&lt;/span&gt;, Message:&lt;span class=s2&gt;"deadlock detected"&lt;/span&gt;, Detail:&lt;span class=s2&gt;"Process 2385 waits for ShareLock on transaction 624; blocked by process 2384.\nProcess 2384 waits for ShareLock on transaction 625; blocked by process 2385."&lt;/span&gt;, Hint:&lt;span class=s2&gt;"See server log for query details."&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,1) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"deadlock.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"1140"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"DeadLockReport"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Go &lt;code&gt;context&lt;/code&gt; Cancelation In Between Queries in a Transaction&lt;/h4&gt;
+&lt;p&gt;By setting the context timeout to 100 milliseconds (half the length of the
+sleep between statements), the transaction will be canceled &lt;strong&gt;during&lt;/strong&gt; the
+sleep which means the next statement will not even attempt to communicate
+with &lt;code&gt;postgres&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LOCK_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10s &lt;span class=nv&gt;CONTEXT_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;100ms go run ./pq-prevent-deadlock.go
+&lt;span class=m&gt;0&lt;/span&gt;.049146 Starting transactions
+&lt;span class=m&gt;0&lt;/span&gt;.060474 Transactions opened
+&lt;span class=m&gt;0&lt;/span&gt;.268488 Error&lt;span class=o&gt;(&lt;/span&gt;s&lt;span class=o&gt;)&lt;/span&gt;:
+&lt;span class=m&gt;0&lt;/span&gt;.268542 - context.deadlineExceededError&lt;span class=o&gt;{}&lt;/span&gt;
+&lt;span class=m&gt;0&lt;/span&gt;.268547 - context.deadlineExceededError&lt;span class=o&gt;{}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Cancel "Stuck" Deadlock via Go context Cancelation&lt;/h4&gt;
+&lt;p&gt;Setting the context timeout to 600 milliseconds is long enough that the sleep
+between statements completes but not so long that &lt;code&gt;postgres&lt;/code&gt; detects the
+deadlock. In this case a &lt;code&gt;57014: query_canceled&lt;/code&gt; is returned:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LOCK_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10s &lt;span class=nv&gt;CONTEXT_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;600ms go run ./pq-prevent-deadlock.go
+&lt;span class=m&gt;0&lt;/span&gt;.037892 Starting transactions
+&lt;span class=m&gt;0&lt;/span&gt;.048328 Transactions opened
+&lt;span class=m&gt;0&lt;/span&gt;.610551 Error&lt;span class=o&gt;(&lt;/span&gt;s&lt;span class=o&gt;)&lt;/span&gt;:
+&lt;span class=m&gt;0&lt;/span&gt;.610640 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"57014"&lt;/span&gt;, Message:&lt;span class=s2&gt;"canceling statement due to user request"&lt;/span&gt;, Detail:&lt;span class=s2&gt;""&lt;/span&gt;, Hint:&lt;span class=s2&gt;""&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,1) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"postgres.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"3026"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"ProcessInterrupts"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
+&lt;span class=m&gt;0&lt;/span&gt;.610663 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"57014"&lt;/span&gt;, Message:&lt;span class=s2&gt;"canceling statement due to user request"&lt;/span&gt;, Detail:&lt;span class=s2&gt;""&lt;/span&gt;, Hint:&lt;span class=s2&gt;""&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,2) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"postgres.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"3026"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"ProcessInterrupts"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This is somewhat of a pleasant surprise because the in-flight statement:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Sleep&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;200&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Millisecond&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=nx&gt;_&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=nx&gt;tx&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ExecContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;updateRows&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;key2&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;might very well be expected to block indefinitely. Instead, an event loop
+in &lt;code&gt;github.com/lib/pq&lt;/code&gt; detects the context cancelation and manages to
+communicate the canceled query to &lt;code&gt;postgres&lt;/code&gt; as well.&lt;/p&gt;
+&lt;h3 id=lock-timeout-dsn&gt;&lt;code&gt;lock_timeout&lt;/code&gt; in the DSN&lt;/h3&gt;
+&lt;p&gt;Though &lt;code&gt;lock_timeout&lt;/code&gt; is directly supported in the connection string in
+&lt;code&gt;github.com/lib/pq&lt;/code&gt;, it's &lt;a href="https://www.postgresql.org/docs/10/libpq-connect.html#LIBPQ-PARAMKEYWORDS"&gt;explicitly&lt;/a&gt; &lt;strong&gt;not&lt;/strong&gt; supported in
+&lt;code&gt;psql&lt;/code&gt; / &lt;code&gt;libpq&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ psql &lt;span class=s2&gt;"postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?lock_timeout=10ms&amp;amp;sslmode=disable"&lt;/span&gt;
+psql: error: could not connect to server: invalid URI query parameter: &lt;span class=s2&gt;"lock_timeout"&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Instead &lt;code&gt;github.com/lib/pq&lt;/code&gt; parses all query parameters when &lt;a href="https://github.com/lib/pq/blob/v1.8.0/connector.go#L67-L69"&gt;reading a DSN&lt;/a&gt;
+and then passes all non-driver setting through as key-value pairs when
+&lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L1093-L1105"&gt;forming a startup packet&lt;/a&gt;. There are 13&lt;sup id=sf-go-pq-prevent-deadlock-3-back&gt;&lt;a href=#sf-go-pq-prevent-deadlock-3 class=simple-footnote title="Though 13 are supported by github.com/lib/pq, there are 29 postgres parameter keywords"&gt;3&lt;/a&gt;&lt;/sup&gt;
+designated driver settings &lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L1058-L1084"&gt;supported by&lt;/a&gt; &lt;code&gt;github.com/lib/pq&lt;/code&gt;: &lt;code&gt;host&lt;/code&gt;,
+&lt;code&gt;port&lt;/code&gt;, ..., etc.&lt;/p&gt;
+&lt;h4&gt;What's the &lt;code&gt;psql&lt;/code&gt; Equivalent?&lt;/h4&gt;
+&lt;p&gt;From the &lt;a href="https://www.postgresql.org/docs/10/protocol-flow.html#id-1.10.5.7.3"&gt;Start-up&lt;/a&gt; section of the documentation for
+"Frontend/Backend Protocol &amp;gt; Message Flow", we see&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;To begin a session, a frontend opens a connection to the server and sends a
+startup message ... (Optionally, the startup message can include additional
+settings for run-time parameters.)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Using &lt;code&gt;PGOPTIONS="-c {key}={value}"&lt;/code&gt; with &lt;code&gt;psql&lt;/code&gt; enables &lt;a href="https://www.postgresql.org/docs/10/app-postgres.html#id-1.9.5.13.6.3"&gt;setting&lt;/a&gt;
+named run-time parameters&lt;sup id=sf-go-pq-prevent-deadlock-4-back&gt;&lt;a href=#sf-go-pq-prevent-deadlock-4 class=simple-footnote title="It's also worth noting that github.com/lib/pq is PGOPTIONS-aware"&gt;4&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;PGOPTIONS&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"-c lock_timeout=10ms"&lt;/span&gt; psql &lt;span class=s2&gt;"postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?connect_timeout=5&amp;amp;sslmode=disable"&lt;/span&gt;
+...
+&lt;span class=nv&gt;superuser_db&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=c1&gt;# SHOW lock_timeout;&lt;/span&gt;
+ lock_timeout
+--------------
+ 10ms
+&lt;span class=o&gt;(&lt;/span&gt;&lt;span class=m&gt;1&lt;/span&gt; row&lt;span class=o&gt;)&lt;/span&gt;
+
+&lt;span class=nv&gt;superuser_db&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=c1&gt;# \q&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-go-pq-prevent-deadlock-1&gt;Take note of the connection parameters &lt;a href=#sf-go-pq-prevent-deadlock-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-go-pq-prevent-deadlock-2&gt;It's crucial that we pass this context in to every database
+method that has a &lt;code&gt;Context&lt;/code&gt;-accepting variant &lt;a href=#sf-go-pq-prevent-deadlock-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-go-pq-prevent-deadlock-3&gt;Though 13 are supported by
+&lt;code&gt;github.com/lib/pq&lt;/code&gt;, there are 29 &lt;code&gt;postgres&lt;/code&gt; &lt;a href="https://www.postgresql.org/docs/10/libpq-connect.html#LIBPQ-PARAMKEYWORDS"&gt;parameter keywords&lt;/a&gt; &lt;a href=#sf-go-pq-prevent-deadlock-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-go-pq-prevent-deadlock-4&gt;It's also worth noting that &lt;code&gt;github.com/lib/pq&lt;/code&gt;
+is &lt;code&gt;PGOPTIONS&lt;/code&gt;-&lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L1945-L1946"&gt;aware&lt;/a&gt; &lt;a href=#sf-go-pq-prevent-deadlock-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="Go"></category><category term="Golang"></category><category term="PostgreSQL"></category></entry><entry><title>A Day in the Life of a (Secure) Request</title><link href="https://blog.bossylobster.com/2020/07/life-of-request.html" rel="alternate"></link><published>2020-07-27T00:00:00-07:00</published><updated>2020-07-27T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-07-27:/2020/07/life-of-request.html</id><summary type="html">&lt;p&gt;I recently&lt;sup id=sf-life-of-request-1-back&gt;&lt;a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020."&gt;1&lt;/a&gt;&lt;/sup&gt; had the
 privilege of co-authoring a blog post on the Blend &lt;a href="https://full-stack.blend.com/"&gt;engineering blog&lt;/a&gt; with
 my esteemed colleague &lt;a href="https://github.com/hapoore"&gt;Austin Poore&lt;/a&gt;. Our engineering organization is
 growing like crazy right now and it's a lot of fun so if any of this post is
@@ -746,7 +996,7 @@ construct a TCP packet, but luckily I was able to avoid having to deal with
 &lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="TCP Packet" src="/images/tcp-packet.png"&gt;&lt;/p&gt;
 &lt;/div&gt;
-&lt;p&gt;and was just about to focus on the TCP package data. This is because the
+&lt;p&gt;and was just able to focus on the TCP package data. This is because the
 &lt;code&gt;socket&lt;/code&gt; &lt;a href="https://docs.python.org/3/library/socket.html"&gt;module&lt;/a&gt; in Python's standard library provides a very nice
 interface intended to emulate the&lt;/p&gt;
 &lt;blockquote&gt;
