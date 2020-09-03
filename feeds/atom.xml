@@ -70,7 +70,7 @@ running&lt;sup id=sf-go-pq-prevent-deadlock-1-back&gt;&lt;a href=#sf-go-pq-preve
 &lt;h3 id=intentional-contention&gt;Intentional Contention&lt;/h3&gt;
 &lt;p&gt;In order to introduce a deadlock, we borrow an example from
 &lt;a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/"&gt;When Postgres blocks: 7 tips for dealing with locks&lt;/a&gt;.
-In the first transaction we update "hello" rows following by "world" rows&lt;/p&gt;
+In the first transaction we update "hello" rows followed by "world" rows&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
 &lt;span class=k&gt;UPDATE&lt;/span&gt; &lt;span class=n&gt;might_deadlock&lt;/span&gt; &lt;span class=k&gt;SET&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;counter&lt;/span&gt; &lt;span class=o&gt;+&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;WHERE&lt;/span&gt; &lt;span class=k&gt;key&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'hello'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
 &lt;span class=c1&gt;-- Sleep for 200ms&lt;/span&gt;

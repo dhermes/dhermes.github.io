@@ -161,7 +161,7 @@ running<sup id=sf-go-pq-prevent-deadlock-1-back><a href=#sf-go-pq-prevent-deadlo
 <h3 id=intentional-contention>Intentional Contention</h3>
 <p>In order to introduce a deadlock, we borrow an example from
 <a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/">When Postgres blocks: 7 tips for dealing with locks</a>.
-In the first transaction we update "hello" rows following by "world" rows</p>
+In the first transaction we update "hello" rows followed by "world" rows</p>
 <div class=highlight><pre><span></span><span class=k>BEGIN</span><span class=p>;</span>
 <span class=k>UPDATE</span> <span class=n>might_deadlock</span> <span class=k>SET</span> <span class=n>counter</span> <span class=o>=</span> <span class=n>counter</span> <span class=o>+</span> <span class=mi>1</span> <span class=k>WHERE</span> <span class=k>key</span> <span class=o>=</span> <span class=s1>'hello'</span><span class=p>;</span>
 <span class=c1>-- Sleep for 200ms</span>
