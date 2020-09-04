@@ -72,6 +72,28 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-06-09-type-guards-for-union-types.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html">Type Guards for Union Types in TypeScript</a>
+      </h1>
+    <p class="meta">
+<time datetime="2019-06-09T00:00:00-07:00" pubdate>Jun 09, 2019</time>    </p>
+</header>
+
+  <div class="entry-content"><p>In my day job at <a href="https://blend.com/careers/">Blend</a>, I write a lot of TypeScript<sup id=sf-type-guards-for-union-types-1-back><a href=#sf-type-guards-for-union-types-1 class=simple-footnote title="This may surprise many of my colleagues from the Python world">1</a></sup>. One great feature of
+TypeScript is the ability to specify an enum with a finite set of values
+as a <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types">union type</a>:</p>
+<div class=highlight><pre><span></span><span class=nx>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span> <span class=o>|</span> <span class=s1>'y'</span>
+</pre></div>
+
+
+<p>which then gives compile time checking for values of this type …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-05-27-ruby-stack-traces.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Attack of Ruby Stack Traces</a>
@@ -146,25 +168,6 @@ system Python</strong>. The OS <strong>relies</strong> on that Python, including
     <a rel="full-article" href="https://blog.bossylobster.com/2017/09/python-on-os-x.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2017-02-06-golang-and-log-x.template" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2017/02/golang-and-log-x.html">How Does Go Compute a Logarithm</a>
-      </h1>
-    <p class="meta">
-<time datetime="2017-02-06T00:00:00-08:00" pubdate>Feb 06, 2017</time>    </p>
-</header>
-
-  <div class="entry-content"><p>About a year ago, I was reading the Go <a href="https://golang.org/src/math/log.go">source</a> for computing
-<span class=katex><span class=katex-mathml><math><semantics><mrow><mi>log</mi><mo>⁡</mo><mo>(</mo><mi>x</mi><mo>)</mo></mrow><annotation encoding="application/x-tex">\log(x)</annotation></semantics></math></span><span class=katex-html aria-hidden=true><span class=base><span class=strut style=height:1em;vertical-align:-0.25em;></span><span class=mop>lo<span style=margin-right:0.01389em;>g</span></span><span class=mopen>(</span><span class="mord mathit">x</span><span class=mclose>)</span></span></span></span> and was very surprised by the
-implementation.<sup id=sf-golang-and-log-x-1-back><a href=#sf-golang-and-log-x-1 class=simple-footnote title="Why would anyone look in this source? I was trying to explain to a student that a computer would compute this with minimal error when I realized I didn't know how.">1</a></sup></p>
-<p>Even three years into a PhD in Applied Math (i.e. numerics), I still
-managed to learn something by diving in and trying …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2017/02/golang-and-log-x.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/3">&larr; Older</a>
 
@@ -180,6 +183,9 @@ managed to learn something by diving in and trying …</p></div>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
       </li>
       <li class="post">
@@ -190,9 +196,6 @@ managed to learn something by diving in and trying …</p></div>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2019/08/http2-note.html">Decoding HTTP/2 and gRPC</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html">Type Guards for Union Types in TypeScript</a>
       </li>
     </ul>
   </section>

@@ -1,5 +1,191 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-09-01T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Preventing PostgreSQL Deadlocks in Go</title><link href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html" rel="alternate"></link><published>2020-09-01T00:00:00-07:00</published><updated>2020-09-01T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-09-01:/2020/09/go-pq-prevent-deadlock.html</id><summary type="html">&lt;p&gt;&lt;img alt="All About Locks" src="/images/Lock-Up-The-Forest.jpg"&gt;&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-09-04T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Reading Istio Secrets</title><link href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html" rel="alternate"></link><published>2020-09-04T00:00:00-07:00</published><updated>2020-09-04T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-09-04:/2020/09/istio-workload-secrets.html</id><summary type="html">&lt;p&gt;Adopting a service mesh like Istio is a &lt;strong&gt;huge&lt;/strong&gt; undertaking. (Let's set aside
+for this discussion whether it's a &lt;a href="https://twitter.com/rakyll/status/1173663473357574144"&gt;good idea&lt;/a&gt; to undertake.) A fairly
+common issue when getting a mesh up and running is misconfiguration. When
+trying to debug and determine where and how things are misconfigured, the
+network …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Adopting a service mesh like Istio is a &lt;strong&gt;huge&lt;/strong&gt; undertaking. (Let's set aside
+for this discussion whether it's a &lt;a href="https://twitter.com/rakyll/status/1173663473357574144"&gt;good idea&lt;/a&gt; to undertake.) A fairly
+common issue when getting a mesh up and running is misconfiguration. When
+trying to debug and determine where and how things are misconfigured, the
+network is usually not an ally.&lt;/p&gt;
+&lt;p&gt;&lt;img alt=Istio src="/images/istio-whitelogo-bluebackground-framed.svg"&gt;&lt;/p&gt;
+&lt;h3&gt;The Plan&lt;/h3&gt;
+&lt;p&gt;A common option when "the network is broken" and we're flying blind is to use
+a packet sniffer to debug. On a development machine, that'd probably be
+&lt;a href="https://www.wireshark.org/"&gt;Wireshark&lt;/a&gt;. In Kubernetes, &lt;code&gt;ksniff&lt;/code&gt; is a popular &lt;a href="https://github.com/eldadru/ksniff"&gt;tool&lt;/a&gt; to capture
+packets and send them back to a development machine for inspection. However,
+when the connections are encrypted with TLS, captured packets are not so
+useful. For "modern" TLS connections, Wireshark requires a client random data
+for the session (see &lt;code&gt;SSLKEYLOGFILE&lt;/code&gt;) and the private key that encrypted the
+traffic.&lt;/p&gt;
+&lt;p&gt;In this post, we'll be grabbing the private key from a Kubernetes container
+in an Istio service mesh to aid in a debugging process. This is something a
+cluster administrator would be doing, not an every day thing and not something
+a "service owner" would be expected to do. I am writing this up because I
+was frustrated by lack of materials found when searching how to do this.&lt;/p&gt;
+&lt;h3&gt;Envoy and Existing Support&lt;/h3&gt;
+&lt;p&gt;Kubernetes containers in the Istio service mesh run a sidecar container with
+Envoy proxy running. In most cases, this sidecar runs in &lt;code&gt;iptables&lt;/code&gt; mode.
+In this mode, it tells the Linux kernel (via &lt;code&gt;iptables&lt;/code&gt;) that Envoy will be
+handling all&lt;sup id=sf-istio-workload-secrets-1-back&gt;&lt;a href=#sf-istio-workload-secrets-1 class=simple-footnote title="Not all, really most"&gt;1&lt;/a&gt;&lt;/sup&gt; network traffic in the
+pod. In other words, Envoy has &lt;strong&gt;full control&lt;/strong&gt; of the network for any workload
+it is running next to as a sidecar.&lt;/p&gt;
+&lt;p&gt;The Envoy &lt;a href="https://www.envoyproxy.io/docs/envoy/latest/operations/traffic_tapping"&gt;traffic tap&lt;/a&gt; feature exists for capturing potentially encrypted
+packets in a &lt;code&gt;.pcap&lt;/code&gt; file&lt;sup id=sf-istio-workload-secrets-2-back&gt;&lt;a href=#sf-istio-workload-secrets-2 class=simple-footnote title="The file format used by Wireshark and tcpdump"&gt;2&lt;/a&gt;&lt;/sup&gt;. See the
+&lt;a href="https://medium.com/@mtchkll/solving-microservice-mysteries-with-envoys-tap-filter-fd159c36d0af"&gt;Solving Microservice Mysteries With Envoy's Tap Filter&lt;/a&gt; for a pretty great
+explainer on using traffic tap.&lt;/p&gt;
+&lt;p&gt;It would be perfectly fine to just stop here and say "use traffic tap".
+However, I kept pulling the thread. At the end of the day, traffic tap is
+white box / clear box debugging into the &lt;strong&gt;known&lt;/strong&gt; behavior of Envoy. However,
+one of the primary use cases of packet capture is to do black box debugging
+of unknown or unexpected behavior. So in some sense they are at odds.&lt;/p&gt;
+&lt;h3&gt;Istio and mTLS&lt;/h3&gt;
+&lt;p&gt;One of the primary wins for a service mesh is enhanced security and zero trust
+networking. By requiring workloads to communicate via mutual TLS (mTLS),
+the underlying Kubernetes network (and the cloud provider VPC it sits on top
+of) will only see TLS packets that have been mutually verified.&lt;/p&gt;
+&lt;p&gt;Due to the use of mTLS, it's crucial that every workload (i.e. pod) in the
+mesh has a unique private key and X.509 public certificate. This pair is used
+as proof of identity when negotiating mTLS connections. So getting access to
+the key for a given workload is crucial to decrypting the traffic.&lt;/p&gt;
+&lt;h3&gt;Running the Script&lt;/h3&gt;
+&lt;p&gt;Luckily Envoy has created an incredibly good idea: the &lt;a href="https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol"&gt;xDS protocol&lt;/a&gt;.
+The &lt;code&gt;x&lt;/code&gt; stands for "anything here" and the &lt;code&gt;DS&lt;/code&gt; for "discovery service". The
+whole idea underpinning xDS is that different types of configuration are
+relevant (and changing over time) to an Envoy proxy server. The ability
+to discover and listen for configuration updates over a range of topics is
+incredibly useful for a running server. This protocol is making &lt;a href="https://cloud.google.com/blog/products/networking/traffic-director-supports-proxyless-grpc"&gt;traction&lt;/a&gt;
+directly into gRPC as a way to have all of the benefits of dynamic
+configuration without the need for a proxy sidecar.&lt;/p&gt;
+&lt;p&gt;The xDS protocol includes SDS — secrets discovery service — which
+we'll utilize to grab our private key. The &lt;code&gt;istio-sds.go&lt;/code&gt; &lt;a href="/code/istio-sds.go"&gt;script&lt;/a&gt;
+facilitates this in several steps.&lt;/p&gt;
+&lt;h4&gt;Determine Envoy Node ID&lt;/h4&gt;
+&lt;p&gt;Invoke &lt;code&gt;GET /server_info&lt;/code&gt; in the Envoy &lt;a href="https://www.envoyproxy.io/docs/envoy/latest/operations/admin#get--server_info"&gt;admin API&lt;/a&gt; to determine the
+&lt;code&gt;command_line_options.service_node&lt;/code&gt; (i.e. the workload or pod identifier
+according to Envoy).&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;root@some-istio-workload-748cc777bc-mvqcf:/# curl http://localhost:15000/server_info
+{
+ "version": "73f240a29bece92a8882a36893ccce07b4a54664/1.13.1-dev/Clean/RELEASE/BoringSSL",
+ "state": "LIVE",
+ "hot_restart_version": "11.104",
+ "command_line_options": {
+  ...
+  "service_node": "router~10.101.236.171~some-istio-workload-748cc777bc-mvqcf.testing~testing.svc.cluster.local",
+  "service_zone": "",
+  "mode": "Serve",
+  ...
+ },
+ "uptime_current_epoch": "2424451s",
+ "uptime_all_epochs": "2424451s"
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Connect to Secrets Discovery Service (SDS)&lt;/h4&gt;
+&lt;p&gt;Open a gRPC connection to the &lt;code&gt;/etc/istio/proxy/SDS&lt;/code&gt; &lt;a href="https://en.wikipedia.org/wiki/Unix_domain_socket"&gt;UDS&lt;/a&gt; that is
+mounted in the &lt;code&gt;istio-proxy&lt;/code&gt; sidecar container. As the &lt;code&gt;/SDS&lt;/code&gt; in the socket
+name indicates, this is the secrets discovery service.&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;cancel&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;WithTimeout&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Background&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt; &lt;span class=mi&gt;10&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Second&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;conn&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;grpc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Dial&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;target&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;grpc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;WithInsecure&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt; &lt;span class=nx&gt;grpc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;WithBlock&lt;/span&gt;&lt;span class=p&gt;())&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;c&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;discoveryv2&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;NewSecretDiscoveryServiceClient&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;conn&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Fetch Secret(s) for Current Envoy Node&lt;/h4&gt;
+&lt;p&gt;Call the &lt;code&gt;FetchSecrets&lt;/code&gt; RPC &lt;a href="https://github.com/envoyproxy/envoy/blob/9d466c71ab217317d3e989b261eb496877348a47/api/envoy/service/discovery/v2/sds.proto#L32"&gt;method&lt;/a&gt; with the &lt;code&gt;node.id&lt;/code&gt; &lt;a href="https://github.com/envoyproxy/envoy/blob/9d466c71ab217317d3e989b261eb496877348a47/api/envoy/api/v2/discovery.proto#L35"&gt;field&lt;/a&gt;
+set to the &lt;code&gt;command_line_options.service_node&lt;/code&gt; workload identifier&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;request&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;apiv2&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;DiscoveryRequest&lt;/span&gt;&lt;span class=p&gt;{&lt;/span&gt;&lt;span class=nx&gt;Node&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;corev2&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Node&lt;/span&gt;&lt;span class=p&gt;{&lt;/span&gt;&lt;span class=nx&gt;Id&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=nx&gt;serviceNode&lt;/span&gt;&lt;span class=p&gt;}}&lt;/span&gt;
+&lt;span class=nx&gt;response&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;c&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;FetchSecrets&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;request&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;grpc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Header&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;header&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt; &lt;span class=nx&gt;grpc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Trailer&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;trailer&lt;/span&gt;&lt;span class=p&gt;))&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Parse the Response&lt;/h4&gt;
+&lt;p&gt;Ensure the &lt;code&gt;type_url&lt;/code&gt; in the response indicates a
+&lt;code&gt;envoy.api.v2.auth.Secret&lt;/code&gt; and than parse the protobuf &lt;code&gt;Any&lt;/code&gt; in the
+&lt;code&gt;resources[0]&lt;/code&gt; field as a secret:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;secret&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;authv2&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Secret&lt;/span&gt;&lt;span class=p&gt;{}&lt;/span&gt;
+&lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;ptypes&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;UnmarshalAny&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;response&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Resources&lt;/span&gt;&lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt; &lt;span class=nx&gt;secret&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;tc&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;secret&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;GetTlsCertificate&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=nx&gt;cc&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;tc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;GetCertificateChain&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;ccBytes&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;cc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;GetInlineBytes&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=nx&gt;pk&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;tc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;GetPrivateKey&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;pkBytes&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;pk&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;GetInlineBytes&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;Putting It All Together&lt;/h4&gt;
+&lt;!-- For posterity
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ go version
+go version go1.15.1 linux/amd64
+$
+$ git --git-dir &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;GOPATH&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;/src/github.com/envoyproxy/go-control-plane/.git log -1
+commit b304c9d56d80fc38b0685bbb42bee68e8270337a &lt;span class="o"&gt;(&lt;/span&gt;HEAD -&amp;gt; master, origin/master, origin/HEAD&lt;span class="o"&gt;)&lt;/span&gt;
+Author: go-control-plane&lt;span class="o"&gt;(&lt;/span&gt;CircleCI&lt;span class="o"&gt;)&lt;/span&gt; &amp;lt;go-control-plane@users.noreply.github.com&amp;gt;
+Date:   Fri Sep &lt;span class="m"&gt;4&lt;/span&gt; &lt;span class="m"&gt;02&lt;/span&gt;:38:16 &lt;span class="m"&gt;2020&lt;/span&gt; +0000
+
+    Mirrored from envoyproxy/envoy @ 9d466c71ab217317d3e989b261eb496877348a47
+
+    Signed-off-by: go-control-plane&lt;span class="o"&gt;(&lt;/span&gt;CircleCI&lt;span class="o"&gt;)&lt;/span&gt; &amp;lt;go-control-plane@users.noreply.github.com&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+--&gt;
+
+&lt;p&gt;Running the script on an Istio / Envoy sidecar will (almost certainly)
+require building the binary on a different machine since the container
+won't have the toolchain installed&lt;sup id=sf-istio-workload-secrets-3-back&gt;&lt;a href=#sf-istio-workload-secrets-3 class=simple-footnote title="If the entire filesystem in the sidecar is read-only, it's impossible to kubectl cp a pre-built binary into the container"&gt;3&lt;/a&gt;&lt;/sup&gt;. Firsy build the binary:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;GOARCH&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;amd64 &lt;span class=nv&gt;GOOS&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;linux go build -o istio-sds-linux-amd64 ./istio-sds.go
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;then copy it into the container&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ kubectl cp &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --namespace testing &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --container istio-proxy &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   ./istio-sds-linux-amd64 &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   some-istio-workload-748cc777bc-mvqcf:/usr/local/bin/istio-sds-linux-amd64
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Finally, run the binary in the &lt;code&gt;istio-proxy&lt;/code&gt; container to see both the
+(public) certificate chain and the private key:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ kubectl &lt;span class=nb&gt;exec&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --stdin --tty &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --namespace testing &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   --container istio-proxy &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   some-istio-workload-748cc777bc-mvqcf &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   -- /usr/local/bin/istio-sds-linux-amd64
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.710854 istio-sds.go:50:  GET http://localhost:15000/server_info
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.713220 istio-sds.go:197: Service Node: &lt;span class=s2&gt;"router~10.101.236.171~some-istio-workload-748cc777bc-mvqcf.testing~testing.svc.cluster.local"&lt;/span&gt;
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.713247 istio-sds.go:200: Target: &lt;span class=s2&gt;"unix:///etc/istio/proxy/SDS"&lt;/span&gt;
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990037 istio-sds.go:211:
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990069 istio-sds.go:212: DiscoveryResponse.VersionInfo: &lt;span class=s2&gt;"09-04 19:53:34.715"&lt;/span&gt;
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990097 istio-sds.go:213: DiscoveryResponse.TypeUrl: &lt;span class=s2&gt;"type.googleapis.com/envoy.api.v2.auth.Secret"&lt;/span&gt;
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990128 istio-sds.go:176: DiscoveryResponse.Resources&lt;span class=o&gt;[&lt;/span&gt;&lt;span class=m&gt;0&lt;/span&gt;&lt;span class=o&gt;]&lt;/span&gt;.GetTlsCertificate&lt;span class=o&gt;()&lt;/span&gt;
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990145 istio-sds.go:177:   GetCertificateChain&lt;span class=o&gt;()&lt;/span&gt;:
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990164 istio-sds.go:179:     -----BEGIN CERTIFICATE-----
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990179 istio-sds.go:179:     ...
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990421 istio-sds.go:179:     -----END CERTIFICATE-----
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990428 istio-sds.go:179:     -----BEGIN CERTIFICATE-----
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990435 istio-sds.go:179:     ...
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990634 istio-sds.go:179:     -----END CERTIFICATE-----
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990647 istio-sds.go:179:
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990661 istio-sds.go:181:   GetPrivateKey&lt;span class=o&gt;()&lt;/span&gt;:
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990706 istio-sds.go:183:     -----BEGIN RSA PRIVATE KEY-----
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.990716 istio-sds.go:183:     ...
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.991035 istio-sds.go:183:     -----END RSA PRIVATE KEY-----
+&lt;span class=m&gt;19&lt;/span&gt;:53:34.991049 istio-sds.go:183:
+&lt;/pre&gt;&lt;/div&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-istio-workload-secrets-1&gt;Not &lt;strong&gt;all&lt;/strong&gt;, really &lt;strong&gt;most&lt;/strong&gt; &lt;a href=#sf-istio-workload-secrets-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-istio-workload-secrets-2&gt;The file format used by Wireshark and
+&lt;code&gt;tcpdump&lt;/code&gt; &lt;a href=#sf-istio-workload-secrets-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-istio-workload-secrets-3&gt;If the entire filesystem in the sidecar
+is read-only, it's &lt;strong&gt;impossible&lt;/strong&gt; to &lt;code&gt;kubectl cp&lt;/code&gt; a pre-built binary into the
+container &lt;a href=#sf-istio-workload-secrets-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="gRPC"></category><category term="Envoy"></category><category term="Istio"></category><category term="SDS"></category><category term="Go"></category><category term="Golang"></category></entry><entry><title>Preventing PostgreSQL Deadlocks in Go</title><link href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html" rel="alternate"></link><published>2020-09-01T00:00:00-07:00</published><updated>2020-09-01T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-09-01:/2020/09/go-pq-prevent-deadlock.html</id><summary type="html">&lt;p&gt;&lt;img alt="All About Locks" src="/images/Lock-Up-The-Forest.jpg"&gt;&lt;/p&gt;
 &lt;p&gt;I've been writing a library for running PostgreSQL migrations in Go. One
 of the primary pieces of advice I &lt;a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/"&gt;keep&lt;/a&gt; coming &lt;a href="https://benchling.engineering/move-fast-and-migrate-things-how-we-automated-migrations-in-postgres-d60aba0fc3d4"&gt;across&lt;/a&gt; is&lt;/p&gt;
 &lt;blockquote&gt;
