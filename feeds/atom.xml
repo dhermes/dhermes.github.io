@@ -104,7 +104,7 @@ set to the &lt;code&gt;command_line_options.service_node&lt;/code&gt; workload i
 
 &lt;h4&gt;Parse the Response&lt;/h4&gt;
 &lt;p&gt;Ensure the &lt;code&gt;type_url&lt;/code&gt; in the response indicates a
-&lt;code&gt;envoy.api.v2.auth.Secret&lt;/code&gt; and than parse the protobuf &lt;code&gt;Any&lt;/code&gt; in the
+&lt;code&gt;envoy.api.v2.auth.Secret&lt;/code&gt; and then parse the protobuf &lt;code&gt;Any&lt;/code&gt; in the
 &lt;code&gt;resources[0]&lt;/code&gt; field as a secret:&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;secret&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;authv2&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Secret&lt;/span&gt;&lt;span class=p&gt;{}&lt;/span&gt;
 &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;ptypes&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;UnmarshalAny&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;response&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Resources&lt;/span&gt;&lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;],&lt;/span&gt; &lt;span class=nx&gt;secret&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
