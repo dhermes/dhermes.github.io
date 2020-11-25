@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Fri, 04 Sep 2020 00:00:00 -0700</lastBuildDate><item><title>Reading Istio Secrets</title><link>https://blog.bossylobster.com/2020/09/istio-workload-secrets.html</link><description>&lt;p&gt;Adopting a service mesh like Istio is a &lt;strong&gt;huge&lt;/strong&gt; undertaking. (Let's set aside
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Wed, 25 Nov 2020 00:00:00 -0800</lastBuildDate><item><title>pow Confusion</title><link>https://blog.bossylobster.com/2020/11/pow-confusion.html</link><description>&lt;p&gt;In my first summer of graduate school my code suddenly stopped working
+because Fortran and Python (via &lt;code&gt;pow()&lt;/code&gt; in C) do exponentiation differently.
+Once I debugged and understood the problem, I learned about the highly
+optimized assembly code produced by Fortran for integer exponents.&lt;/p&gt;
+&lt;p&gt;To give a sample of the …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Wed, 25 Nov 2020 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2020-11-25:/2020/11/pow-confusion.html</guid><category>Math</category><category>Programming</category><category>Algorithms</category></item><item><title>Reading Istio Secrets</title><link>https://blog.bossylobster.com/2020/09/istio-workload-secrets.html</link><description>&lt;p&gt;Adopting a service mesh like Istio is a &lt;strong&gt;huge&lt;/strong&gt; undertaking. (Let's set aside
 for this discussion whether it's a &lt;a href="https://twitter.com/rakyll/status/1173663473357574144"&gt;good idea&lt;/a&gt; to undertake.) A fairly
 common issue when getting a mesh up and running is misconfiguration. When
 trying to debug and determine where and how things are misconfigured, the

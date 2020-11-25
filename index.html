@@ -72,6 +72,25 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2020-11-25-pow-confusion.template" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-11-25T00:00:00-08:00" pubdate>Nov 25, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p>In my first summer of graduate school my code suddenly stopped working
+because Fortran and Python (via <code>pow()</code> in C) do exponentiation differently.
+Once I debugged and understood the problem, I learned about the highly
+optimized assembly code produced by Fortran for integer exponents.</p>
+<p>To give a sample of the …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/11/pow-confusion.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-04-istio-workload-secrets.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
@@ -148,24 +167,6 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
     <a rel="full-article" href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-08-31-http2-note.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2019/08/http2-note.html">Decoding HTTP/2 and gRPC</a>
-      </h1>
-    <p class="meta">
-<time datetime="2019-08-31T00:00:00-07:00" pubdate>Aug 31, 2019</time>    </p>
-</header>
-
-  <div class="entry-content"><p>In order to learn a bit more about how both the TCP and HTTP/2 protocols work,
-I recently created the <code>tcp-h2-describe</code> <a href="https://pypi.org/project/tcp-h2-describe/0.1.0/">reverse proxy</a> in Python. I was
-excited about some of the insights I was able to glean from the process, in
-particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0/EXAMPLE-gRPC.md">example</a> tracing a connection …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2019/08/http2-note.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/2">&larr; Older</a>
 
@@ -180,6 +181,9 @@ particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
       </li>
       <li class="post">
@@ -190,9 +194,6 @@ particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2019/08/http2-note.html">Decoding HTTP/2 and gRPC</a>
       </li>
     </ul>
   </section>

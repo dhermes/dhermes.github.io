@@ -18,20 +18,20 @@
 
 
 <!-- Schema.org markup for Google+ -->
-<meta itemprop="name" content="Preventing PostgreSQL Deadlocks in Go" />
+<meta itemprop="name" content="<p>Preventing PostgreSQL Deadlocks in Go</p>" />
 <meta itemprop="description" content="Examples using Lock and Statement Timeouts" />
 <meta itemprop="image" content="https://blog.bossylobster.com/images/Lock-Up-The-Forest.jpg" />
 
 <!-- Open Graph data -->
 <meta property="og:type" content="article" />
-<meta property="og:title" content="Preventing PostgreSQL Deadlocks in Go" />
+<meta property="og:title" content="<p>Preventing PostgreSQL Deadlocks in Go</p>" />
 <meta property="og:image" content="https://blog.bossylobster.com/images/Lock-Up-The-Forest.jpg" />
 <meta property="og:description" content="Examples using Lock and Statement Timeouts" />
 
 <!-- Twitter Card data -->
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@bossylobster" />
-<meta name="twitter:title" content="Preventing PostgreSQL Deadlocks in Go" />
+<meta name="twitter:title" content="<p>Preventing PostgreSQL Deadlocks in Go</p>" />
 <meta name="twitter:description" content="Examples using Lock and Statement Timeouts" />
 <meta name="twitter:creator" content="@bossylobster" />
 <meta name="twitter:image" content="https://blog.bossylobster.com/images/Lock-Up-The-Forest.jpg" />
@@ -314,7 +314,7 @@ psql: error: could not connect to server: invalid URI query parameter: <span cla
 
 
 <p>Instead <code>github.com/lib/pq</code> parses all query parameters when <a href="https://github.com/lib/pq/blob/v1.8.0/connector.go#L67-L69">reading a DSN</a>
-and then passes all non-driver setting through as key-value pairs when
+and then passes all non-driver settings through as key-value pairs when
 <a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L1093-L1105">forming a startup packet</a>. There are 13<sup id=sf-go-pq-prevent-deadlock-3-back><a href=#sf-go-pq-prevent-deadlock-3 class=simple-footnote title="Though 13 are supported by github.com/lib/pq, there are 29 postgres parameter keywords">3</a></sup>
 designated driver settings <a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L1058-L1084">supported by</a> <code>github.com/lib/pq</code>: <code>host</code>,
 <code>port</code>, ..., etc.</p>
@@ -370,6 +370,9 @@ is <code>PGOPTIONS</code>-<a href="https://github.com/lib/pq/blob/v1.8.0/conn.go
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
       </li>
       <li class="post">
@@ -380,9 +383,6 @@ is <code>PGOPTIONS</code>-<a href="https://github.com/lib/pq/blob/v1.8.0/conn.go
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2019/08/http2-note.html">Decoding HTTP/2 and gRPC</a>
       </li>
     </ul>
   </section>
@@ -437,7 +437,7 @@ is <code>PGOPTIONS</code>-<a href="https://github.com/lib/pq/blob/v1.8.0/conn.go
     var disqus_shortname = 'bossylobster';
     var disqus_identifier = '/2020/09/go-pq-prevent-deadlock.html';
     var disqus_url = 'https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html';
-    var disqus_title = "Preventing PostgreSQL Deadlocks in Go";
+    var disqus_title = "<p>Preventing PostgreSQL Deadlocks in Go</p>";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
