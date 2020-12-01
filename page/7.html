@@ -72,6 +72,27 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2012-08-19-a-decorator-for-appengine-deferred-tasks.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2012/08/a-decorator-for-appengine-deferred-tasks.html">A Decorator for App Engine Deferred Tasks</a>
+      </h1>
+    <p class="meta">
+<time datetime="2012-08-19T00:00:00-07:00" pubdate>Aug 19, 2012</time>    </p>
+</header>
+
+  <div class="entry-content"><p>I happen to be a big fan of the
+<a href="https://developers.google.com/appengine/articles/deferred">deferred library</a>
+for both Python runtimes in
+<a href="https://developers.google.com/appengine/">Google App Engine</a>.
+If an application needs to queue up work, breaking the work into easy to
+understand units by writing worker methods and then deferring the work into
+tasks is a breeze using …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2012/08/a-decorator-for-appengine-deferred-tasks.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2012-05-17-life-of-continued-fractions-and.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2012/05/life-of-continued-fractions-and.html">Life of π: Continued Fractions and Infinite Series</a>
@@ -146,28 +167,6 @@ travel for personal fun) to really have the excess time to write.</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2012/03/where-have-i-been.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2011-11-30-python-metaclass-for-extra-bad-errors.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2011/11/python-metaclass-for-extra-bad-errors.html">A Python Metaclass for "extra bad" errors in Google App Engine</a>
-      </h1>
-    <p class="meta">
-<time datetime="2011-11-30T00:00:00-08:00" pubdate>Nov 30, 2011</time>    </p>
-</header>
-
-  <div class="entry-content"><p>So now here we are, having tried to
-<a href="/2011/11/handling-errors-in-google-app-engineand.html">handle errors in Google App Engine...and failed</a>
-all because silly <code>DeadlineExceededError</code>
-<a href="https://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py?r=491#33">jumps over</a>
-<code>Exception</code> in the inheritance chain and goes right for <code>BaseException</code>.
-How can we catch these in our handlers while staying
-<a href="http://docs.python.org/glossary.html#term-pythonic">Pythonic</a>?</p>
-<p>First and foremost, in the case of …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2011/11/python-metaclass-for-extra-bad-errors.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/8">&larr; Older</a>
 
@@ -183,6 +182,9 @@ How can we catch these in our handlers while staying
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
       </li>
       <li class="post">
@@ -193,9 +195,6 @@ How can we catch these in our handlers while staying
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
       </li>
     </ul>
   </section>

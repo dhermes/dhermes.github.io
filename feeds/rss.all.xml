@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Wed, 25 Nov 2020 00:00:00 -0800</lastBuildDate><item><title>pow Confusion</title><link>https://blog.bossylobster.com/2020/11/pow-confusion.html</link><description>&lt;p&gt;In my first summer of graduate school my code suddenly stopped working
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Tue, 01 Dec 2020 00:00:00 -0800</lastBuildDate><item><title>Broken Pipe in a Haystack</title><link>https://blog.bossylobster.com/2020/12/broken-pipe.html</link><description>&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Broken Pipe" src="/images/broken-pipe.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I recently put on my detective hat and tracked down a bug in network error
+recovery in a popular PostgreSQL library. Below, we'll walk through
+the process of bugfinding and iteratively making the feedback loop smaller
+and smaller. In order to find and fix the bug I&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Confirmed the root …&lt;/li&gt;&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Tue, 01 Dec 2020 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2020-12-01:/2020/12/broken-pipe.html</guid><category>Go</category><category>Golang</category><category>PostgreSQL</category><category>Networking</category><category>Debugging</category></item><item><title>pow Confusion</title><link>https://blog.bossylobster.com/2020/11/pow-confusion.html</link><description>&lt;p&gt;In my first summer of graduate school my code suddenly stopped working
 because Fortran and Python (via &lt;code&gt;pow()&lt;/code&gt; in C) do exponentiation differently.
 Once I debugged and understood the problem, I learned about the highly
 optimized assembly code produced by Fortran for integer exponents.&lt;/p&gt;

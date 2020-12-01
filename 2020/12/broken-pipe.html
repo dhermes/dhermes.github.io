@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Broken Pipe in a Haystack &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Tracking down a Subtle Bug in PostgreSQL Connection Recovery" />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Broken Pipe in a Haystack</p>" />
+<meta itemprop="description" content="Tracking down a Subtle Bug in PostgreSQL Connection Recovery" />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/broken-pipe.jpg" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Broken Pipe in a Haystack</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/broken-pipe.jpg" />
+<meta property="og:description" content="Tracking down a Subtle Bug in PostgreSQL Connection Recovery" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Broken Pipe in a Haystack</p>" />
+<meta name="twitter:description" content="Tracking down a Subtle Bug in PostgreSQL Connection Recovery" />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/broken-pipe.jpg" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-12-01-broken-pipe.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Broken Pipe in a Haystack</h1>
+    <p class="meta">
+<time datetime="2020-12-01T00:00:00-08:00" pubdate>Dec 01, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="Broken Pipe" src="/images/broken-pipe.jpg"></p>
+</div>
+<p>I recently put on my detective hat and tracked down a bug in network error
+recovery in a popular PostgreSQL library. Below, we'll walk through
+the process of bugfinding and iteratively making the feedback loop smaller
+and smaller. In order to find and fix the bug I</p>
+<ul>
+<li>Confirmed the root cause of the error at the <strong>network</strong> level via
+    packet capture</li>
+<li>Wrote a bare bones client and used a Docker container running <code>postgres</code> so
+    I could reproduce the behavior</li>
+<li>Introduced a "know-nothing" TCP proxy in between the client and database
+    so I could introduce and expose networking faults to the client</li>
+<li>Zoomed in on the source of the bug once the proxy enabled 100% reproducible
+    failure</li>
+</ul>
+<h3>Contents</h3>
+<ul>
+<li><a href=#signs-of-trouble>Signs of Trouble</a></li>
+<li><a href=#confirming-a-root-cause>Confirming a Root Cause</a></li>
+<li><a href=#who-is-at-fault>Who Is at Fault</a></li>
+<li><a href=#synthetic-failure-via-tcp-proxy>Synthetic Failure via TCP Proxy</a></li>
+<li><a href=#finding-the-bug>Finding the Bug</a></li>
+<li><a href=#fixing-the-bug>Fixing the Bug</a></li>
+<li><a href=#takeaways>Takeaways</a></li>
+</ul>
+<h3 id=signs-of-trouble>Signs of Trouble</h3>
+<p>In our <code>sandbox</code> environment at <a href="https://blend.com/careers/">Blend</a>, there were some reports of
+"broken pipe" errors showing up a few hundred times per day. Although the
+<strong>error rate</strong> for this particular error was essentially zero, I was worried
+this may be an issue with <a href="https://aws.amazon.com/rds/">AWS RDS</a> that may get worse, so I devoted a
+half day<sup id=sf-broken-pipe-1-back><a href=#sf-broken-pipe-1 class=simple-footnote title="which later became a whole day">1</a></sup> to track it down.</p>
+<p>We kept seeing log lines containing <code>write: broken pipe</code> in a few Go
+microservices. For example:</p>
+<div style="text-align: center;">
+<p><img alt="Eleven Bad Sockets" src="/images/eleven-bad-sockets.png"></p>
+</div>
+<p>Since in <code>sandbox</code>, these services are often completely idle —
+essentially all activity is due to end-to-end tests (E2Es) that trigger as part
+of continuous deployment for related services. These broken pipe errors
+appeared to occur when the services were attempting database queries after
+long periods of inactivity. This was a hint that the errors were caused
+by failure to gracefully manage idle connections.</p>
+<h3 id=confirming-a-root-cause>Confirming a Root Cause</h3>
+<p>In order to <strong>pinpoint</strong> the exact cause of the failure I decided to set up
+packet capture for one of the offending services. Rather than trying to
+find errors across multiple pods, the first thing I did was scale the
+microservice down to one pod, being sure to removal the autoscaler in the
+process:</p>
+<div class=highlight><pre><span></span>$ kubectl delete horizontalpodautoscaler envelope-service
+horizontalpodautoscaler.autoscaling "envelope-service" deleted
+$
+$ kubectl scale deployment/envelope-service --replicas 1
+deployment.apps/envelope-service scaled
+$
+$ kubectl get pods --selector app=envelope-service
+NAME                               READY   STATUS        RESTARTS   AGE
+envelope-service-bb5999898-5hb78   3/3     Terminating   0          6h4m
+envelope-service-bb5999898-7r865   3/3     Running       2          18h
+$
+$ kubectl get pods --selector app=envelope-service
+NAME                               READY   STATUS    RESTARTS   AGE
+envelope-service-bb5999898-7r865   3/3     Running   2          18h
+</pre></div>
+
+
+<p>From there, I pointed <code>ksniff</code> — a <code>kubectl</code> <a href="https://github.com/eldadru/ksniff">plugin</a> — at the
+pod and waited until an error occurred<sup id=sf-broken-pipe-2-back><a href=#sf-broken-pipe-2 class=simple-footnote title="Note the filter only applies to port 5432, the PostgreSQL port. The .pcap file only grew to 644KiB in ninety minutes but without a filter it would've been over 1GiB.">2</a></sup>:</p>
+<div class=highlight><pre><span></span>kubectl sniff \
+  envelope-service-bb5999898-7r865 \
+  --output-file ./ksniff-5432.pcap \
+  --filter "port 5432"
+</pre></div>
+
+
+<p>I captured packets in a ninety minute window and the error log
+lines started showing up around forty minutes in, from <code>18:39:55</code> to <code>18:43:14</code>
+UTC. In the fifteen log lines <a href=#signs-of-trouble>above</a>, there are eleven
+unique client ports — <code>40288</code>, <code>40320</code>, etc. — each corresponding
+to a socket from a Go <code>database/sql</code> connection pool. Viewing the packet
+capture we see the AWS RDS instance sent out RST (reset) packets a few minutes
+before the broken pipe errors showed up. <strong>All eleven</strong> of the sockets received
+an RST around <code>18:27:09</code> UTC:</p>
+<div style="text-align: center;">
+<p><img alt="Eleven RST Packets" src="/images/eleven-rst-packets.png"></p>
+</div>
+<p>This confirmed the suspicion that the sockets had "gone bad" and that
+the broken pipe errors occurred on first usage after an extended idle period.</p>
+<h3 id=who-is-at-fault>Who Is at Fault</h3>
+<p>A bit more about why the sockets had "gone bad". I was initially unhappy that
+AWS RDS had sent RST packets, essentially hanging up the phone abruptly as
+opposed to saying goobye with a FIN packet to cleanly close the connection.
+However it appears that a minute before the RST packets arrived (around
+<code>18:26:09</code> UTC), the AWS RDS instance attempted to send FIN packets to each
+of the idle sockets. However, the client responded with an RST from a
+<strong>different</strong> port in all cases (instead of handling the FIN by responding
+with a FIN / ACK):</p>
+<div style="text-align: center;">
+<p><img alt="RST Before (from Client)" src="/images/rst-before.png"></p>
+</div>
+<p>This may very well be <strong>another</strong> bug in the <code>lib/pq</code> Go library, but that is a
+story for another day. I think it's more likely that this is a bug caused by
+the fact that <a href="https://istio.io/">Istio</a> is managing networking in the pod via <code>iptables</code> and
+there is some kind of bungled handoff happening. For example we can see that
+port <code>40320</code> receives a FIN and then an RST but never sends back a FIN or RST:</p>
+<div style="text-align: center;">
+<p><img alt="RST to a Specific Port" src="/images/rst-port-40320.png"></p>
+</div>
+<h3 id=synthetic-failure-via-tcp-proxy>Synthetic Failure via TCP Proxy</h3>
+<p>With reasonably high certainty that the issue was caused by
+first-use-after-RST, it was time to <strong>massively</strong> decrease the size of the
+feedback loop. I needed to control three moving pieces here to be able to
+reproduce the conditions</p>
+<ul>
+<li>The Go client</li>
+<li>The <code>postgres</code> server</li>
+<li>The "network"</li>
+</ul>
+<p>In this case we don't <strong>literally</strong> need to control the network, but we
+want something programmable (e.g. a proxy) so that we can send an RST without
+having to reach into the blackbox of the <code>postgres</code> binary running in a Docker
+container.</p>
+<p>First we run the database:</p>
+<div class=highlight><pre><span></span>docker run \
+  --detach \
+  --name pg-trigger-rst \
+  --hostname localhost \
+  --publish 13370:5432 \
+  --env POSTGRES_DB=superuser_db \
+  --env POSTGRES_USER=superuser \
+  --env POSTGRES_PASSWORD=password \
+  postgres:13.1-alpine
+</pre></div>
+
+
+<p>Next, using the <code>github.com/lib/pq</code> <a href="https://github.com/lib/pq">library</a>, the <code>broken-pipe.go</code>
+<a href="/code/wrapped-request.go">script</a> creates a single connection and then executes the statement
+<code>SELECT 1</code> before and after a sleep statement. During the sleep, we expect
+an RST packet to be sent. In order to ensure with a high level of certainty
+that the RST packet has arrived, after the first statement the script indicates
+it has gone idle by writing to a (shared) state file and then sleeps for a
+second before executing the second statement. If we use the script to directly
+query <code>postgres</code> (i.e. without a proxy):</p>
+<div class=highlight><pre><span></span>$ go run ./broken-pipe.go --port 13370
+14:48:14.355999 Setting state to ACTIVE
+14:48:14.375156 Setting state to IDLE
+14:48:14.375429 Sleeping for 1 second
+14:48:15.376486 Done sleeping
+14:48:15.379833 Setting state to COMPLETE
+</pre></div>
+
+
+<p>The last bit here is the "network".  The <code>rst-proxy.go</code> <a href="/code/rst-proxy.go">script</a> runs a
+TCP proxy that <strong>usually</strong> shuttles packets between the Go client and the
+<code>postgres</code> server. However, it polls the (shared) state file and once the
+client has gone <code>IDLE</code> it closes the connection. In normal circumstances,
+closing the connection would still not result in an RST, the kernel<sup id=sf-broken-pipe-3-back><a href=#sf-broken-pipe-3 class=simple-footnote title="This port of the socket lifecycle is not managed by Go at all, but fully by the kernel.">3</a></sup> will send a FIN to gracefully close the connection. To modify
+this behavior we must set the <code>SO_LINGER</code> socket option:</p>
+<div class=highlight><pre><span></span><span class=nx>tc</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.(</span><span class=o>*</span><span class=nx>net</span><span class=p>.</span><span class=nx>TCPConn</span><span class=p>)</span>
+<span class=c1>// ...</span>
+<span class=nx>sc</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>tc</span><span class=p>.</span><span class=nx>SyscallConn</span><span class=p>()</span>
+<span class=c1>// ...</span>
+<span class=nx>err</span> <span class=p>=</span> <span class=nx>sc</span><span class=p>.</span><span class=nx>Control</span><span class=p>(</span><span class=kd>func</span><span class=p>(</span><span class=nx>fd</span> <span class=kt>uintptr</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>syscall</span><span class=p>.</span><span class=nx>SetsockoptLinger</span><span class=p>(</span>
+        <span class=nb>int</span><span class=p>(</span><span class=nx>fd</span><span class=p>),</span>
+        <span class=nx>syscall</span><span class=p>.</span><span class=nx>SOL_SOCKET</span><span class=p>,</span>
+        <span class=nx>syscall</span><span class=p>.</span><span class=nx>SO_LINGER</span><span class=p>,</span>
+        <span class=o>&amp;</span><span class=nx>syscall</span><span class=p>.</span><span class=nx>Linger</span><span class=p>{</span><span class=nx>Onoff</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span> <span class=nx>Linger</span><span class=p>:</span> <span class=mi>0</span><span class=p>},</span>
+    <span class=p>)</span>
+<span class=p>})</span>
+</pre></div>
+
+
+<p>When running the <code>rst-proxy.go</code> script and pointing our client at the proxy
+port, we can reproduce the error 100% of the time:</p>
+<div class=highlight><pre><span></span>$ go run ./content/code/rst-proxy.go
+14:48:18.799745 Setting up TCP proxy on localhost:23370
+14:48:20.803298 Handling TCP connection from 127.0.0.1:57781
+14:48:20.905144 State file switched to IDLE, closing connection
+14:48:21.068089 Done proxying connection
+$
+$
+$ # e.g. In another shell
+$ go run ./broken-pipe.go --port 23370
+14:48:20.800452 Setting state to ACTIVE
+14:48:20.817998 Setting state to IDLE
+14:48:20.818213 Sleeping for 1 second
+14:48:21.818725 Done sleeping
+14:48:21.818906 write tcp 127.0.0.1:57781-&gt;127.0.0.1:23370: write: broken pipe
+exit status 1
+</pre></div>
+
+
+<h3 id=finding-the-bug>Finding the Bug</h3>
+<p>Once I had a very small loop for reproducing the error<sup id=sf-broken-pipe-4-back><a href=#sf-broken-pipe-4 class=simple-footnote title="I could've made it smaller if I ran the proxy and the client in the same binary, but in my initial sleuthing I was using Python for the proxy because of a great StackOverflow answer that taught me about SO_LINGER.">4</a></sup> it was time
+to find the source of the bug. I initially assumed that <code>database/sql</code> in Go
+would "actively" manage the connection pool and remove a connection the
+moment an RST was received. The fact that the error can be reproduced
+100% of the time puts that theory to rest. I also did a sanity check with the
+<code>pgx</code> <a href="https://github.com/jackc/pgx">library</a> and verified it <strong>does not</strong> have this bug, meaning that
+this was a bug in <code>lib/pq</code>. (Despite its popularity and longevity, <code>lib/pq</code> is
+in maintenance mode and the maintainers recommend using <code>pgx</code>.)</p>
+<p>I wasn't sure where to look to find the bug and had zero familiarity with the
+<code>lib/pq</code> codebase. So, in order zoom in on the issue I created a custom
+<code>postgres-wrapped</code> database driver via the super helpful
+<code>github.com/ngrok/sqlmw</code> <a href="https://github.com/ngrok/sqlmw">library</a>. In Go, a database driver is composed of
+types that satisfy a small set of interfaces from <code>database/sql</code> and
+<code>database/sql/driver</code>. For example the driver itself satisfies <code>driver.Driver</code>
+and must have an <code>Open()</code> method that returns a connection satisfying
+<code>driver.Conn</code>. Using <code>ngrok/sqlmw</code>, I was able to log every invocation of a
+method from one of these interfaces, for example:</p>
+<div class=highlight><pre><span></span><span class=kd>type</span> <span class=nx>loggingInterceptor</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>sqlmw</span><span class=p>.</span><span class=nx>NullInterceptor</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=p>(</span><span class=o>*</span><span class=nx>loggingInterceptor</span><span class=p>)</span> <span class=nx>ConnPing</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>conn</span> <span class=nx>driver</span><span class=p>.</span><span class=nx>Pinger</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+    <span class=nx>log</span><span class=p>.</span><span class=nx>Println</span><span class=p>(</span><span class=s>"ConnPing() called"</span><span class=p>)</span>
+    <span class=k>return</span> <span class=nx>conn</span><span class=p>.</span><span class=nx>Ping</span><span class=p>(</span><span class=nx>ctx</span><span class=p>)</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=p>(</span><span class=o>*</span><span class=nx>loggingInterceptor</span><span class=p>)</span> <span class=nx>ConnExecContext</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>conn</span> <span class=nx>driver</span><span class=p>.</span><span class=nx>ExecerContext</span><span class=p>,</span> <span class=nx>query</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>args</span> <span class=p>[]</span><span class=nx>driver</span><span class=p>.</span><span class=nx>NamedValue</span><span class=p>)</span> <span class=p>(</span><span class=nx>driver</span><span class=p>.</span><span class=nx>Result</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>log</span><span class=p>.</span><span class=nx>Println</span><span class=p>(</span><span class=s>"ConnExecContext() called"</span><span class=p>)</span>
+    <span class=k>return</span> <span class=nx>conn</span><span class=p>.</span><span class=nx>ExecContext</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>query</span><span class=p>,</span> <span class=nx>args</span><span class=p>)</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=nx>main</span><span class=p>()</span> <span class=p>{</span>
+    <span class=c1>// ...</span>
+    <span class=nx>sql</span><span class=p>.</span><span class=nx>Register</span><span class=p>(</span><span class=s>"postgres-wrapped"</span><span class=p>,</span> <span class=nx>sqlmw</span><span class=p>.</span><span class=nx>Driver</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>pq</span><span class=p>.</span><span class=nx>Driver</span><span class=p>{},</span> <span class=o>&amp;</span><span class=nx>loggingInterceptor</span><span class=p>{}))</span>
+    <span class=c1>// ...</span>
+    <span class=nx>pool</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>sql</span><span class=p>.</span><span class=nx>Open</span><span class=p>(</span><span class=s>"postgres-wrapped"</span><span class=p>,</span> <span class=nx>dsn</span><span class=p>)</span>
+    <span class=c1>// ...</span>
+<span class=p>}</span>
+</pre></div>
+
+
+<p>Once I was able to determine that <code>ExecContext()</code> was the source of the
+<code>write: broken pipe</code>, I started to modify <code>${GOPATH}/src/github.com/lib/pq</code>
+until I narrowed down the source:</p>
+<ul>
+<li><code>pq.conn.ExecContext</code> implements <code>driver.ExecerContext</code> (<a href="https://github.com/lib/pq/blob/v1.8.0/conn_go18.go#L32">source</a>)</li>
+<li><code>pq.conn.ExecContext</code> calls <code>pq.conn.Exec</code> (<a href="https://github.com/lib/pq/blob/v1.8.0/conn_go18.go#L42">source</a>)</li>
+<li><code>pq.conn.Exec</code> calls <code>pq.conn.simpleExec</code> (<a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L869">source</a>)</li>
+<li><code>pq.conn.simpleExec</code> calls <code>pq.conn.send</code> (<a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L612">source</a>)</li>
+<li><code>pq.conn.send</code> fails a <code>net.Conn.Write</code> with "broken pipe" and then
+    panics (<a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L897">source</a>)</li>
+<li><code>pq.conn.errRecover</code> — invoked from <code>pq.conn.Exec</code> — handles
+    the <code>panic()</code> recovery (<a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L863">source</a>)</li>
+<li><code>pq.conn.errRecover</code> handles a <code>*net.OpError</code> by setting the <code>bad</code> flag to
+    tombstone the connection but just returns the error as-is (<a href="https://github.com/lib/pq/blob/v1.8.0/error.go#L495-L497">source</a>)</li>
+</ul>
+<p>I must say I was surprised by this, using <code>panic()</code> / <code>recover()</code> essentially
+amounts to <code>try / except</code> in other languages, a pattern that is not very
+common in Go<sup id=sf-broken-pipe-5-back><a href=#sf-broken-pipe-5 class=simple-footnote title="and one that carries with it the cost of stack unwinding">5</a></sup>.</p>
+<h3 id=fixing-the-bug>Fixing the Bug</h3>
+<p>Luckily I was able to submit a fix (<a href="https://github.com/lib/pq/pull/1013">lib/pq#1013</a>) that was small and
+easy to reason about. This likely contributed to the quick review and merge
+from the <code>lib/pq</code> maintainers. The fix was to explicitly mark the error
+as <strong>safe to retry</strong> when we know zero bytes were written and then to return
+the <code>driver.ErrBadConn</code> sentinel to signal to <code>database/sql</code> that the
+connection should be removed from the pool:</p>
+<div class=highlight><pre><span></span><span class=gh>diff --git a/conn.go b/conn.go</span>
+<span class=gh>index f313c14..0d96600 100644</span>
+<span class=gd>--- a/conn.go</span>
+<span class=gi>+++ b/conn.go</span>
+<span class=gu>@@ -891,9 +891,20 @@ func (cn *conn) Exec(query string, args []driver.Value) (res driver.Result, err</span>
+    return r, err
+ }
+
+<span class=gi>+type safeRetryError struct {</span>
+<span class=gi>+   Err error</span>
+<span class=gi>+}</span>
+<span class=gi>+</span>
+<span class=gi>+func (se *safeRetryError) Error() string {</span>
+<span class=gi>+   return se.Err.Error()</span>
+<span class=gi>+}</span>
+<span class=gi>+</span>
+ func (cn *conn) send(m *writeBuf) {
+<span class=gd>-   _, err := cn.c.Write(m.wrap())</span>
+<span class=gi>+   n, err := cn.c.Write(m.wrap())</span>
+    if err != nil {
+<span class=gi>+       if n == 0 {</span>
+<span class=gi>+           err = &amp;safeRetryError{Err: err}</span>
+<span class=gi>+       }</span>
+        panic(err)
+    }
+ }
+<span class=gh>diff --git a/error.go b/error.go</span>
+<span class=gh>index 3d66ba7..a227e08 100644</span>
+<span class=gd>--- a/error.go</span>
+<span class=gi>+++ b/error.go</span>
+<span class=gu>@@ -495,6 +495,9 @@ func (cn *conn) errRecover(err *error) {</span>
+    case *net.OpError:
+        cn.bad = true
+        *err = v
+<span class=gi>+   case *safeRetryError:</span>
+<span class=gi>+       cn.bad = true</span>
+<span class=gi>+       *err = driver.ErrBadConn</span>
+    case error:
+        if v == io.EOF || v.(error).Error() == "remote error: handshake failure" {
+            *err = driver.ErrBadConn
+</pre></div>
+
+
+<p>I certainly didn't come up with this idea on my own. I previously mentioned
+that <code>pgx</code> did <strong>not</strong> have the same bug. When vetting <code>pgx</code>, I dug through
+the source in the same way that I did with <code>lib/pq</code> and found that
+<code>PgConn.Exec()</code> <a href="https://github.com/jackc/pgconn/blob/v1.7.2/pgconn.go#L923">marks</a> an error as safe when exactly zero bytes are
+written and the high-level driver connection returns the sentinel
+<code>driver.ErrBadConn</code> if an error is <a href="https://github.com/jackc/pgx/blob/v4.9.2/stdlib/sql.go#L336-L337">safe to retry</a>.</p>
+<h3 id=takeaways>Takeaways</h3>
+<p>In some sense, we should've never been down this road because <code>lib/pq</code> is in
+maintenance mode. However, the real story here is about starting from a
+wide open view of microservice logs and narrowing down all the way to a line
+of library code. Additionally, the story may not be over if the RST packets are
+caused by a connection handoff issue with <a href="https://istio.io/">Istio</a>.</p>
+<p>So what should a reader take away from this long and winding road to a bugfix?</p>
+<ul>
+<li>A first lesson in tight feedback loops: ensure the code being debugged
+    is running in a controlled environment. Here that meant scaling the
+    Kubernetes deployment down to one pod</li>
+<li>Networking bugs are not so scary, packet capture coupled with logs
+    and Wireshark's helpful UI quickly told the story</li>
+<li>Another lesson in tight feedback loops: once the RST hypothesis was
+    confirmed, <strong>control the whole stack</strong>. Throw away as many confounding
+    factors as possible and just focus in on the problem area. Strongly prefer
+    reproducible examples that can be run on your development machine (i.e. a
+    develop, deploy, debug loop is not tight enough).</li>
+<li>Treat components as a black box when beneficial. Figuring out in fine
+    detail how to make <code>postgres</code> send the RST could've taken a <strong>very</strong> long
+    time, so we took the shorter path by putting a proxy in front of
+    <code>postgres</code> that we could fully control.</li>
+<li>Had we used the recommended <code>pgx</code>, there would have been no bug to fix;
+    upgrade dependencies early and often and look out for deprecation notices
+    like the one in <code>lib/pq</code></li>
+</ul>
+<hr style="margin-bottom: 25px; width: 50%;"><ol class=simple-footnotes><li id=sf-broken-pipe-1>which later became a whole day <a href=#sf-broken-pipe-1-back class=simple-footnote-back>↩</a></li><li id=sf-broken-pipe-2>Note the filter only applies to
+port 5432, the PostgreSQL port. The <code>.pcap</code> file only grew to 644KiB in
+ninety minutes but without a filter it would've been over 1GiB. <a href=#sf-broken-pipe-2-back class=simple-footnote-back>↩</a></li><li id=sf-broken-pipe-3>This
+port of the socket lifecycle is not managed by Go at all, but fully by the
+kernel. <a href=#sf-broken-pipe-3-back class=simple-footnote-back>↩</a></li><li id=sf-broken-pipe-4>I could've made it
+smaller if I ran the proxy and the client in the same binary, but in my
+initial sleuthing I was using Python for the proxy because of a great
+StackOverflow <a href="https://stackoverflow.com/a/6440364/1068170">answer</a> that taught me about <code>SO_LINGER</code>. <a href=#sf-broken-pipe-4-back class=simple-footnote-back>↩</a></li><li id=sf-broken-pipe-5>and one that carries with it the cost of stack
+unwinding <a href=#sf-broken-pipe-5-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2020-12-01T00:00:00-08:00" pubdate>Dec 01, 2020</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/go.html">Go</a>,    <a class="category" href="https://blog.bossylobster.com/tag/golang.html">Golang</a>,    <a class="category" href="https://blog.bossylobster.com/tag/postgresql.html">PostgreSQL</a>,    <a class="category" href="https://blog.bossylobster.com/tag/networking.html">Networking</a>,    <a class="category" href="https://blog.bossylobster.com/tag/debugging.html">Debugging</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2020/12/broken-pipe.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2020/12/broken-pipe.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2020  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2020/12/broken-pipe.html';
+    var disqus_url = 'https://blog.bossylobster.com/2020/12/broken-pipe.html';
+    var disqus_title = "<p>Broken Pipe in a Haystack</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

@@ -72,6 +72,29 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-12-01-broken-pipe.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-12-01T00:00:00-08:00" pubdate>Dec 01, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="Broken Pipe" src="/images/broken-pipe.jpg"></p>
+</div>
+<p>I recently put on my detective hat and tracked down a bug in network error
+recovery in a popular PostgreSQL library. Below, we'll walk through
+the process of bugfinding and iteratively making the feedback loop smaller
+and smaller. In order to find and fix the bug I</p>
+<ul>
+<li>Confirmed the root …</li></ul></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2020-11-25-pow-confusion.template" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
@@ -149,24 +172,6 @@ interesting to you, check out our …</p></div>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/07/life-of-request.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-04-22-threadsafe-connection-pool.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-04-22T00:00:00-07:00" pubdate>Apr 22, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>I've been load testing quite a bit recently. So far I've been impressed by the
-<code>wrk</code> <a href="https://github.com/wg/wrk">project's</a> use of sockets to pour on a ridiculously high amount of
-load. When I had stretched the system under load <strong>past</strong> its limits, finding
-the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> was a breath of fresh air …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/2">&larr; Older</a>
 
@@ -181,6 +186,9 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
       </li>
       <li class="post">
@@ -191,9 +199,6 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
       </li>
     </ul>
   </section>

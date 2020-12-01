@@ -1,5 +1,357 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-11-25T00:00:00-08:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>pow Confusion</title><link href="https://blog.bossylobster.com/2020/11/pow-confusion.html" rel="alternate"></link><published>2020-11-25T00:00:00-08:00</published><updated>2020-11-25T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-11-25:/2020/11/pow-confusion.html</id><summary type="html">&lt;p&gt;In my first summer of graduate school my code suddenly stopped working
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-12-01T00:00:00-08:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Broken Pipe in a Haystack</title><link href="https://blog.bossylobster.com/2020/12/broken-pipe.html" rel="alternate"></link><published>2020-12-01T00:00:00-08:00</published><updated>2020-12-01T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-12-01:/2020/12/broken-pipe.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Broken Pipe" src="/images/broken-pipe.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I recently put on my detective hat and tracked down a bug in network error
+recovery in a popular PostgreSQL library. Below, we'll walk through
+the process of bugfinding and iteratively making the feedback loop smaller
+and smaller. In order to find and fix the bug I&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Confirmed the root …&lt;/li&gt;&lt;/ul&gt;</summary><content type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Broken Pipe" src="/images/broken-pipe.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;I recently put on my detective hat and tracked down a bug in network error
+recovery in a popular PostgreSQL library. Below, we'll walk through
+the process of bugfinding and iteratively making the feedback loop smaller
+and smaller. In order to find and fix the bug I&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Confirmed the root cause of the error at the &lt;strong&gt;network&lt;/strong&gt; level via
+    packet capture&lt;/li&gt;
+&lt;li&gt;Wrote a bare bones client and used a Docker container running &lt;code&gt;postgres&lt;/code&gt; so
+    I could reproduce the behavior&lt;/li&gt;
+&lt;li&gt;Introduced a "know-nothing" TCP proxy in between the client and database
+    so I could introduce and expose networking faults to the client&lt;/li&gt;
+&lt;li&gt;Zoomed in on the source of the bug once the proxy enabled 100% reproducible
+    failure&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#signs-of-trouble&gt;Signs of Trouble&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#confirming-a-root-cause&gt;Confirming a Root Cause&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#who-is-at-fault&gt;Who Is at Fault&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#synthetic-failure-via-tcp-proxy&gt;Synthetic Failure via TCP Proxy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#finding-the-bug&gt;Finding the Bug&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#fixing-the-bug&gt;Fixing the Bug&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#takeaways&gt;Takeaways&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=signs-of-trouble&gt;Signs of Trouble&lt;/h3&gt;
+&lt;p&gt;In our &lt;code&gt;sandbox&lt;/code&gt; environment at &lt;a href="https://blend.com/careers/"&gt;Blend&lt;/a&gt;, there were some reports of
+"broken pipe" errors showing up a few hundred times per day. Although the
+&lt;strong&gt;error rate&lt;/strong&gt; for this particular error was essentially zero, I was worried
+this may be an issue with &lt;a href="https://aws.amazon.com/rds/"&gt;AWS RDS&lt;/a&gt; that may get worse, so I devoted a
+half day&lt;sup id=sf-broken-pipe-1-back&gt;&lt;a href=#sf-broken-pipe-1 class=simple-footnote title="which later became a whole day"&gt;1&lt;/a&gt;&lt;/sup&gt; to track it down.&lt;/p&gt;
+&lt;p&gt;We kept seeing log lines containing &lt;code&gt;write: broken pipe&lt;/code&gt; in a few Go
+microservices. For example:&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Eleven Bad Sockets" src="/images/eleven-bad-sockets.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;Since in &lt;code&gt;sandbox&lt;/code&gt;, these services are often completely idle —
+essentially all activity is due to end-to-end tests (E2Es) that trigger as part
+of continuous deployment for related services. These broken pipe errors
+appeared to occur when the services were attempting database queries after
+long periods of inactivity. This was a hint that the errors were caused
+by failure to gracefully manage idle connections.&lt;/p&gt;
+&lt;h3 id=confirming-a-root-cause&gt;Confirming a Root Cause&lt;/h3&gt;
+&lt;p&gt;In order to &lt;strong&gt;pinpoint&lt;/strong&gt; the exact cause of the failure I decided to set up
+packet capture for one of the offending services. Rather than trying to
+find errors across multiple pods, the first thing I did was scale the
+microservice down to one pod, being sure to removal the autoscaler in the
+process:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ kubectl delete horizontalpodautoscaler envelope-service
+horizontalpodautoscaler.autoscaling "envelope-service" deleted
+$
+$ kubectl scale deployment/envelope-service --replicas 1
+deployment.apps/envelope-service scaled
+$
+$ kubectl get pods --selector app=envelope-service
+NAME                               READY   STATUS        RESTARTS   AGE
+envelope-service-bb5999898-5hb78   3/3     Terminating   0          6h4m
+envelope-service-bb5999898-7r865   3/3     Running       2          18h
+$
+$ kubectl get pods --selector app=envelope-service
+NAME                               READY   STATUS    RESTARTS   AGE
+envelope-service-bb5999898-7r865   3/3     Running   2          18h
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;From there, I pointed &lt;code&gt;ksniff&lt;/code&gt; — a &lt;code&gt;kubectl&lt;/code&gt; &lt;a href="https://github.com/eldadru/ksniff"&gt;plugin&lt;/a&gt; — at the
+pod and waited until an error occurred&lt;sup id=sf-broken-pipe-2-back&gt;&lt;a href=#sf-broken-pipe-2 class=simple-footnote title="Note the filter only applies to port 5432, the PostgreSQL port. The .pcap file only grew to 644KiB in ninety minutes but without a filter it would've been over 1GiB."&gt;2&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;kubectl sniff \
+  envelope-service-bb5999898-7r865 \
+  --output-file ./ksniff-5432.pcap \
+  --filter "port 5432"
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I captured packets in a ninety minute window and the error log
+lines started showing up around forty minutes in, from &lt;code&gt;18:39:55&lt;/code&gt; to &lt;code&gt;18:43:14&lt;/code&gt;
+UTC. In the fifteen log lines &lt;a href=#signs-of-trouble&gt;above&lt;/a&gt;, there are eleven
+unique client ports — &lt;code&gt;40288&lt;/code&gt;, &lt;code&gt;40320&lt;/code&gt;, etc. — each corresponding
+to a socket from a Go &lt;code&gt;database/sql&lt;/code&gt; connection pool. Viewing the packet
+capture we see the AWS RDS instance sent out RST (reset) packets a few minutes
+before the broken pipe errors showed up. &lt;strong&gt;All eleven&lt;/strong&gt; of the sockets received
+an RST around &lt;code&gt;18:27:09&lt;/code&gt; UTC:&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Eleven RST Packets" src="/images/eleven-rst-packets.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;This confirmed the suspicion that the sockets had "gone bad" and that
+the broken pipe errors occurred on first usage after an extended idle period.&lt;/p&gt;
+&lt;h3 id=who-is-at-fault&gt;Who Is at Fault&lt;/h3&gt;
+&lt;p&gt;A bit more about why the sockets had "gone bad". I was initially unhappy that
+AWS RDS had sent RST packets, essentially hanging up the phone abruptly as
+opposed to saying goobye with a FIN packet to cleanly close the connection.
+However it appears that a minute before the RST packets arrived (around
+&lt;code&gt;18:26:09&lt;/code&gt; UTC), the AWS RDS instance attempted to send FIN packets to each
+of the idle sockets. However, the client responded with an RST from a
+&lt;strong&gt;different&lt;/strong&gt; port in all cases (instead of handling the FIN by responding
+with a FIN / ACK):&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="RST Before (from Client)" src="/images/rst-before.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;This may very well be &lt;strong&gt;another&lt;/strong&gt; bug in the &lt;code&gt;lib/pq&lt;/code&gt; Go library, but that is a
+story for another day. I think it's more likely that this is a bug caused by
+the fact that &lt;a href="https://istio.io/"&gt;Istio&lt;/a&gt; is managing networking in the pod via &lt;code&gt;iptables&lt;/code&gt; and
+there is some kind of bungled handoff happening. For example we can see that
+port &lt;code&gt;40320&lt;/code&gt; receives a FIN and then an RST but never sends back a FIN or RST:&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="RST to a Specific Port" src="/images/rst-port-40320.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;h3 id=synthetic-failure-via-tcp-proxy&gt;Synthetic Failure via TCP Proxy&lt;/h3&gt;
+&lt;p&gt;With reasonably high certainty that the issue was caused by
+first-use-after-RST, it was time to &lt;strong&gt;massively&lt;/strong&gt; decrease the size of the
+feedback loop. I needed to control three moving pieces here to be able to
+reproduce the conditions&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The Go client&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;postgres&lt;/code&gt; server&lt;/li&gt;
+&lt;li&gt;The "network"&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In this case we don't &lt;strong&gt;literally&lt;/strong&gt; need to control the network, but we
+want something programmable (e.g. a proxy) so that we can send an RST without
+having to reach into the blackbox of the &lt;code&gt;postgres&lt;/code&gt; binary running in a Docker
+container.&lt;/p&gt;
+&lt;p&gt;First we run the database:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;docker run \
+  --detach \
+  --name pg-trigger-rst \
+  --hostname localhost \
+  --publish 13370:5432 \
+  --env POSTGRES_DB=superuser_db \
+  --env POSTGRES_USER=superuser \
+  --env POSTGRES_PASSWORD=password \
+  postgres:13.1-alpine
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Next, using the &lt;code&gt;github.com/lib/pq&lt;/code&gt; &lt;a href="https://github.com/lib/pq"&gt;library&lt;/a&gt;, the &lt;code&gt;broken-pipe.go&lt;/code&gt;
+&lt;a href="/code/wrapped-request.go"&gt;script&lt;/a&gt; creates a single connection and then executes the statement
+&lt;code&gt;SELECT 1&lt;/code&gt; before and after a sleep statement. During the sleep, we expect
+an RST packet to be sent. In order to ensure with a high level of certainty
+that the RST packet has arrived, after the first statement the script indicates
+it has gone idle by writing to a (shared) state file and then sleeps for a
+second before executing the second statement. If we use the script to directly
+query &lt;code&gt;postgres&lt;/code&gt; (i.e. without a proxy):&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ go run ./broken-pipe.go --port 13370
+14:48:14.355999 Setting state to ACTIVE
+14:48:14.375156 Setting state to IDLE
+14:48:14.375429 Sleeping for 1 second
+14:48:15.376486 Done sleeping
+14:48:15.379833 Setting state to COMPLETE
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The last bit here is the "network".  The &lt;code&gt;rst-proxy.go&lt;/code&gt; &lt;a href="/code/rst-proxy.go"&gt;script&lt;/a&gt; runs a
+TCP proxy that &lt;strong&gt;usually&lt;/strong&gt; shuttles packets between the Go client and the
+&lt;code&gt;postgres&lt;/code&gt; server. However, it polls the (shared) state file and once the
+client has gone &lt;code&gt;IDLE&lt;/code&gt; it closes the connection. In normal circumstances,
+closing the connection would still not result in an RST, the kernel&lt;sup id=sf-broken-pipe-3-back&gt;&lt;a href=#sf-broken-pipe-3 class=simple-footnote title="This port of the socket lifecycle is not managed by Go at all, but fully by the kernel."&gt;3&lt;/a&gt;&lt;/sup&gt; will send a FIN to gracefully close the connection. To modify
+this behavior we must set the &lt;code&gt;SO_LINGER&lt;/code&gt; socket option:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=nx&gt;tc&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;ok&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;c&lt;/span&gt;&lt;span class=p&gt;.(&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;net&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;TCPConn&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;sc&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;tc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;SyscallConn&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=nx&gt;sc&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Control&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=kd&gt;func&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;fd&lt;/span&gt; &lt;span class=kt&gt;uintptr&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;syscall&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;SetsockoptLinger&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;
+        &lt;span class=nb&gt;int&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;fd&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+        &lt;span class=nx&gt;syscall&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;SOL_SOCKET&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=nx&gt;syscall&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;SO_LINGER&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;syscall&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Linger&lt;/span&gt;&lt;span class=p&gt;{&lt;/span&gt;&lt;span class=nx&gt;Onoff&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;Linger&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;},&lt;/span&gt;
+    &lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=p&gt;})&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;When running the &lt;code&gt;rst-proxy.go&lt;/code&gt; script and pointing our client at the proxy
+port, we can reproduce the error 100% of the time:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ go run ./content/code/rst-proxy.go
+14:48:18.799745 Setting up TCP proxy on localhost:23370
+14:48:20.803298 Handling TCP connection from 127.0.0.1:57781
+14:48:20.905144 State file switched to IDLE, closing connection
+14:48:21.068089 Done proxying connection
+$
+$
+$ # e.g. In another shell
+$ go run ./broken-pipe.go --port 23370
+14:48:20.800452 Setting state to ACTIVE
+14:48:20.817998 Setting state to IDLE
+14:48:20.818213 Sleeping for 1 second
+14:48:21.818725 Done sleeping
+14:48:21.818906 write tcp 127.0.0.1:57781-&amp;gt;127.0.0.1:23370: write: broken pipe
+exit status 1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3 id=finding-the-bug&gt;Finding the Bug&lt;/h3&gt;
+&lt;p&gt;Once I had a very small loop for reproducing the error&lt;sup id=sf-broken-pipe-4-back&gt;&lt;a href=#sf-broken-pipe-4 class=simple-footnote title="I could've made it smaller if I ran the proxy and the client in the same binary, but in my initial sleuthing I was using Python for the proxy because of a great StackOverflow answer that taught me about SO_LINGER."&gt;4&lt;/a&gt;&lt;/sup&gt; it was time
+to find the source of the bug. I initially assumed that &lt;code&gt;database/sql&lt;/code&gt; in Go
+would "actively" manage the connection pool and remove a connection the
+moment an RST was received. The fact that the error can be reproduced
+100% of the time puts that theory to rest. I also did a sanity check with the
+&lt;code&gt;pgx&lt;/code&gt; &lt;a href="https://github.com/jackc/pgx"&gt;library&lt;/a&gt; and verified it &lt;strong&gt;does not&lt;/strong&gt; have this bug, meaning that
+this was a bug in &lt;code&gt;lib/pq&lt;/code&gt;. (Despite its popularity and longevity, &lt;code&gt;lib/pq&lt;/code&gt; is
+in maintenance mode and the maintainers recommend using &lt;code&gt;pgx&lt;/code&gt;.)&lt;/p&gt;
+&lt;p&gt;I wasn't sure where to look to find the bug and had zero familiarity with the
+&lt;code&gt;lib/pq&lt;/code&gt; codebase. So, in order zoom in on the issue I created a custom
+&lt;code&gt;postgres-wrapped&lt;/code&gt; database driver via the super helpful
+&lt;code&gt;github.com/ngrok/sqlmw&lt;/code&gt; &lt;a href="https://github.com/ngrok/sqlmw"&gt;library&lt;/a&gt;. In Go, a database driver is composed of
+types that satisfy a small set of interfaces from &lt;code&gt;database/sql&lt;/code&gt; and
+&lt;code&gt;database/sql/driver&lt;/code&gt;. For example the driver itself satisfies &lt;code&gt;driver.Driver&lt;/code&gt;
+and must have an &lt;code&gt;Open()&lt;/code&gt; method that returns a connection satisfying
+&lt;code&gt;driver.Conn&lt;/code&gt;. Using &lt;code&gt;ngrok/sqlmw&lt;/code&gt;, I was able to log every invocation of a
+method from one of these interfaces, for example:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=kd&gt;type&lt;/span&gt; &lt;span class=nx&gt;loggingInterceptor&lt;/span&gt; &lt;span class=kd&gt;struct&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;sqlmw&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;NullInterceptor&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;loggingInterceptor&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=nx&gt;ConnPing&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt; &lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Context&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;conn&lt;/span&gt; &lt;span class=nx&gt;driver&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Pinger&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;log&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Println&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"ConnPing() called"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;conn&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Ping&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;loggingInterceptor&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=nx&gt;ConnExecContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt; &lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Context&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;conn&lt;/span&gt; &lt;span class=nx&gt;driver&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ExecerContext&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;query&lt;/span&gt; &lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;args&lt;/span&gt; &lt;span class=p&gt;[]&lt;/span&gt;&lt;span class=nx&gt;driver&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;NamedValue&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;driver&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Result&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;log&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Println&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"ConnExecContext() called"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;conn&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ExecContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;query&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;args&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=nx&gt;main&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=c1&gt;// ...&lt;/span&gt;
+    &lt;span class=nx&gt;sql&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Register&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"postgres-wrapped"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;sqlmw&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Driver&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;pq&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Driver&lt;/span&gt;&lt;span class=p&gt;{},&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;loggingInterceptor&lt;/span&gt;&lt;span class=p&gt;{}))&lt;/span&gt;
+    &lt;span class=c1&gt;// ...&lt;/span&gt;
+    &lt;span class=nx&gt;pool&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;sql&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Open&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"postgres-wrapped"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;dsn&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Once I was able to determine that &lt;code&gt;ExecContext()&lt;/code&gt; was the source of the
+&lt;code&gt;write: broken pipe&lt;/code&gt;, I started to modify &lt;code&gt;${GOPATH}/src/github.com/lib/pq&lt;/code&gt;
+until I narrowed down the source:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;pq.conn.ExecContext&lt;/code&gt; implements &lt;code&gt;driver.ExecerContext&lt;/code&gt; (&lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn_go18.go#L32"&gt;source&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pq.conn.ExecContext&lt;/code&gt; calls &lt;code&gt;pq.conn.Exec&lt;/code&gt; (&lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn_go18.go#L42"&gt;source&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pq.conn.Exec&lt;/code&gt; calls &lt;code&gt;pq.conn.simpleExec&lt;/code&gt; (&lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L869"&gt;source&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pq.conn.simpleExec&lt;/code&gt; calls &lt;code&gt;pq.conn.send&lt;/code&gt; (&lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L612"&gt;source&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pq.conn.send&lt;/code&gt; fails a &lt;code&gt;net.Conn.Write&lt;/code&gt; with "broken pipe" and then
+    panics (&lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L897"&gt;source&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pq.conn.errRecover&lt;/code&gt; — invoked from &lt;code&gt;pq.conn.Exec&lt;/code&gt; — handles
+    the &lt;code&gt;panic()&lt;/code&gt; recovery (&lt;a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L863"&gt;source&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pq.conn.errRecover&lt;/code&gt; handles a &lt;code&gt;*net.OpError&lt;/code&gt; by setting the &lt;code&gt;bad&lt;/code&gt; flag to
+    tombstone the connection but just returns the error as-is (&lt;a href="https://github.com/lib/pq/blob/v1.8.0/error.go#L495-L497"&gt;source&lt;/a&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I must say I was surprised by this, using &lt;code&gt;panic()&lt;/code&gt; / &lt;code&gt;recover()&lt;/code&gt; essentially
+amounts to &lt;code&gt;try / except&lt;/code&gt; in other languages, a pattern that is not very
+common in Go&lt;sup id=sf-broken-pipe-5-back&gt;&lt;a href=#sf-broken-pipe-5 class=simple-footnote title="and one that carries with it the cost of stack unwinding"&gt;5&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;h3 id=fixing-the-bug&gt;Fixing the Bug&lt;/h3&gt;
+&lt;p&gt;Luckily I was able to submit a fix (&lt;a href="https://github.com/lib/pq/pull/1013"&gt;lib/pq#1013&lt;/a&gt;) that was small and
+easy to reason about. This likely contributed to the quick review and merge
+from the &lt;code&gt;lib/pq&lt;/code&gt; maintainers. The fix was to explicitly mark the error
+as &lt;strong&gt;safe to retry&lt;/strong&gt; when we know zero bytes were written and then to return
+the &lt;code&gt;driver.ErrBadConn&lt;/code&gt; sentinel to signal to &lt;code&gt;database/sql&lt;/code&gt; that the
+connection should be removed from the pool:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class=gh&gt;diff --git a/conn.go b/conn.go&lt;/span&gt;
+&lt;span class=gh&gt;index f313c14..0d96600 100644&lt;/span&gt;
+&lt;span class=gd&gt;--- a/conn.go&lt;/span&gt;
+&lt;span class=gi&gt;+++ b/conn.go&lt;/span&gt;
+&lt;span class=gu&gt;@@ -891,9 +891,20 @@ func (cn *conn) Exec(query string, args []driver.Value) (res driver.Result, err&lt;/span&gt;
+    return r, err
+ }
+
+&lt;span class=gi&gt;+type safeRetryError struct {&lt;/span&gt;
+&lt;span class=gi&gt;+   Err error&lt;/span&gt;
+&lt;span class=gi&gt;+}&lt;/span&gt;
+&lt;span class=gi&gt;+&lt;/span&gt;
+&lt;span class=gi&gt;+func (se *safeRetryError) Error() string {&lt;/span&gt;
+&lt;span class=gi&gt;+   return se.Err.Error()&lt;/span&gt;
+&lt;span class=gi&gt;+}&lt;/span&gt;
+&lt;span class=gi&gt;+&lt;/span&gt;
+ func (cn *conn) send(m *writeBuf) {
+&lt;span class=gd&gt;-   _, err := cn.c.Write(m.wrap())&lt;/span&gt;
+&lt;span class=gi&gt;+   n, err := cn.c.Write(m.wrap())&lt;/span&gt;
+    if err != nil {
+&lt;span class=gi&gt;+       if n == 0 {&lt;/span&gt;
+&lt;span class=gi&gt;+           err = &amp;amp;safeRetryError{Err: err}&lt;/span&gt;
+&lt;span class=gi&gt;+       }&lt;/span&gt;
+        panic(err)
+    }
+ }
+&lt;span class=gh&gt;diff --git a/error.go b/error.go&lt;/span&gt;
+&lt;span class=gh&gt;index 3d66ba7..a227e08 100644&lt;/span&gt;
+&lt;span class=gd&gt;--- a/error.go&lt;/span&gt;
+&lt;span class=gi&gt;+++ b/error.go&lt;/span&gt;
+&lt;span class=gu&gt;@@ -495,6 +495,9 @@ func (cn *conn) errRecover(err *error) {&lt;/span&gt;
+    case *net.OpError:
+        cn.bad = true
+        *err = v
+&lt;span class=gi&gt;+   case *safeRetryError:&lt;/span&gt;
+&lt;span class=gi&gt;+       cn.bad = true&lt;/span&gt;
+&lt;span class=gi&gt;+       *err = driver.ErrBadConn&lt;/span&gt;
+    case error:
+        if v == io.EOF || v.(error).Error() == "remote error: handshake failure" {
+            *err = driver.ErrBadConn
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I certainly didn't come up with this idea on my own. I previously mentioned
+that &lt;code&gt;pgx&lt;/code&gt; did &lt;strong&gt;not&lt;/strong&gt; have the same bug. When vetting &lt;code&gt;pgx&lt;/code&gt;, I dug through
+the source in the same way that I did with &lt;code&gt;lib/pq&lt;/code&gt; and found that
+&lt;code&gt;PgConn.Exec()&lt;/code&gt; &lt;a href="https://github.com/jackc/pgconn/blob/v1.7.2/pgconn.go#L923"&gt;marks&lt;/a&gt; an error as safe when exactly zero bytes are
+written and the high-level driver connection returns the sentinel
+&lt;code&gt;driver.ErrBadConn&lt;/code&gt; if an error is &lt;a href="https://github.com/jackc/pgx/blob/v4.9.2/stdlib/sql.go#L336-L337"&gt;safe to retry&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=takeaways&gt;Takeaways&lt;/h3&gt;
+&lt;p&gt;In some sense, we should've never been down this road because &lt;code&gt;lib/pq&lt;/code&gt; is in
+maintenance mode. However, the real story here is about starting from a
+wide open view of microservice logs and narrowing down all the way to a line
+of library code. Additionally, the story may not be over if the RST packets are
+caused by a connection handoff issue with &lt;a href="https://istio.io/"&gt;Istio&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;So what should a reader take away from this long and winding road to a bugfix?&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A first lesson in tight feedback loops: ensure the code being debugged
+    is running in a controlled environment. Here that meant scaling the
+    Kubernetes deployment down to one pod&lt;/li&gt;
+&lt;li&gt;Networking bugs are not so scary, packet capture coupled with logs
+    and Wireshark's helpful UI quickly told the story&lt;/li&gt;
+&lt;li&gt;Another lesson in tight feedback loops: once the RST hypothesis was
+    confirmed, &lt;strong&gt;control the whole stack&lt;/strong&gt;. Throw away as many confounding
+    factors as possible and just focus in on the problem area. Strongly prefer
+    reproducible examples that can be run on your development machine (i.e. a
+    develop, deploy, debug loop is not tight enough).&lt;/li&gt;
+&lt;li&gt;Treat components as a black box when beneficial. Figuring out in fine
+    detail how to make &lt;code&gt;postgres&lt;/code&gt; send the RST could've taken a &lt;strong&gt;very&lt;/strong&gt; long
+    time, so we took the shorter path by putting a proxy in front of
+    &lt;code&gt;postgres&lt;/code&gt; that we could fully control.&lt;/li&gt;
+&lt;li&gt;Had we used the recommended &lt;code&gt;pgx&lt;/code&gt;, there would have been no bug to fix;
+    upgrade dependencies early and often and look out for deprecation notices
+    like the one in &lt;code&gt;lib/pq&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr style="margin-bottom: 25px; width: 50%;"&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-broken-pipe-1&gt;which later became a whole day &lt;a href=#sf-broken-pipe-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-broken-pipe-2&gt;Note the filter only applies to
+port 5432, the PostgreSQL port. The &lt;code&gt;.pcap&lt;/code&gt; file only grew to 644KiB in
+ninety minutes but without a filter it would've been over 1GiB. &lt;a href=#sf-broken-pipe-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-broken-pipe-3&gt;This
+port of the socket lifecycle is not managed by Go at all, but fully by the
+kernel. &lt;a href=#sf-broken-pipe-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-broken-pipe-4&gt;I could've made it
+smaller if I ran the proxy and the client in the same binary, but in my
+initial sleuthing I was using Python for the proxy because of a great
+StackOverflow &lt;a href="https://stackoverflow.com/a/6440364/1068170"&gt;answer&lt;/a&gt; that taught me about &lt;code&gt;SO_LINGER&lt;/code&gt;. &lt;a href=#sf-broken-pipe-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-broken-pipe-5&gt;and one that carries with it the cost of stack
+unwinding &lt;a href=#sf-broken-pipe-5-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="Go"></category><category term="Golang"></category><category term="PostgreSQL"></category><category term="Networking"></category><category term="Debugging"></category></entry><entry><title>pow Confusion</title><link href="https://blog.bossylobster.com/2020/11/pow-confusion.html" rel="alternate"></link><published>2020-11-25T00:00:00-08:00</published><updated>2020-11-25T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-11-25:/2020/11/pow-confusion.html</id><summary type="html">&lt;p&gt;In my first summer of graduate school my code suddenly stopped working
 because Fortran and Python (via &lt;code&gt;pow()&lt;/code&gt; in C) do exponentiation differently.
 Once I debugged and understood the problem, I learned about the highly
 optimized assembly code produced by Fortran for integer exponents.&lt;/p&gt;
@@ -537,12 +889,12 @@ timeout&lt;sup id=sf-go-pq-prevent-deadlock-2-back&gt;&lt;a href=#sf-go-pq-preve
 &lt;p&gt;By setting &lt;code&gt;lock_timeout&lt;/code&gt; to 10 milliseconds, much shorter than the 200
 millisecond sleep between statements, we can induce &lt;a href="https://www.postgresql.org/docs/10/errcodes-appendix.html"&gt;error&lt;/a&gt;
 &lt;code&gt;55P03: lock_not_available&lt;/code&gt; directly from &lt;code&gt;postgres&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LOCK_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10ms &lt;span class=nv&gt;CONTEXT_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;600ms go run ./pq-prevent-deadlock.go
-&lt;span class=m&gt;0&lt;/span&gt;.039350 Starting transactions
-&lt;span class=m&gt;0&lt;/span&gt;.059424 Transactions opened
-&lt;span class=m&gt;0&lt;/span&gt;.286993 Error&lt;span class=o&gt;(&lt;/span&gt;s&lt;span class=o&gt;)&lt;/span&gt;:
-&lt;span class=m&gt;0&lt;/span&gt;.287104 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"55P03"&lt;/span&gt;, Message:&lt;span class=s2&gt;"canceling statement due to lock timeout"&lt;/span&gt;, Detail:&lt;span class=s2&gt;""&lt;/span&gt;, Hint:&lt;span class=s2&gt;""&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,1) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"postgres.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"2989"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"ProcessInterrupts"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
-&lt;span class=m&gt;0&lt;/span&gt;.287119 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"55P03"&lt;/span&gt;, Message:&lt;span class=s2&gt;"canceling statement due to lock timeout"&lt;/span&gt;, Detail:&lt;span class=s2&gt;""&lt;/span&gt;, Hint:&lt;span class=s2&gt;""&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,2) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"postgres.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"2989"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"ProcessInterrupts"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ LOCK_TIMEOUT=10ms CONTEXT_TIMEOUT=600ms go run ./pq-prevent-deadlock.go
+0.039350 Starting transactions
+0.059424 Transactions opened
+0.286993 Error(s):
+0.287104 - &amp;amp;pq.Error{Severity:"ERROR", Code:"55P03", Message:"canceling statement due to lock timeout", Detail:"", Hint:"", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,1) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"postgres.c", Line:"2989", Routine:"ProcessInterrupts"}
+0.287119 - &amp;amp;pq.Error{Severity:"ERROR", Code:"55P03", Message:"canceling statement due to lock timeout", Detail:"", Hint:"", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,2) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"postgres.c", Line:"2989", Routine:"ProcessInterrupts"}
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -554,11 +906,11 @@ canceling statements and providing a useful error to the client.&lt;/p&gt;
 leave &lt;code&gt;postgres&lt;/code&gt; on its own to suffer with (and detect) the deadlock.
 After less than two seconds the deadlock is detected and error
 &lt;code&gt;40P01: deadlock_detected&lt;/code&gt; is returned:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LOCK_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10s &lt;span class=nv&gt;CONTEXT_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10s go run ./pq-prevent-deadlock.go
-&lt;span class=m&gt;0&lt;/span&gt;.043090 Starting transactions
-&lt;span class=m&gt;0&lt;/span&gt;.058350 Transactions opened
-&lt;span class=m&gt;1&lt;/span&gt;.276383 Error&lt;span class=o&gt;(&lt;/span&gt;s&lt;span class=o&gt;)&lt;/span&gt;:
-&lt;span class=m&gt;1&lt;/span&gt;.276474 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"40P01"&lt;/span&gt;, Message:&lt;span class=s2&gt;"deadlock detected"&lt;/span&gt;, Detail:&lt;span class=s2&gt;"Process 2385 waits for ShareLock on transaction 624; blocked by process 2384.\nProcess 2384 waits for ShareLock on transaction 625; blocked by process 2385."&lt;/span&gt;, Hint:&lt;span class=s2&gt;"See server log for query details."&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,1) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"deadlock.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"1140"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"DeadLockReport"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=10s go run ./pq-prevent-deadlock.go
+0.043090 Starting transactions
+0.058350 Transactions opened
+1.276383 Error(s):
+1.276474 - &amp;amp;pq.Error{Severity:"ERROR", Code:"40P01", Message:"deadlock detected", Detail:"Process 2385 waits for ShareLock on transaction 624; blocked by process 2384.\nProcess 2384 waits for ShareLock on transaction 625; blocked by process 2385.", Hint:"See server log for query details.", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,1) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"deadlock.c", Line:"1140", Routine:"DeadLockReport"}
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -567,12 +919,12 @@ After less than two seconds the deadlock is detected and error
 sleep between statements), the transaction will be canceled &lt;strong&gt;during&lt;/strong&gt; the
 sleep which means the next statement will not even attempt to communicate
 with &lt;code&gt;postgres&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LOCK_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10s &lt;span class=nv&gt;CONTEXT_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;100ms go run ./pq-prevent-deadlock.go
-&lt;span class=m&gt;0&lt;/span&gt;.049146 Starting transactions
-&lt;span class=m&gt;0&lt;/span&gt;.060474 Transactions opened
-&lt;span class=m&gt;0&lt;/span&gt;.268488 Error&lt;span class=o&gt;(&lt;/span&gt;s&lt;span class=o&gt;)&lt;/span&gt;:
-&lt;span class=m&gt;0&lt;/span&gt;.268542 - context.deadlineExceededError&lt;span class=o&gt;{}&lt;/span&gt;
-&lt;span class=m&gt;0&lt;/span&gt;.268547 - context.deadlineExceededError&lt;span class=o&gt;{}&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=100ms go run ./pq-prevent-deadlock.go
+0.049146 Starting transactions
+0.060474 Transactions opened
+0.268488 Error(s):
+0.268542 - context.deadlineExceededError{}
+0.268547 - context.deadlineExceededError{}
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -580,12 +932,12 @@ with &lt;code&gt;postgres&lt;/code&gt;:&lt;/p&gt;
 &lt;p&gt;Setting the context timeout to 600 milliseconds is long enough that the sleep
 between statements completes but not so long that &lt;code&gt;postgres&lt;/code&gt; detects the
 deadlock. In this case a &lt;code&gt;57014: query_canceled&lt;/code&gt; is returned:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;LOCK_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;10s &lt;span class=nv&gt;CONTEXT_TIMEOUT&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;600ms go run ./pq-prevent-deadlock.go
-&lt;span class=m&gt;0&lt;/span&gt;.037892 Starting transactions
-&lt;span class=m&gt;0&lt;/span&gt;.048328 Transactions opened
-&lt;span class=m&gt;0&lt;/span&gt;.610551 Error&lt;span class=o&gt;(&lt;/span&gt;s&lt;span class=o&gt;)&lt;/span&gt;:
-&lt;span class=m&gt;0&lt;/span&gt;.610640 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"57014"&lt;/span&gt;, Message:&lt;span class=s2&gt;"canceling statement due to user request"&lt;/span&gt;, Detail:&lt;span class=s2&gt;""&lt;/span&gt;, Hint:&lt;span class=s2&gt;""&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,1) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"postgres.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"3026"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"ProcessInterrupts"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
-&lt;span class=m&gt;0&lt;/span&gt;.610663 - &lt;span class=p&gt;&amp;amp;&lt;/span&gt;pq.Error&lt;span class=o&gt;{&lt;/span&gt;Severity:&lt;span class=s2&gt;"ERROR"&lt;/span&gt;, Code:&lt;span class=s2&gt;"57014"&lt;/span&gt;, Message:&lt;span class=s2&gt;"canceling statement due to user request"&lt;/span&gt;, Detail:&lt;span class=s2&gt;""&lt;/span&gt;, Hint:&lt;span class=s2&gt;""&lt;/span&gt;, Position:&lt;span class=s2&gt;""&lt;/span&gt;, InternalPosition:&lt;span class=s2&gt;""&lt;/span&gt;, InternalQuery:&lt;span class=s2&gt;""&lt;/span&gt;, Where:&lt;span class=s2&gt;"while updating tuple (0,2) in relation \"might_deadlock\""&lt;/span&gt;, Schema:&lt;span class=s2&gt;""&lt;/span&gt;, Table:&lt;span class=s2&gt;""&lt;/span&gt;, Column:&lt;span class=s2&gt;""&lt;/span&gt;, DataTypeName:&lt;span class=s2&gt;""&lt;/span&gt;, Constraint:&lt;span class=s2&gt;""&lt;/span&gt;, File:&lt;span class=s2&gt;"postgres.c"&lt;/span&gt;, Line:&lt;span class=s2&gt;"3026"&lt;/span&gt;, Routine:&lt;span class=s2&gt;"ProcessInterrupts"&lt;/span&gt;&lt;span class=o&gt;}&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=600ms go run ./pq-prevent-deadlock.go
+0.037892 Starting transactions
+0.048328 Transactions opened
+0.610551 Error(s):
+0.610640 - &amp;amp;pq.Error{Severity:"ERROR", Code:"57014", Message:"canceling statement due to user request", Detail:"", Hint:"", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,1) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"postgres.c", Line:"3026", Routine:"ProcessInterrupts"}
+0.610663 - &amp;amp;pq.Error{Severity:"ERROR", Code:"57014", Message:"canceling statement due to user request", Detail:"", Hint:"", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,2) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"postgres.c", Line:"3026", Routine:"ProcessInterrupts"}
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -602,8 +954,8 @@ communicate the canceled query to &lt;code&gt;postgres&lt;/code&gt; as well.&lt;
 &lt;p&gt;Though &lt;code&gt;lock_timeout&lt;/code&gt; is directly supported in the connection string in
 &lt;code&gt;github.com/lib/pq&lt;/code&gt;, it's &lt;a href="https://www.postgresql.org/docs/10/libpq-connect.html#LIBPQ-PARAMKEYWORDS"&gt;explicitly&lt;/a&gt; &lt;strong&gt;not&lt;/strong&gt; supported in
 &lt;code&gt;psql&lt;/code&gt; / &lt;code&gt;libpq&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ psql &lt;span class=s2&gt;"postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?lock_timeout=10ms&amp;amp;sslmode=disable"&lt;/span&gt;
-psql: error: could not connect to server: invalid URI query parameter: &lt;span class=s2&gt;"lock_timeout"&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ psql "postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?lock_timeout=10ms&amp;amp;sslmode=disable"
+psql: error: could not connect to server: invalid URI query parameter: "lock_timeout"
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -622,15 +974,15 @@ settings for run-time parameters.)&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;Using &lt;code&gt;PGOPTIONS="-c {key}={value}"&lt;/code&gt; with &lt;code&gt;psql&lt;/code&gt; enables &lt;a href="https://www.postgresql.org/docs/10/app-postgres.html#id-1.9.5.13.6.3"&gt;setting&lt;/a&gt;
 named run-time parameters&lt;sup id=sf-go-pq-prevent-deadlock-4-back&gt;&lt;a href=#sf-go-pq-prevent-deadlock-4 class=simple-footnote title="It's also worth noting that github.com/lib/pq is PGOPTIONS-aware"&gt;4&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=nv&gt;PGOPTIONS&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"-c lock_timeout=10ms"&lt;/span&gt; psql &lt;span class=s2&gt;"postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?connect_timeout=5&amp;amp;sslmode=disable"&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ PGOPTIONS="-c lock_timeout=10ms" psql "postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?connect_timeout=5&amp;amp;sslmode=disable"
 ...
-&lt;span class=nv&gt;superuser_db&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=c1&gt;# SHOW lock_timeout;&lt;/span&gt;
+superuser_db=# SHOW lock_timeout;
  lock_timeout
 --------------
  10ms
-&lt;span class=o&gt;(&lt;/span&gt;&lt;span class=m&gt;1&lt;/span&gt; row&lt;span class=o&gt;)&lt;/span&gt;
+(1 row)
 
-&lt;span class=nv&gt;superuser_db&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=c1&gt;# \q&lt;/span&gt;
+superuser_db=# \q
 &lt;/pre&gt;&lt;/div&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-go-pq-prevent-deadlock-1&gt;Take note of the connection parameters &lt;a href=#sf-go-pq-prevent-deadlock-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-go-pq-prevent-deadlock-2&gt;It's crucial that we pass this context in to every database
 method that has a &lt;code&gt;Context&lt;/code&gt;-accepting variant &lt;a href=#sf-go-pq-prevent-deadlock-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-go-pq-prevent-deadlock-3&gt;Though 13 are supported by
 &lt;code&gt;github.com/lib/pq&lt;/code&gt;, there are 29 &lt;code&gt;postgres&lt;/code&gt; &lt;a href="https://www.postgresql.org/docs/10/libpq-connect.html#LIBPQ-PARAMKEYWORDS"&gt;parameter keywords&lt;/a&gt; &lt;a href=#sf-go-pq-prevent-deadlock-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-go-pq-prevent-deadlock-4&gt;It's also worth noting that &lt;code&gt;github.com/lib/pq&lt;/code&gt;
@@ -696,14 +1048,14 @@ using Node.js and Express:&lt;/p&gt;
 
 
 &lt;p&gt;In one terminal window, run this server&lt;sup id=sf-life-of-request-3-back&gt;&lt;a href=#sf-life-of-request-3 class=simple-footnote title="Running server.js will require having node and npm installed, in a directory with a package.json file. For our example we are using node@12.14.1, npm@6.13.4 and installing Express with npm install express@4.17.1 --save-exact."&gt;3&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ node server.js
-Example app listening on port &lt;span class=m&gt;3000&lt;/span&gt;!
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ node ./server.js
+Example app listening on port 3000!
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;In another terminal window, send a request to the server:&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl http://localhost:3000
-req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.ip: "::1"
 req.xff: undefined
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -744,15 +1096,15 @@ log stdout
 
 &lt;p&gt;We can run this proxy server and communicate with it over TLS&lt;sup id=sf-life-of-request-7-back&gt;&lt;a href=#sf-life-of-request-7 class=simple-footnote title="See Why --cacert Flag."&gt;7&lt;/a&gt;&lt;/sup&gt; with &lt;code&gt;curl&lt;/code&gt; to verify that it proxies
 traffic to port 3000:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ caddy -conf ./tls.Caddyfile &lt;span class=p&gt;&amp;amp;&lt;/span&gt;
-Activating privacy features... &lt;span class=k&gt;done&lt;/span&gt;.
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ caddy -conf ./tls.Caddyfile &amp;amp;
+Activating privacy features... done.
 
-Serving HTTPS on port &lt;span class=m&gt;3443&lt;/span&gt;
+Serving HTTPS on port 3443
 https://:3443
 ...
 $ curl --cacert ./rootCA-cert.pem https://localhost:3443
-req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
-req.xff: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.ip: "::1"
+req.xff: "::1"
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -763,12 +1115,12 @@ values. (For example, if a request was forwarded multiple times before entering
 our system, external proxies may have also written to the header.) The TLS
 proxy either sets the XFF header or adds an entry to the end of the XFF list if
 the header is already present:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl &lt;span class=se&gt;\&lt;/span&gt;
-&amp;gt;   --cacert ./rootCA-cert.pem &lt;span class=se&gt;\&lt;/span&gt;
-&amp;gt;   --header &lt;span class=s1&gt;'X-Forwarded-For: 127.0.0.2'&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl \
+&amp;gt;   --cacert ./rootCA-cert.pem \
+&amp;gt;   --header 'X-Forwarded-For: 127.0.0.2' \
 &amp;gt;   https://localhost:3443
-req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
-req.xff: &lt;span class=s2&gt;"127.0.0.2, ::1"&lt;/span&gt;
+req.ip: "::1"
+req.xff: "127.0.0.2, ::1"
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -806,12 +1158,12 @@ For &lt;a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/
 &lt;p&gt;To utilize this information, we can modify our &lt;code&gt;Caddyfile&lt;/code&gt; to enable the
 &lt;a href="https://caddyserver.com/v1/docs/http.proxyprotocol"&gt;&lt;code&gt;http.proxyprotocol&lt;/code&gt; filter&lt;/a&gt;&lt;sup id=sf-life-of-request-9-back&gt;&lt;a href=#sf-life-of-request-9 class=simple-footnote title="See source for proxy-protocol.Caddyfile."&gt;9&lt;/a&gt;&lt;/sup&gt;. After doing this, we can use &lt;code&gt;curl&lt;/code&gt; to pass
 along a PROXY protocol prefix and verify the Caddy server handles it:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ caddy -conf ./proxy-protocol.Caddyfile &lt;span class=p&gt;&amp;amp;&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ caddy -conf ./proxy-protocol.Caddyfile &amp;amp;
 ...
-$ curl --haproxy-protocol &lt;span class=se&gt;\&lt;/span&gt;
+$ curl --haproxy-protocol \
 &amp;gt;   --cacert ./rootCA-cert.pem https://localhost:3443
-req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
-req.xff: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.ip: "::1"
+req.xff: "::1"
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -823,8 +1175,8 @@ to simulate the example above involving &lt;code&gt;198.51.100.22&lt;/code&gt;. 
 socket, manually send the PROXY protocol prefix and then wrap the socket in a
 TLS connection&lt;sup id=sf-life-of-request-10-back&gt;&lt;a href=#sf-life-of-request-10 class=simple-footnote title="See source for wrapped-request.go."&gt;10&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ go run ./wrapped-request.go
-req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
-req.xff: &lt;span class=s2&gt;"127.0.0.4, 127.0.0.3, 127.0.0.2, 198.51.100.22"&lt;/span&gt;
+req.ip: "::1"
+req.xff: "127.0.0.4, 127.0.0.3, 127.0.0.2, 198.51.100.22"
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -856,12 +1208,12 @@ sidecar. Thus, we can set &lt;code&gt;app.set('trust proxy', 1)&lt;/code&gt; on 
 application, which tells our server that &lt;code&gt;req.ip&lt;/code&gt; should be set based on the
 last entry in XFF. Running our server&lt;sup id=sf-life-of-request-12-back&gt;&lt;a href=#sf-life-of-request-12 class=simple-footnote title="See source for server-trust.js."&gt;12&lt;/a&gt;&lt;/sup&gt; with "trust proxy", we see &lt;code&gt;req.ip&lt;/code&gt; derived from XFF
 rather than the TCP socket:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ node server-trust.js
-Example app listening on port &lt;span class=m&gt;3000&lt;/span&gt;!
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ node ./server-trust.js
+Example app listening on port 3000!
 ...
-$ go run wrapped-request.go
-req.ip: &lt;span class=s2&gt;"198.51.100.22"&lt;/span&gt;
-req.xff: &lt;span class=s2&gt;"127.0.0.4, 127.0.0.3, 127.0.0.2, 198.51.100.22"&lt;/span&gt;
+$ go run ./wrapped-request.go
+req.ip: "198.51.100.22"
+req.xff: "127.0.0.4, 127.0.0.3, 127.0.0.2, 198.51.100.22"
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -889,7 +1241,7 @@ to application server as follows:&lt;/p&gt;
 &lt;p&gt;To concretely understand how PROXY protocol works, we can use
 &lt;a href="https://en.wikipedia.org/wiki/Netcat"&gt;netcat&lt;/a&gt; (&lt;code&gt;nc&lt;/code&gt;) to print out the raw TCP stream sent in an HTTP
 request. Compare a regular HTTP GET&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=o&gt;(&lt;/span&gt;&lt;span class=nb&gt;echo&lt;/span&gt; WITHOUT &lt;span class=p&gt;|&lt;/span&gt; nc -l &lt;span class=m&gt;9876&lt;/span&gt; &lt;span class=p&gt;&amp;amp;&lt;/span&gt;&lt;span class=o&gt;)&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ (echo WITHOUT | nc -l 9876 &amp;amp;) &amp;amp;&amp;amp; \
 &amp;gt;   curl http://localhost:9876
 GET / HTTP/1.1
 Host: localhost:9876
@@ -901,9 +1253,9 @@ WITHOUT
 
 
 &lt;p&gt;to an HTTP GET with the PROXY protocol prefix:&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class=o&gt;(&lt;/span&gt;&lt;span class=nb&gt;echo&lt;/span&gt; WITH &lt;span class=p&gt;|&lt;/span&gt; nc -l &lt;span class=m&gt;9876&lt;/span&gt; &lt;span class=p&gt;&amp;amp;&lt;/span&gt;&lt;span class=o&gt;)&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ (echo WITH | nc -l 9876 &amp;amp;) &amp;amp;&amp;amp; \
 &amp;gt;   curl --haproxy-protocol http://localhost:9876
-PROXY TCP4 &lt;span class=m&gt;127&lt;/span&gt;.0.0.1 &lt;span class=m&gt;127&lt;/span&gt;.0.0.1 &lt;span class=m&gt;53577&lt;/span&gt; &lt;span class=m&gt;9876&lt;/span&gt;
+PROXY TCP4 127.0.0.1 127.0.0.1 53577 9876
 GET / HTTP/1.1
 Host: localhost:9876
 User-Agent: curl/7.64.1
@@ -933,13 +1285,13 @@ files&lt;/p&gt;
 it is communicating with. If the client communicates directly (rather than
 through the proxy), the XFF header can be spoofed&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl http://localhost:3000
-req.ip: &lt;span class=s2&gt;"::1"&lt;/span&gt;
+req.ip: "::1"
 req.xff: undefined
-$ curl &lt;span class=se&gt;\&lt;/span&gt;
-&amp;gt;   --header &lt;span class=s1&gt;'X-Forwarded-For: 198.51.100.22'&lt;/span&gt; &lt;span class=se&gt;\&lt;/span&gt;
+$ curl \
+&amp;gt;   --header 'X-Forwarded-For: 198.51.100.22' \
 &amp;gt;   http://localhost:3000
-req.ip: &lt;span class=s2&gt;"198.51.100.22"&lt;/span&gt;
-req.xff: &lt;span class=s2&gt;"198.51.100.22"&lt;/span&gt;
+req.ip: "198.51.100.22"
+req.xff: "198.51.100.22"
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -947,7 +1299,7 @@ req.xff: &lt;span class=s2&gt;"198.51.100.22"&lt;/span&gt;
 &lt;p&gt;The &lt;code&gt;--cacert&lt;/code&gt; flag is required when using TLS to communicate with an
 untrusted local server. If not provided requests will fail:&lt;/p&gt;
 &lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ curl https://localhost:3443
-curl: &lt;span class=o&gt;(&lt;/span&gt;&lt;span class=m&gt;60&lt;/span&gt;&lt;span class=o&gt;)&lt;/span&gt; SSL certificate problem: unable to get &lt;span class=nb&gt;local&lt;/span&gt; issuer certificate
+curl: (60) SSL certificate problem: unable to get local issuer certificate
 More details here: https://curl.haxx.se/docs/sslcerts.html
 
 curl failed to verify the legitimacy of the server and therefore could not
@@ -986,7 +1338,7 @@ load testing to debug a problem. I wanted a way to &lt;strong&gt;keep&lt;/strong
 responses and inspect them after the fact; I wanted an &lt;strong&gt;escape hatch&lt;/strong&gt; into
 the event loop firing off requests.&lt;/p&gt;
 &lt;p&gt;Motivated by &lt;code&gt;wrk&lt;/code&gt;, I wanted to utilize a large-ish thread pool all sharing
-a connection pool. A shared conneciton pool enables testing of re-used TCP
+a connection pool. A shared connection pool enables testing of re-used TCP
 sockets and can generate more load since TLS negotiation can be re-used. Using
 the &lt;code&gt;select&lt;/code&gt; &lt;a href="https://docs.python.org/3/library/select.html"&gt;package&lt;/a&gt; and low-level &lt;a href="https://docs.python.org/3/library/socket.html"&gt;socket&lt;/a&gt; objects to accomplish this
 task likely would've given maximal throughput but the sheer amount of work

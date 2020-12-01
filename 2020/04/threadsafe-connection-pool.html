@@ -109,7 +109,7 @@ load testing to debug a problem. I wanted a way to <strong>keep</strong> all fai
 responses and inspect them after the fact; I wanted an <strong>escape hatch</strong> into
 the event loop firing off requests.</p>
 <p>Motivated by <code>wrk</code>, I wanted to utilize a large-ish thread pool all sharing
-a connection pool. A shared conneciton pool enables testing of re-used TCP
+a connection pool. A shared connection pool enables testing of re-used TCP
 sockets and can generate more load since TLS negotiation can be re-used. Using
 the <code>select</code> <a href="https://docs.python.org/3/library/select.html">package</a> and low-level <a href="https://docs.python.org/3/library/socket.html">socket</a> objects to accomplish this
 task likely would've given maximal throughput but the sheer amount of work
@@ -391,6 +391,9 @@ on getting a working multithreaded connection pool. <a href=#sf-threadsafe-conne
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
       </li>
       <li class="post">
@@ -401,9 +404,6 @@ on getting a working multithreaded connection pool. <a href=#sf-threadsafe-conne
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
       </li>
     </ul>
   </section>
