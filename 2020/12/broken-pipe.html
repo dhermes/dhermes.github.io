@@ -189,7 +189,7 @@ the broken pipe errors occurred on first usage after an extended idle period.</p
 <h3 id=who-is-at-fault>Who Is at Fault</h3>
 <p>A bit more about why the sockets had "gone bad". I was initially unhappy that
 AWS RDS had sent RST packets, essentially hanging up the phone abruptly as
-opposed to saying goobye with a FIN packet to cleanly close the connection.
+opposed to saying goodbye with a FIN packet to cleanly close the connection.
 However it appears that a minute before the RST packets arrived (around
 <code>18:26:09</code> UTC), the AWS RDS instance attempted to send FIN packets to each
 of the idle sockets. However, the client responded with an RST from a
@@ -254,7 +254,7 @@ query <code>postgres</code> (i.e. without a proxy):</p>
 TCP proxy that <strong>usually</strong> shuttles packets between the Go client and the
 <code>postgres</code> server. However, it polls the (shared) state file and once the
 client has gone <code>IDLE</code> it closes the connection. In normal circumstances,
-closing the connection would still not result in an RST, the kernel<sup id=sf-broken-pipe-3-back><a href=#sf-broken-pipe-3 class=simple-footnote title="This port of the socket lifecycle is not managed by Go at all, but fully by the kernel.">3</a></sup> will send a FIN to gracefully close the connection. To modify
+closing the connection would still not result in an RST, the kernel<sup id=sf-broken-pipe-3-back><a href=#sf-broken-pipe-3 class=simple-footnote title="This part of the socket lifecycle is not managed by Go at all, but fully by the kernel.">3</a></sup> will send a FIN to gracefully close the connection. To modify
 this behavior we must set the <code>SO_LINGER</code> socket option:</p>
 <div class=highlight><pre><span></span><span class=nx>tc</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.(</span><span class=o>*</span><span class=nx>net</span><span class=p>.</span><span class=nx>TCPConn</span><span class=p>)</span>
 <span class=c1>// ...</span>
@@ -436,7 +436,7 @@ caused by a connection handoff issue with <a href="https://istio.io/">Istio</a>.
 <hr style="margin-bottom: 25px; width: 50%;"><ol class=simple-footnotes><li id=sf-broken-pipe-1>which later became a whole day <a href=#sf-broken-pipe-1-back class=simple-footnote-back>↩</a></li><li id=sf-broken-pipe-2>Note the filter only applies to
 port 5432, the PostgreSQL port. The <code>.pcap</code> file only grew to 644KiB in
 ninety minutes but without a filter it would've been over 1GiB. <a href=#sf-broken-pipe-2-back class=simple-footnote-back>↩</a></li><li id=sf-broken-pipe-3>This
-port of the socket lifecycle is not managed by Go at all, but fully by the
+part of the socket lifecycle is not managed by Go at all, but fully by the
 kernel. <a href=#sf-broken-pipe-3-back class=simple-footnote-back>↩</a></li><li id=sf-broken-pipe-4>I could've made it
 smaller if I ran the proxy and the client in the same binary, but in my
 initial sleuthing I was using Python for the proxy because of a great
