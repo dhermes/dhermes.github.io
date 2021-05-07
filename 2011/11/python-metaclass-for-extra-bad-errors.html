@@ -95,20 +95,19 @@ verb. (Again,
 <a href="/images/prepare-yourself.jpg">prepare yourselves</a>,
 a bunch of code is about to happen. See the necessary <a href="#imports">imports</a>
 at the bottom of the post.)</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">deadline_decorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">deadline_decorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">wrapped_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">DeadlineExceededError</span><span class="p">:</span>
             <span class="n">traceback_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">format_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()))</span>
-            <span class="n">email_admins</span><span class="p">(</span><span class="n">traceback_info</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">email_admins</span><span class="p">(</span><span class="n">traceback_info</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
             <span class="n">serve_500</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">wrapped_method</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Unfortunately, having to manually decorate
 <a href="http://knowyourmeme.com/memes/x-all-the-y">all the functions</a>
@@ -134,7 +133,7 @@ object in Python actually constructs a class (which is also an object)
 by taking into account the name of the class, the parents (or bases) and
 the class attritubutes. So, we can make a metaclass by subclassing <code>type</code> and overriding
 <code>__new__</code>:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DecorateHttpVerbsMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">DecorateHttpVerbsMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">):</span>
         <span class="n">verbs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="s1">&#39;put&#39;</span><span class="p">,</span> <span class="s1">&#39;delete&#39;</span><span class="p">]</span>
@@ -144,8 +143,7 @@ the class attritubutes. So, we can make a metaclass by subclassing <code>type</c
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">DecorateHttpVerbsMetaclass</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>
                                                               <span class="n">bases</span><span class="p">,</span> <span class="n">cls_attr</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>In <code>DecorateHttpVerbsMetaclass</code>,
 we look for four (of the nine) HTTP
@@ -157,16 +155,15 @@ attribute <strong>and if</strong> the attribute is a function, we
 decorate it with <code>deadline_decorator</code>.</p>
 <p>Now, we can rewrite our subclass of <code>RequestHandler</code>
 with one extra line:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ExtendedHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
-    <span class="vm">__metaclass__</span> <span class="o">=</span> <span class="n">DecorateHttpVerbsMetaclass</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ExtendedHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">DecorateHttpVerbsMetaclass</span>
 
     <span class="k">def</span> <span class="nf">handle_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">,</span> <span class="n">debug_mode</span><span class="p">):</span>
         <span class="n">traceback_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">format_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()))</span>
-        <span class="n">email_admins</span><span class="p">(</span><span class="n">traceback_info</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">email_admins</span><span class="p">(</span><span class="n">traceback_info</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">serve_500</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>By doing this, when the <strong>class</strong> <code>ExtendedHandler</code>
 is built (as an <strong>object</strong>), all of its attributes and all of its
@@ -176,7 +173,7 @@ our metaclass.</p>
 <a href="http://www.youtube.com/watch?v=NisCkxU544c">like a boss</a> when your app
 handles errors.</p>
 <h2 id="imports">Imports:</h2>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">mail</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">mail</span>
 <span class="kn">from</span> <span class="nn">google.appengine.ext.deferred</span> <span class="kn">import</span> <span class="n">defer</span>
 <span class="kn">from</span> <span class="nn">google.appengine.ext.webapp</span> <span class="kn">import</span> <span class="n">RequestHandler</span>
 <span class="kn">from</span> <span class="nn">google.appengine.runtime</span> <span class="kn">import</span> <span class="n">DeadlineExceededError</span>
@@ -184,8 +181,7 @@ handles errors.</p>
 <span class="kn">from</span> <span class="nn">traceback</span> <span class="kn">import</span> <span class="n">format_exception</span>
 <span class="kn">from</span> <span class="nn">SOME_APP_SPECIFIC_LIBRARY</span> <span class="kn">import</span> <span class="n">serve_500</span>
 <span class="kn">from</span> <span class="nn">LAST_POST</span> <span class="kn">import</span> <span class="n">email_admins</span>
-</pre></div>
-
+</code></pre></div>
 
 <h4>Pythonic:</h4>
 <blockquote>

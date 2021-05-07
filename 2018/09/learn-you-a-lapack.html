@@ -221,36 +221,33 @@ slightly, but not enough to warrant a separate discussion here.</p>
 <p>Now, we'll call <code>dgetrf</code> with our sample matrix. To avoid any overhead
 from copies we make sure <code>A</code> is in Fortran order (<code>"F"</code>) and set the
 <code>overwrite_a</code> flag to <code>True</code>:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>numpy</span> <span class=kn>as</span> <span class=nn>np</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>numpy</span> <span class=k>as</span> <span class=nn>np</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>scipy.linalg.lapack</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>A</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>([</span>
 <span class=o>...</span>     <span class=p>[</span><span class=mf>4.</span><span class=p>,</span> <span class=mf>4.</span><span class=p>,</span> <span class=o>-</span><span class=mf>3.</span><span class=p>],</span>
 <span class=o>...</span>     <span class=p>[</span><span class=mf>0.</span><span class=p>,</span> <span class=mf>4.</span><span class=p>,</span> <span class=o>-</span><span class=mf>1.</span><span class=p>],</span>
 <span class=o>...</span>     <span class=p>[</span><span class=mf>1.</span><span class=p>,</span> <span class=mf>1.</span><span class=p>,</span>  <span class=mf>1.</span><span class=p>],</span>
 <span class=o>...</span> <span class=p>],</span> <span class=n>order</span><span class=o>=</span><span class=s2>"F"</span><span class=p>)</span>
-<span class=o>&gt;&gt;&gt;</span> <span class=n>lu_mat</span><span class=p>,</span> <span class=n>ipiv</span><span class=p>,</span> <span class=n>info</span> <span class=o>=</span> <span class=n>scipy</span><span class=o>.</span><span class=n>linalg</span><span class=o>.</span><span class=n>lapack</span><span class=o>.</span><span class=n>dgetrf</span><span class=p>(</span><span class=n>A</span><span class=p>,</span> <span class=n>overwrite_a</span><span class=o>=</span><span class=bp>True</span><span class=p>)</span>
-</pre></div>
-
+<span class=o>&gt;&gt;&gt;</span> <span class=n>lu_mat</span><span class=p>,</span> <span class=n>ipiv</span><span class=p>,</span> <span class=n>info</span> <span class=o>=</span> <span class=n>scipy</span><span class=o>.</span><span class=n>linalg</span><span class=o>.</span><span class=n>lapack</span><span class=o>.</span><span class=n>dgetrf</span><span class=p>(</span><span class=n>A</span><span class=p>,</span> <span class=n>overwrite_a</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+</code></pre></div>
 
 <p>The method succeeded and the pivots are "trivial", i.e. the identity
 matrix<sup id=sf-learn-you-a-lapack-2-back><a href=#sf-learn-you-a-lapack-2 class=simple-footnote title="Though SciPy has returned 0-based pivots rather than the 1-based indices returned from LAPACK)">2</a></sup></p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>info</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=n>info</span>
 <span class=mi>0</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>ipiv</span>
 <span class=n>array</span><span class=p>([</span><span class=mi>0</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=mi>2</span><span class=p>],</span> <span class=n>dtype</span><span class=o>=</span><span class=n>int32</span><span class=p>)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Our returned <code>lu_mat</code> is really just our input <code>A</code>, which has been mutated
 to contain <code>L</code> and <code>U</code> in the lower and upper triangles:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>lu_mat</span> <span class=ow>is</span> <span class=n>A</span>
-<span class=bp>True</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=n>lu_mat</span> <span class=ow>is</span> <span class=n>A</span>
+<span class=kc>True</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>A</span>
 <span class=n>array</span><span class=p>([[</span> <span class=mf>4.</span>  <span class=p>,</span>  <span class=mf>4.</span>  <span class=p>,</span> <span class=o>-</span><span class=mf>3.</span>  <span class=p>],</span>
        <span class=p>[</span> <span class=mf>0.</span>  <span class=p>,</span>  <span class=mf>4.</span>  <span class=p>,</span> <span class=o>-</span><span class=mf>1.</span>  <span class=p>],</span>
        <span class=p>[</span> <span class=mf>0.25</span><span class=p>,</span>  <span class=mf>0.</span>  <span class=p>,</span>  <span class=mf>1.75</span><span class=p>]])</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=finding-lapack>Finding LAPACK</h3>
 <blockquote>
@@ -261,47 +258,43 @@ has an underscore appended to it.</p>
 <p>Before moving on to C, C++ and other low-level languages we need to
 understand the exported interface of LAPACK. To do this, we'll get
 a little help from the <code>ctypes</code> <a href="https://docs.python.org/3/library/ctypes.html">library</a>:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes.util</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes.util</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>util</span><span class=o>.</span><span class=n>find_library</span><span class=p>(</span><span class=s2>"lapack"</span><span class=p>)</span>
 <span class=s1>'liblapack.so.3'</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Viewing the <a href="https://github.com/python/cpython/blob/v3.7.0/Lib/ctypes/util.py#L309-L312">source</a> in the Python standard library, we see that (on
 "most" posix systems) this is essentially equivalent to a direct usage
 of <code>ldconfig</code>:</p>
-<div class=highlight><pre><span></span>$ <span class=nv>LC_ALL</span><span class=o>=</span>C <span class=nv>LANG</span><span class=o>=</span>C ldconfig -p <span class=p>|</span> grep <span class=s1>'liblapack\.'</span>
+<div class=highlight><pre><span></span><code>$ <span class=nv>LC_ALL</span><span class=o>=</span>C <span class=nv>LANG</span><span class=o>=</span>C ldconfig -p <span class=p>|</span> grep <span class=s1>'liblapack\.'</span>
     liblapack.so.3 <span class=o>(</span>libc6,x86-64<span class=o>)</span> <span class=o>=</span>&gt; /usr/lib/x86_64-linux-gnu/liblapack.so.3
     liblapack.so <span class=o>(</span>libc6,x86-64<span class=o>)</span> <span class=o>=</span>&gt; /usr/lib/x86_64-linux-gnu/liblapack.so
-</pre></div>
-
+</code></pre></div>
 
 <p>If that fails, including <code>-llapack</code> when compiling an empty file
 with <code>gcc</code> is used:</p>
-<div class=highlight><pre><span></span>$ <span class=nv>LC_ALL</span><span class=o>=</span>C <span class=nv>LANG</span><span class=o>=</span>C gcc -Wl,-t -o /dev/null -llapack <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep lapack
+<div class=highlight><pre><span></span><code>$ <span class=nv>LC_ALL</span><span class=o>=</span>C <span class=nv>LANG</span><span class=o>=</span>C gcc -Wl,-t -o /dev/null -llapack <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep lapack
 -llapack <span class=o>(</span>/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/liblapack.so<span class=o>)</span>
 $ objdump -p -j .dynamic <span class=se>\</span>
 &gt;   /usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/liblapack.so <span class=se>\</span>
 &gt;   <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep SONAME
   SONAME               liblapack.so.3
-</pre></div>
-
+</code></pre></div>
 
 <p>If that also fails, <code>ld</code> (possibly extended by
 the <code>LD_LIBRARY_PATH</code> environment variable) is used:</p>
-<div class=highlight><pre><span></span>$ ld -t -llapack <span class=m>2</span>&gt; /dev/null
+<div class=highlight><pre><span></span><code>$ ld -t -llapack <span class=m>2</span>&gt; /dev/null
 ld: mode elf_x86_64
 -llapack <span class=o>(</span>//usr/lib/x86_64-linux-gnu/liblapack.so<span class=o>)</span>
 $ objdump -p -j .dynamic <span class=se>\</span>
 &gt;   //usr/lib/x86_64-linux-gnu/liblapack.so <span class=se>\</span>
 &gt;   <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep SONAME
   SONAME               liblapack.so.3
-</pre></div>
-
+</code></pre></div>
 
 <p>Once we've found the shared library, we need to look in the symbol table
 (<code>-T</code> for table) for <code>dgetrf</code>:</p>
-<div class=highlight><pre><span></span>$ objdump -T /usr/lib/x86_64-linux-gnu/liblapack.so <span class=p>|</span> grep -i dgetrf
+<div class=highlight><pre><span></span><code>$ objdump -T /usr/lib/x86_64-linux-gnu/liblapack.so <span class=p>|</span> grep -i dgetrf
 00000000001273d0 g    DF .text  <span class=m>0000000000000158</span>  Base        clapack_dgetrf
 000000000002c520 g    DF .text  <span class=m>0000000000000025</span>  Base        ATL_dgetrf
 <span class=m>0000000000036630</span> g    DF .text  00000000000000d4  Base        atl_f77wrap_dgetrf_
@@ -309,8 +302,7 @@ $ objdump -p -j .dynamic <span class=se>\</span>
 000000000002ccd0 g    DF .text  00000000000002e0  Base        ATL_dgetrfR
 <span class=m>0000000000215590</span> g    DF .text  00000000000000b3  Base        dgetrf_
 <span class=m>0000000000215650</span> g    DF .text  <span class=m>0000000000000490</span>  Base        dgetrf2_
-</pre></div>
-
+</code></pre></div>
 
 <p>We see that there are quite a few <code>dgetrf</code> routines, but the one we'll use
 is <code>dgetrf_</code>. The <code>dgetrf2_</code> routine is a recursive <a href="http://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_gabdd3af29e9f6bbaf4b352341a1e8b464.html#gabdd3af29e9f6bbaf4b352341a1e8b464">version</a> of <code>dgetrf_</code>
@@ -333,57 +325,52 @@ a call that in Fortran would look like: <code>call dgetrf(...)</code> becomes in
 </blockquote>
 <p>Now that we understand the shared library, let's actually figure out where
 it came from. Following the symbolic links we see</p>
-<div class=highlight><pre><span></span>/usr/lib/x86_64-linux-gnu/liblapack.so.3
-  -&gt; /etc/alternatives/liblapack.so.3-x86_64-linux-gnu
-    -&gt; /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3
-      -&gt; /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=o>/</span><span class=n>usr</span><span class=o>/</span><span class=n>lib</span><span class=o>/</span><span class=n>x86_64</span><span class=o>-</span><span class=n>linux</span><span class=o>-</span><span class=n>gnu</span><span class=o>/</span><span class=n>liblapack</span><span class=p>.</span><span class=n>so</span><span class=mf>.3</span>
+  <span class=o>-&gt;</span> <span class=o>/</span><span class=n>etc</span><span class=o>/</span><span class=n>alternatives</span><span class=o>/</span><span class=n>liblapack</span><span class=p>.</span><span class=n>so</span><span class=mf>.3</span><span class=o>-</span><span class=n>x86_64</span><span class=o>-</span><span class=n>linux</span><span class=o>-</span><span class=n>gnu</span>
+    <span class=o>-&gt;</span> <span class=o>/</span><span class=n>usr</span><span class=o>/</span><span class=n>lib</span><span class=o>/</span><span class=n>x86_64</span><span class=o>-</span><span class=n>linux</span><span class=o>-</span><span class=n>gnu</span><span class=o>/</span><span class=n>atlas</span><span class=o>/</span><span class=n>liblapack</span><span class=p>.</span><span class=n>so</span><span class=mf>.3</span>
+      <span class=o>-&gt;</span> <span class=o>/</span><span class=n>usr</span><span class=o>/</span><span class=n>lib</span><span class=o>/</span><span class=n>x86_64</span><span class=o>-</span><span class=n>linux</span><span class=o>-</span><span class=n>gnu</span><span class=o>/</span><span class=n>atlas</span><span class=o>/</span><span class=n>liblapack</span><span class=p>.</span><span class=n>so</span><span class=mf>.3.10.3</span>
+</code></pre></div>
 
 <p>Once the true location is given, we can find<sup id=sf-learn-you-a-lapack-3-back><a href=#sf-learn-you-a-lapack-3 class=simple-footnote title="On a Debian Linux. For example, I am running Ubuntu 18.04">3</a></sup> the package that owns the
 shared library</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> dpkg-query -S /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>dpkg-query -S /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
 <span class=go>libatlas3-base:amd64: /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3</span>
-<span class=gp>$</span> <span class=c1># Find ATLAS reverse dependencies of libatlas3-base package</span>
-<span class=gp>$</span> apt rdepends libatlas3-base <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep Depends <span class=p>|</span> grep atlas
+<span class=gp>$ </span><span class=c1># Find ATLAS reverse dependencies of libatlas3-base package</span>
+<span class=gp>$ </span>apt rdepends libatlas3-base <span class=m>2</span>&gt; /dev/null <span class=p>|</span> grep Depends <span class=p>|</span> grep atlas
 <span class=go>  Depends: libatlas-base-dev (= 3.10.3-5)</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=low-level-py>Low-Level Python (<code>ctypes</code>)</h3>
 <p>Now that we know which shared library to use, we can dynamically load
 the library into Python and verify that <code>dgetrf_</code> is in the symbol table:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>liblapack</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>cdll</span><span class=o>.</span><span class=n>LoadLibrary</span><span class=p>(</span><span class=s2>"liblapack.so.3"</span><span class=p>)</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>liblapack</span><span class=o>.</span><span class=n>dgetrf_</span>
 <span class=o>&lt;</span><span class=n>_FuncPtr</span> <span class=nb>object</span> <span class=n>at</span> <span class=mh>0x7f3fd33ba688</span><span class=o>&gt;</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>We can also verify that the <code>dgetrf</code> symbol is <strong>not</strong> present (and the
 traceback will show us the actual path to the shared library):</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>liblapack</span><span class=o>.</span><span class=n>dgetrf</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=n>liblapack</span><span class=o>.</span><span class=n>dgetrf</span>
 <span class=n>Traceback</span> <span class=p>(</span><span class=n>most</span> <span class=n>recent</span> <span class=n>call</span> <span class=n>last</span><span class=p>):</span>
   <span class=n>File</span> <span class=s2>"&lt;stdin&gt;"</span><span class=p>,</span> <span class=n>line</span> <span class=mi>1</span><span class=p>,</span> <span class=ow>in</span> <span class=o>&lt;</span><span class=n>module</span><span class=o>&gt;</span>
   <span class=n>File</span> <span class=s2>".../lib/python3.7/ctypes/__init__.py"</span><span class=p>,</span> <span class=n>line</span> <span class=mi>369</span><span class=p>,</span> <span class=ow>in</span> <span class=fm>__getattr__</span>
     <span class=n>func</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=fm>__getitem__</span><span class=p>(</span><span class=n>name</span><span class=p>)</span>
   <span class=n>File</span> <span class=s2>".../lib/python3.7/ctypes/__init__.py"</span><span class=p>,</span> <span class=n>line</span> <span class=mi>374</span><span class=p>,</span> <span class=ow>in</span> <span class=fm>__getitem__</span>
     <span class=n>func</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_FuncPtr</span><span class=p>((</span><span class=n>name_or_ordinal</span><span class=p>,</span> <span class=bp>self</span><span class=p>))</span>
-<span class=ne>AttributeError</span><span class=p>:</span> <span class=o>/</span><span class=n>usr</span><span class=o>/</span><span class=n>lib</span><span class=o>/</span><span class=n>x86_64</span><span class=o>-</span><span class=n>linux</span><span class=o>-</span><span class=n>gnu</span><span class=o>/</span><span class=n>liblapack</span><span class=o>.</span><span class=n>so</span><span class=o>.</span><span class=mi>3</span><span class=p>:</span> <span class=n>undefined</span> <span class=n>symbol</span><span class=p>:</span> <span class=n>dgetrf</span>
-</pre></div>
-
+<span class=ne>AttributeError</span><span class=p>:</span> <span class=o>/</span><span class=n>usr</span><span class=o>/</span><span class=n>lib</span><span class=o>/</span><span class=n>x86_64</span><span class=o>-</span><span class=n>linux</span><span class=o>-</span><span class=n>gnu</span><span class=o>/</span><span class=n>liblapack</span><span class=o>.</span><span class=n>so</span><span class=mf>.3</span><span class=p>:</span> <span class=n>undefined</span> <span class=n>symbol</span><span class=p>:</span> <span class=n>dgetrf</span>
+</code></pre></div>
 
 <p>To actually call this routine, we first specify the input and output types:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>dgetrf</span> <span class=o>=</span> <span class=n>liblapack</span><span class=o>.</span><span class=n>dgetrf_</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=n>dgetrf</span> <span class=o>=</span> <span class=n>liblapack</span><span class=o>.</span><span class=n>dgetrf_</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>int_ptr</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>POINTER</span><span class=p>(</span><span class=n>ctypes</span><span class=o>.</span><span class=n>c_int</span><span class=p>)</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>double_ptr</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>POINTER</span><span class=p>(</span><span class=n>ctypes</span><span class=o>.</span><span class=n>c_double</span><span class=p>)</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>dgetrf</span><span class=o>.</span><span class=n>argtypes</span> <span class=o>=</span> <span class=p>[</span><span class=n>int_ptr</span><span class=p>,</span> <span class=n>int_ptr</span><span class=p>,</span> <span class=n>double_ptr</span><span class=p>,</span> <span class=n>int_ptr</span><span class=p>,</span> <span class=n>int_ptr</span><span class=p>,</span> <span class=n>int_ptr</span><span class=p>]</span>
-<span class=o>&gt;&gt;&gt;</span> <span class=n>dgetrf</span><span class=o>.</span><span class=n>restype</span> <span class=o>=</span> <span class=bp>None</span>
-</pre></div>
-
+<span class=o>&gt;&gt;&gt;</span> <span class=n>dgetrf</span><span class=o>.</span><span class=n>restype</span> <span class=o>=</span> <span class=kc>None</span>
+</code></pre></div>
 
 <p>To call it, we use <code>ctypes</code> and NumPy to allocate all of our arguments:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>numpy</span> <span class=kn>as</span> <span class=nn>np</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>numpy</span> <span class=k>as</span> <span class=nn>np</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>M</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>c_int</span><span class=p>(</span><span class=mi>3</span><span class=p>)</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>N</span> <span class=o>=</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>c_int</span><span class=p>(</span><span class=mi>3</span><span class=p>)</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>A</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>array</span><span class=p>([</span>
@@ -399,12 +386,11 @@ traceback will show us the actual path to the shared library):</p>
 <span class=n>array</span><span class=p>([</span><span class=mi>47155696</span><span class=p>,</span>        <span class=mi>0</span><span class=p>,</span>        <span class=mi>2</span><span class=p>],</span> <span class=n>dtype</span><span class=o>=</span><span class=n>int32</span><span class=p>)</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>INFO</span>
 <span class=n>c_int</span><span class=p>(</span><span class=mi>50221552</span><span class=p>)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Since LAPACK follows the pass by reference convention, we pass
 in a pointer to each of these arguments</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>return_value</span> <span class=o>=</span> <span class=n>dgetrf</span><span class=p>(</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=n>return_value</span> <span class=o>=</span> <span class=n>dgetrf</span><span class=p>(</span>
 <span class=o>...</span>     <span class=n>ctypes</span><span class=o>.</span><span class=n>pointer</span><span class=p>(</span><span class=n>M</span><span class=p>),</span>
 <span class=o>...</span>     <span class=n>ctypes</span><span class=o>.</span><span class=n>pointer</span><span class=p>(</span><span class=n>N</span><span class=p>),</span>
 <span class=o>...</span>     <span class=n>A</span><span class=o>.</span><span class=n>ctypes</span><span class=o>.</span><span class=n>data_as</span><span class=p>(</span><span class=n>double_ptr</span><span class=p>),</span>
@@ -412,12 +398,11 @@ in a pointer to each of these arguments</p>
 <span class=o>...</span>     <span class=n>IPIV</span><span class=o>.</span><span class=n>ctypes</span><span class=o>.</span><span class=n>data_as</span><span class=p>(</span><span class=n>int_ptr</span><span class=p>),</span>
 <span class=o>...</span>     <span class=n>ctypes</span><span class=o>.</span><span class=n>pointer</span><span class=p>(</span><span class=n>INFO</span><span class=p>),</span>
 <span class=o>...</span> <span class=p>)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>and the results match those from <code>scipy.linalg.lapack.dgetrf</code>:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=n>return_value</span> <span class=ow>is</span> <span class=bp>None</span>
-<span class=bp>True</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=n>return_value</span> <span class=ow>is</span> <span class=kc>None</span>
+<span class=kc>True</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>INFO</span>
 <span class=n>c_int</span><span class=p>(</span><span class=mi>0</span><span class=p>)</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>IPIV</span>
@@ -426,39 +411,35 @@ in a pointer to each of these arguments</p>
 <span class=n>array</span><span class=p>([[</span> <span class=mf>4.</span>  <span class=p>,</span>  <span class=mf>4.</span>  <span class=p>,</span> <span class=o>-</span><span class=mf>3.</span>  <span class=p>],</span>
        <span class=p>[</span> <span class=mf>0.</span>  <span class=p>,</span>  <span class=mf>4.</span>  <span class=p>,</span> <span class=o>-</span><span class=mf>1.</span>  <span class=p>],</span>
        <span class=p>[</span> <span class=mf>0.25</span><span class=p>,</span>  <span class=mf>0.</span>  <span class=p>,</span>  <span class=mf>1.75</span><span class=p>]])</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=c>C</h3>
 <p>Unfortunately, LAPACK doesn't come with a standard header file, so
 the <code>dgetrf_</code> symbol must be declared via <code>extern</code>:</p>
-<div class=highlight><pre><span></span><span class=k>extern</span> <span class=kt>void</span> <span class=nf>dgetrf_</span><span class=p>(</span><span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>M</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>N</span><span class=p>,</span> <span class=kt>double</span><span class=o>*</span> <span class=n>A</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>LDA</span><span class=p>,</span>
+<div class=highlight><pre><span></span><code><span class=k>extern</span> <span class=kt>void</span> <span class=nf>dgetrf_</span><span class=p>(</span><span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>M</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>N</span><span class=p>,</span> <span class=kt>double</span><span class=o>*</span> <span class=n>A</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>LDA</span><span class=p>,</span>
     <span class=kt>int</span><span class=o>*</span> <span class=n>IPIV</span><span class=p>,</span> <span class=kt>int</span><span class=o>*</span> <span class=n>INFO</span><span class=p>);</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Notice that all arguments are pointers. We've marked the input only arguments
 as <code>const</code> to help the C compiler out. We've also used <code>int</code> (rather than
 <code>long</code>) for the integer arguments.</p>
 <p>When calling <code>dgetrf_</code> in the C <a href="/code/dgetrf_example.c">example</a>, we take
 care to lay out <code>A</code> in Fortran order:</p>
-<div class=highlight><pre><span></span><span class=kt>int</span> <span class=n>M</span> <span class=o>=</span> <span class=mi>3</span><span class=p>;</span>
+<div class=highlight><pre><span></span><code><span class=kt>int</span> <span class=n>M</span> <span class=o>=</span> <span class=mi>3</span><span class=p>;</span>
 <span class=kt>int</span> <span class=n>N</span> <span class=o>=</span> <span class=mi>3</span><span class=p>;</span>
-<span class=kt>double</span> <span class=n>A</span><span class=p>[</span><span class=mi>9</span><span class=p>]</span> <span class=o>=</span> <span class=p>{</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=o>-</span><span class=mi>3</span><span class=p>,</span> <span class=o>-</span><span class=mi>1</span><span class=p>,</span> <span class=mi>1</span> <span class=p>};</span>
+<span class=kt>double</span> <span class=n>A</span><span class=p>[</span><span class=mi>9</span><span class=p>]</span> <span class=o>=</span> <span class=p>{</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>0</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>4</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=mi>-3</span><span class=p>,</span> <span class=mi>-1</span><span class=p>,</span> <span class=mi>1</span> <span class=p>};</span>
 <span class=kt>int</span> <span class=n>LDA</span> <span class=o>=</span> <span class=mi>3</span><span class=p>;</span>
 <span class=kt>int</span> <span class=n>IPIV</span><span class=p>[</span><span class=mi>3</span><span class=p>];</span>
 <span class=kt>int</span> <span class=n>INFO</span><span class=p>;</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Actually building code that uses <code>liblapack</code> confused me. On a Debian-based
 Linux system, I could install LAPACK via</p>
-<div class=highlight><pre><span></span>$ <span class=o>[</span>sudo<span class=o>]</span> apt install libatlas-base-dev
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=err>$</span><span class=w> </span><span class=o>[</span><span class=n>sudo</span><span class=o>]</span><span class=w> </span><span class=n>apt</span><span class=w> </span><span class=n>install</span><span class=w> </span><span class=n>libatlas</span><span class=o>-</span><span class=n>base</span><span class=o>-</span><span class=n>dev</span><span class=w></span>
+</code></pre></div>
 
 <p>and be on my merry way with the <code>-llapack</code> flag:</p>
-<div class=highlight><pre><span></span>$ gcc -o main dgetrf_example.c -llapack
+<div class=highlight><pre><span></span><code>$ gcc -o main dgetrf_example.c -llapack
 $ ./main
 Inputs:
   <span class=nv>M</span> <span class=o>=</span> <span class=m>3</span>
@@ -473,8 +454,7 @@ Outputs:
       <span class=o>[</span> <span class=m>0</span>.25,  <span class=m>0</span>.00,  <span class=m>1</span>.75<span class=o>]</span>
   <span class=nv>IPIV</span> <span class=o>=</span> <span class=o>[</span><span class=m>1</span>, <span class=m>2</span>, <span class=m>3</span><span class=o>]</span>
   <span class=nv>INFO</span> <span class=o>=</span> <span class=m>0</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=compiling-on-os-x>Compiling on OS X</h3>
 <blockquote>
@@ -485,44 +465,39 @@ school I didn't know much about compiling code.</p>
 <p>I was using OS X Mountain Lion (10.8) at the time. Without
 using Homebrew to install LAPACK or OpenBLAS, compiling<sup id=sf-learn-you-a-lapack-4-back><a href=#sf-learn-you-a-lapack-4 class=simple-footnote title="Note that gcc is just an alias for clang on OS X">4</a></sup> with <code>-llapack</code> failed with something
 along the lines of:</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c -llapack
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>clang -o main dgetrf_example.c -llapack
 <span class=go>ld: library not found for -llapack</span>
 <span class=go>clang: error: linker command failed with exit code 1 (use -v to see invocation)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Just leaving out the flag entirely was also not an option:</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>clang -o main dgetrf_example.c
 <span class=go>Undefined symbols for architecture x86_64:</span>
 <span class=go>  "_dgetrf_", referenced from:</span>
 <span class=go>      _main in dgetrf_example-fcd533.o</span>
 <span class=go>ld: symbol(s) not found for architecture x86_64</span>
 <span class=go>clang: error: linker command failed with exit code 1 (use -v to see invocation)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>I would eventually find out that Apple provides a custom <a href="https://developer.apple.com/documentation/accelerate/veclib">framework</a>
 called <code>vecLib</code> that contained a LAPACK implementation / interface among other
 things. So the correct magical incantation (as of OS X 10.8) was</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c -framework vecLib
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>clang -o main dgetrf_example.c -framework vecLib
+</code></pre></div>
 
 <p>At some point<sup id=sf-learn-you-a-lapack-5-back><a href=#sf-learn-you-a-lapack-5 class=simple-footnote title="It seems it was in OS X Yosemite (10.10).">5</a></sup>,
 things <strong>got better</strong> (<a href="https://github.com/scipy/scipy/wiki/Dropping-support-for-Accelerate">thanks</a> Apple). On a current<sup id=sf-learn-you-a-lapack-6-back><a href=#sf-learn-you-a-lapack-6 class=simple-footnote title="macOS High Sierra (10.13)">6</a></sup> version, <code>liblapack</code> comes with the OS:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes.util</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>ctypes.util</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>ctypes</span><span class=o>.</span><span class=n>util</span><span class=o>.</span><span class=n>find_library</span><span class=p>(</span><span class=s2>"lapack"</span><span class=p>)</span>
 <span class=s1>'/usr/lib/liblapack.dylib'</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Following symlinks, we see that this shared library is part of the
 <code>Accelerate</code> <a href="https://developer.apple.com/documentation/accelerate">framework</a>:</p>
-<div class=highlight><pre><span></span><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>os</span>
+<div class=highlight><pre><span></span><code><span class=o>&gt;&gt;&gt;</span> <span class=kn>import</span> <span class=nn>os</span>
 <span class=o>&gt;&gt;&gt;</span> <span class=n>os</span><span class=o>.</span><span class=n>path</span><span class=o>.</span><span class=n>realpath</span><span class=p>(</span><span class=s2>"/usr/lib/liblapack.dylib"</span><span class=p>)</span>
 <span class=s1>'/System/Library/Frameworks/Accelerate.framework/.../A/libLAPACK.dylib'</span>
-</pre></div>
-
+</code></pre></div>
 
 <!---
 Full path:
@@ -531,20 +506,18 @@ Full path:
 
 <p>Now <code>vecLib</code> is contained in <code>Accelerate</code> and can no longer be
 included directly:</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> readlink /System/Library/Frameworks/vecLib.framework
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>readlink /System/Library/Frameworks/vecLib.framework
 <span class=go>Accelerate.framework//Versions/A/Frameworks/vecLib.framework</span>
-<span class=gp>$</span> clang -o main dgetrf_example.c -framework vecLib
+<span class=gp>$ </span>clang -o main dgetrf_example.c -framework vecLib
 <span class=go>ld: cannot link directly with /System/Library/Frameworks//vecLib.framework/vecLib for architecture x86_64</span>
 <span class=go>clang: error: linker command failed with exit code 1 (use -v to see invocation)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>However, this means that LAPACK can be included the "Linux" way or via
 a framework:</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> clang -o main dgetrf_example.c -llapack
-<span class=gp>$</span> clang -o main dgetrf_example.c -framework Accelerate
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>clang -o main dgetrf_example.c -llapack
+<span class=gp>$ </span>clang -o main dgetrf_example.c -framework Accelerate
+</code></pre></div>
 
 <h3 id=cpp>C++</h3>
 <blockquote>
@@ -559,73 +532,66 @@ anything to do with those topics.</p>
 of Googling I learned about <code>extern "C"</code> and everything "made sense". Once
 you know about <code>extern "C"</code>, declaring the LAPACK routine in C++ is essentially
 the same as in C:</p>
-<div class=highlight><pre><span></span><span class=k>extern</span> <span class=s>"C"</span> <span class=kt>void</span> <span class=n>dgetrf_</span><span class=p>(</span><span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>M</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>N</span><span class=p>,</span> <span class=kt>double</span><span class=o>*</span> <span class=n>A</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>LDA</span><span class=p>,</span>
+<div class=highlight><pre><span></span><code><span class=k>extern</span> <span class=s>"C"</span> <span class=kt>void</span> <span class=n>dgetrf_</span><span class=p>(</span><span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>M</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>N</span><span class=p>,</span> <span class=kt>double</span><span class=o>*</span> <span class=n>A</span><span class=p>,</span> <span class=k>const</span> <span class=kt>int</span><span class=o>*</span> <span class=n>LDA</span><span class=p>,</span>
     <span class=kt>int</span><span class=o>*</span> <span class=n>IPIV</span><span class=p>,</span> <span class=kt>int</span><span class=o>*</span> <span class=n>INFO</span><span class=p>);</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>From there, <code>dgetrf_</code> can be used as it would in C. But I'd like to explain
 a bit further why we say <code>extern "C"</code> rather than <code>extern</code>. To explain,
 consider the simple program that is valid in C or C++:</p>
-<div class=highlight><pre><span></span><span class=kt>int</span> <span class=nf>together</span><span class=p>(</span><span class=kt>int</span> <span class=n>m</span><span class=p>,</span> <span class=kt>int</span> <span class=n>n</span><span class=p>)</span> <span class=p>{</span>
+<div class=highlight><pre><span></span><code><span class=kt>int</span> <span class=nf>together</span><span class=p>(</span><span class=kt>int</span> <span class=n>m</span><span class=p>,</span> <span class=kt>int</span> <span class=n>n</span><span class=p>)</span> <span class=p>{</span>
     <span class=k>return</span> <span class=n>m</span> <span class=o>+</span> <span class=n>n</span><span class=p>;</span>
 <span class=p>}</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>If we compile this into an object file in C, we see the name <code>together</code>
 in the symbol table</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> gcc -c together.c
-<span class=gp>$</span> nm together.o
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>gcc -c together.c
+<span class=gp>$ </span>nm together.o
 <span class=go>0000000000000000 T together</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>but if we compile the same code in C++, the name is mangled (to
 <code>_Z8togetherii</code>) before it is put in the symbol table:</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> g++ -c together.cpp
-<span class=gp>$</span> nm together.o
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>g++ -c together.cpp
+<span class=gp>$ </span>nm together.o
 <span class=go>0000000000000000 T _Z8togetherii</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>This name mangling allows many features of C++. For example, we could
 provide a second implementation using the <strong>same</strong> name but with type
 <code>double</code>:</p>
-<div class=highlight><pre><span></span><span class=kt>double</span> <span class=nf>together</span><span class=p>(</span><span class=kt>double</span> <span class=n>m</span><span class=p>,</span> <span class=kt>double</span> <span class=n>n</span><span class=p>)</span> <span class=p>{</span>
+<div class=highlight><pre><span></span><code><span class=kt>double</span> <span class=nf>together</span><span class=p>(</span><span class=kt>double</span> <span class=n>m</span><span class=p>,</span> <span class=kt>double</span> <span class=n>n</span><span class=p>)</span> <span class=p>{</span>
     <span class=k>return</span> <span class=n>m</span> <span class=o>+</span> <span class=n>n</span><span class=p>;</span>
 <span class=p>}</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>and the two functions can both be in the symbol table without "colliding"
 on their shared name:</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> g++ -c together.cpp
-<span class=gp>$</span> nm together.o
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>g++ -c together.cpp
+<span class=gp>$ </span>nm together.o
 <span class=go>0000000000000014 T _Z8togetherdd</span>
 <span class=go>0000000000000000 T _Z8togetherii</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>For an example in the wild consider the <code>libjsoncpp</code> <a href="https://github.com/open-source-parsers/jsoncpp">package</a> (chosen at
 random since it is installed on my current system). The <code>valueToString</code> method
 in the <code>Json</code> namespace has six different implementations:</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> objdump    -T /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4 <span class=p>|</span> grep valueToString
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>objdump    -T /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4 <span class=p>|</span> grep valueToString
 <span class=go>0000000000020c30 ... _ZN4Json13valueToStringB5cxx11Eb</span>
 <span class=go>0000000000020be0 ... _ZN4Json13valueToStringB5cxx11Ed</span>
 <span class=go>0000000000020b60 ... _ZN4Json13valueToStringB5cxx11Ei</span>
 <span class=go>0000000000020ba0 ... _ZN4Json13valueToStringB5cxx11Ej</span>
 <span class=go>00000000000208c0 ... _ZN4Json13valueToStringB5cxx11Ex</span>
 <span class=go>0000000000020a80 ... _ZN4Json13valueToStringB5cxx11Ey</span>
-<span class=gp>$</span> objdump -C -T /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4 <span class=p>|</span> grep valueToString
+<span class=gp>$ </span>objdump -C -T /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4 <span class=p>|</span> grep valueToString
 <span class=go>0000000000020c30 ... Json::valueToString[abi:cxx11](bool)</span>
 <span class=go>0000000000020be0 ... Json::valueToString[abi:cxx11](double)</span>
 <span class=go>0000000000020b60 ... Json::valueToString[abi:cxx11](int)</span>
 <span class=go>0000000000020ba0 ... Json::valueToString[abi:cxx11](unsigned int)</span>
 <span class=go>00000000000208c0 ... Json::valueToString[abi:cxx11](long long)</span>
 <span class=go>0000000000020a80 ... Json::valueToString[abi:cxx11](unsigned long long)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Why did I just tell you all this? To make it clear why we say <code>extern "C"</code>
 instead of just <code>extern</code>. This indicates to the compiler that the symbol

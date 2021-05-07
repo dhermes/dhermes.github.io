@@ -149,25 +149,23 @@ inputs &mdash; both operating systems performed identically.</p>
 assumption <strong>"given the same inputs"</strong> was now the point of
 failure.</p>
 <p>He looked at the payload</p>
-<div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
   <span class="nt">&quot;aud&quot;</span><span class="p">:</span> <span class="s2">&quot;https://accounts.google.com/o/oauth2/token&quot;</span><span class="p">,</span>
   <span class="nt">&quot;exp&quot;</span><span class="p">:</span> <span class="mi">1433902178</span><span class="p">,</span>
   <span class="nt">&quot;iat&quot;</span><span class="p">:</span> <span class="mi">1433898578</span><span class="p">,</span>
   <span class="nt">&quot;iss&quot;</span><span class="p">:</span> <span class="s2">&quot;1234567890-random-id@developer.gserviceaccount.com&quot;</span><span class="p">,</span>
   <span class="nt">&quot;scope&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.googleapis.com/auth/userinfo.email&quot;</span>
 <span class="p">}</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>and realized the timestamps (<code>exp</code> for expired and <code>iat</code> for
 issued at, which are an hour, i.e. 3600 seconds apart) were
 drastically different from OS X to the EC2 instance!</p>
 <p>These are determined as seconds since the <a href="https://en.wikipedia.org/wiki/Unix_time">epoch</a>:</p>
-<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">datetime</span>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">timetuple</span><span class="p">()))</span>
 <span class="mi">1433898578</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3>Final Solution</h3>
 <p>After this realization, the answer was quite simple:</p>
@@ -182,8 +180,8 @@ an impossibility, hence the invalid grant error.</p>
 <p>This most interesting bug wasn't a bug in the library, but an
 incorrectly configured local environment. Once we realized
 this fact, the fix was as simple as:</p>
-<div class="highlight"><pre><span></span>$ sudo ntpdate -s ntp.ubuntu.com
-</pre></div></div>
+<div class="highlight"><pre><span></span><code>$ sudo ntpdate -s ntp.ubuntu.com
+</code></pre></div></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">

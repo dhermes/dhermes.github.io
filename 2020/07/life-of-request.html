@@ -137,9 +137,9 @@ audience.</p>
 editor. Here we go!
 We'll first create a web server<sup id=sf-life-of-request-2-back><a href=#sf-life-of-request-2 class=simple-footnote title="See source for server.js.">2</a></sup>
 using Node.js and Express:</p>
-<div class=highlight><pre><span></span><span class=kr>const</span> <span class=nx>express</span> <span class=o>=</span> <span class=nx>require</span><span class=p>(</span><span class=s1>'express'</span><span class=p>);</span>
-<span class=kr>const</span> <span class=nx>app</span> <span class=o>=</span> <span class=nx>express</span><span class=p>();</span>
-<span class=kr>const</span> <span class=nx>port</span> <span class=o>=</span> <span class=mi>3000</span><span class=p>;</span>
+<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>express</span> <span class=o>=</span> <span class=nx>require</span><span class=p>(</span><span class=s1>'express'</span><span class=p>);</span>
+<span class=kd>const</span> <span class=nx>app</span> <span class=o>=</span> <span class=nx>express</span><span class=p>();</span>
+<span class=kd>const</span> <span class=nx>port</span> <span class=o>=</span> <span class=mf>3000</span><span class=p>;</span>
 
 <span class=nx>app</span><span class=p>.</span><span class=nx>get</span><span class=p>(</span><span class=s1>'/'</span><span class=p>,</span> <span class=p>(</span><span class=nx>req</span><span class=p>,</span> <span class=nx>res</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
     <span class=nx>msg</span> <span class=o>=</span> <span class=p>[</span>
@@ -151,21 +151,18 @@ using Node.js and Express:</p>
 <span class=p>});</span>
 
 <span class=nx>app</span><span class=p>.</span><span class=nx>listen</span><span class=p>(</span><span class=nx>port</span><span class=p>,</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=sb>`Example app listening on port </span><span class=si>${</span><span class=nx>port</span><span class=si>}</span><span class=sb>!`</span><span class=p>));</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>In one terminal window, run this server<sup id=sf-life-of-request-3-back><a href=#sf-life-of-request-3 class=simple-footnote title="Running server.js will require having node and npm installed, in a directory with a package.json file. For our example we are using node@12.14.1, npm@6.13.4 and installing Express with npm install express@4.17.1 --save-exact.">3</a></sup>:</p>
-<div class=highlight><pre><span></span>$ node ./server.js
+<div class=highlight><pre><span></span><code>$ node ./server.js
 Example app listening on port 3000!
-</pre></div>
-
+</code></pre></div>
 
 <p>In another terminal window, send a request to the server:</p>
-<div class=highlight><pre><span></span>$ curl http://localhost:3000
+<div class=highlight><pre><span></span><code>$ curl http://localhost:3000
 req.ip: "::1"
 req.xff: undefined
-</pre></div>
-
+</code></pre></div>
 
 <p>This server exposes one route, which returns the IP address and the value of
 the <code>X-Forwarded-For</code> (XFF) <a href="https://en.wikipedia.org/wiki/X-Forwarded-For">HTTP header</a> on the request object (more on
@@ -194,16 +191,15 @@ while communicating with the outside world securely over TLS.</p>
 <p>In order to approximate such a TLS proxy as part of our example, we'll
 use the handy <code>caddy</code> <a href="https://caddyserver.com/">server</a><sup id=sf-life-of-request-5-back><a href=#sf-life-of-request-5 class=simple-footnote title="We install version 1 of caddy with http.proxyprotocol enabled. The feature is not yet supported in version 2 of caddy.">5</a></sup>. We'll use this to run a TLS proxy on port 3443
 fronting the webserver on port 3000, with the following <code>Caddyfile</code><sup id=sf-life-of-request-6-back><a href=#sf-life-of-request-6 class=simple-footnote title="See source for tls.Caddyfile.">6</a></sup></p>
-<div class=highlight><pre><span></span>:3443
+<div class=highlight><pre><span></span><code>:3443
 proxy / localhost:3000
 tls ./localhost-cert.pem ./localhost-key.pem
 log stdout
-</pre></div>
-
+</code></pre></div>
 
 <p>We can run this proxy server and communicate with it over TLS<sup id=sf-life-of-request-7-back><a href=#sf-life-of-request-7 class=simple-footnote title="See Why --cacert Flag.">7</a></sup> with <code>curl</code> to verify that it proxies
 traffic to port 3000:</p>
-<div class=highlight><pre><span></span>$ caddy -conf ./tls.Caddyfile &amp;
+<div class=highlight><pre><span></span><code>$ caddy -conf ./tls.Caddyfile &amp;
 Activating privacy features... done.
 
 Serving HTTPS on port 3443
@@ -212,8 +208,7 @@ https://:3443
 $ curl --cacert ./rootCA-cert.pem https://localhost:3443
 req.ip: "::1"
 req.xff: "::1"
-</pre></div>
-
+</code></pre></div>
 
 <p>When a TLS sidecar container forwards an HTTP request to an application
 container, it attaches its view of the client IP address using the
@@ -222,14 +217,13 @@ values. (For example, if a request was forwarded multiple times before entering
 our system, external proxies may have also written to the header.) The TLS
 proxy either sets the XFF header or adds an entry to the end of the XFF list if
 the header is already present:</p>
-<div class=highlight><pre><span></span>$ curl \
+<div class=highlight><pre><span></span><code>$ curl \
 &gt;   --cacert ./rootCA-cert.pem \
 &gt;   --header 'X-Forwarded-For: 127.0.0.2' \
 &gt;   https://localhost:3443
 req.ip: "::1"
 req.xff: "127.0.0.2, ::1"
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=load-balancers-and-proxy-protocol>Load Balancers and PROXY Protocol</h3>
 <p><img alt="Into ELB" src="/images/life-of-a-secure-request-first-hop.jpg"></p>
@@ -258,21 +252,19 @@ request, so the <a href="http://www.haproxy.org/download/1.8/doc/proxy-protocol.
 Rather than modifying the encrypted bytes, a header is prepended to the TCP
 bytesteam<sup id=sf-life-of-request-8-back><a href=#sf-life-of-request-8 class=simple-footnote title="See Observing PROXY Protocol.">8</a></sup>.
 For <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-proxy-protocol.html">example</a> with an IPv4 connection:</p>
-<div class=highlight><pre><span></span>PROXY TCP4 198.51.100.22 203.0.113.7 35646 80\r\n
-</pre></div>
-
+<div class=highlight><pre><span></span><code>PROXY TCP4 198.51.100.22 203.0.113.7 35646 80\r\n
+</code></pre></div>
 
 <p>To utilize this information, we can modify our <code>Caddyfile</code> to enable the
 <a href="https://caddyserver.com/v1/docs/http.proxyprotocol"><code>http.proxyprotocol</code> filter</a><sup id=sf-life-of-request-9-back><a href=#sf-life-of-request-9 class=simple-footnote title="See source for proxy-protocol.Caddyfile.">9</a></sup>. After doing this, we can use <code>curl</code> to pass
 along a PROXY protocol prefix and verify the Caddy server handles it:</p>
-<div class=highlight><pre><span></span>$ caddy -conf ./proxy-protocol.Caddyfile &amp;
+<div class=highlight><pre><span></span><code>$ caddy -conf ./proxy-protocol.Caddyfile &amp;
 ...
 $ curl --haproxy-protocol \
 &gt;   --cacert ./rootCA-cert.pem https://localhost:3443
 req.ip: "::1"
 req.xff: "::1"
-</pre></div>
-
+</code></pre></div>
 
 <p><img alt="From ELB" src="/images/life-of-a-secure-request-second-hop.jpg"></p>
 <p>However, since all IP addresses (including those in the PROXY protocol prefix)
@@ -281,11 +273,10 @@ another of our favorite tools at Blend—the Go programming language—
 to simulate the example above involving <code>198.51.100.22</code>. We can use a raw TCP
 socket, manually send the PROXY protocol prefix and then wrap the socket in a
 TLS connection<sup id=sf-life-of-request-10-back><a href=#sf-life-of-request-10 class=simple-footnote title="See source for wrapped-request.go.">10</a></sup>:</p>
-<div class=highlight><pre><span></span>$ go run ./wrapped-request.go
+<div class=highlight><pre><span></span><code>$ go run ./wrapped-request.go
 req.ip: "::1"
 req.xff: "127.0.0.4, 127.0.0.3, 127.0.0.2, 198.51.100.22"
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=putting-it-all-together>Putting it all Together</h3>
 <p>At this point, we've developed an understanding of all of the individual
@@ -315,14 +306,13 @@ sidecar. Thus, we can set <code>app.set('trust proxy', 1)</code> on our Express
 application, which tells our server that <code>req.ip</code> should be set based on the
 last entry in XFF. Running our server<sup id=sf-life-of-request-12-back><a href=#sf-life-of-request-12 class=simple-footnote title="See source for server-trust.js.">12</a></sup> with "trust proxy", we see <code>req.ip</code> derived from XFF
 rather than the TCP socket:</p>
-<div class=highlight><pre><span></span>$ node ./server-trust.js
+<div class=highlight><pre><span></span><code>$ node ./server-trust.js
 Example app listening on port 3000!
 ...
 $ go run ./wrapped-request.go
 req.ip: "198.51.100.22"
 req.xff: "127.0.0.4, 127.0.0.3, 127.0.0.2, 198.51.100.22"
-</pre></div>
-
+</code></pre></div>
 
 <p>So, a typical request<sup id=sf-life-of-request-13-back><a href=#sf-life-of-request-13 class=simple-footnote title="See Warning about trust proxy.">13</a></sup> will proceed from client
 to application server as follows:</p>
@@ -348,7 +338,7 @@ to application server as follows:</p>
 <p>To concretely understand how PROXY protocol works, we can use
 <a href="https://en.wikipedia.org/wiki/Netcat">netcat</a> (<code>nc</code>) to print out the raw TCP stream sent in an HTTP
 request. Compare a regular HTTP GET</p>
-<div class=highlight><pre><span></span>$ (echo WITHOUT | nc -l 9876 &amp;) &amp;&amp; \
+<div class=highlight><pre><span></span><code>$ (echo WITHOUT | nc -l 9876 &amp;) &amp;&amp; \
 &gt;   curl http://localhost:9876
 GET / HTTP/1.1
 Host: localhost:9876
@@ -356,11 +346,10 @@ User-Agent: curl/7.64.1
 Accept: */*
 
 WITHOUT
-</pre></div>
-
+</code></pre></div>
 
 <p>to an HTTP GET with the PROXY protocol prefix:</p>
-<div class=highlight><pre><span></span>$ (echo WITH | nc -l 9876 &amp;) &amp;&amp; \
+<div class=highlight><pre><span></span><code>$ (echo WITH | nc -l 9876 &amp;) &amp;&amp; \
 &gt;   curl --haproxy-protocol http://localhost:9876
 PROXY TCP4 127.0.0.1 127.0.0.1 53577 9876
 GET / HTTP/1.1
@@ -369,8 +358,7 @@ User-Agent: curl/7.64.1
 Accept: */*
 
 WITH
-</pre></div>
-
+</code></pre></div>
 
 <h4 id=local-certificates>Generated Certificates for <code>localhost</code></h4>
 <p>To generate a certificate authority (CA) and a certificate pair to be
@@ -391,7 +379,7 @@ files</p>
 <p>Note that "trust proxy" <strong>requires</strong> that the server trusts the proxy that
 it is communicating with. If the client communicates directly (rather than
 through the proxy), the XFF header can be spoofed</p>
-<div class=highlight><pre><span></span>$ curl http://localhost:3000
+<div class=highlight><pre><span></span><code>$ curl http://localhost:3000
 req.ip: "::1"
 req.xff: undefined
 $ curl \
@@ -399,21 +387,19 @@ $ curl \
 &gt;   http://localhost:3000
 req.ip: "198.51.100.22"
 req.xff: "198.51.100.22"
-</pre></div>
-
+</code></pre></div>
 
 <h4 id=curl-flag>Why <code>--cacert</code> Flag</h4>
 <p>The <code>--cacert</code> flag is required when using TLS to communicate with an
 untrusted local server. If not provided requests will fail:</p>
-<div class=highlight><pre><span></span>$ curl https://localhost:3443
+<div class=highlight><pre><span></span><code>$ curl https://localhost:3443
 curl: (60) SSL certificate problem: unable to get local issuer certificate
 More details here: https://curl.haxx.se/docs/sslcerts.html
 
 curl failed to verify the legitimacy of the server and therefore could not
 establish a secure connection to it. To learn more about this situation and
 how to fix it, please visit the web page mentioned above.
-</pre></div>
-
+</code></pre></div>
 
 <p>This is because our private key / public certificate pair has been signed
 by the CA we generated above, which is not in the root of trust for <code>curl</code>

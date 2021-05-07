@@ -105,23 +105,22 @@ server over HTTP/2.</p>
 <p>When a serialized <a href="https://developers.google.com/protocol-buffers/docs/proto3">protobuf</a> comes across the wire as an HTTP/2
 <a href="https://http2.github.io/http2-spec/#DATA">DATA frame</a>, the <code>tcp-h2-describe</code> proxy is able to give a faithful
 description of the frame:</p>
-<div class=highlight><pre><span></span>...
-----------------------------------------
-Frame Length = 21 (00 00 15)
-Frame Type = DATA (00)
-Flags = END_STREAM:0x1 (01)
-Stream Identifier = 3 (00 00 00 03)
-gRPC Compressed Flag = 0 (00)
-Protobuf Length = 16 (00 00 00 10)
-Protobuf Message (users.v1.User) =
-   first_name: "Alice"
-   last_name: "Redmond"
-Hexdump (Protobuf Message) =
-   0a 05 41 6c 69 63 65 12 07 52 65 64 6d 6f 6e 64
-----------------------------------------
-...
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=p>...</span>
+<span class=o>----------------------------------------</span>
+<span class=n>Frame</span> <span class=n>Length</span> <span class=o>=</span> <span class=mi>21</span> <span class=p>(</span><span class=mi>00</span> <span class=mi>00</span> <span class=mi>15</span><span class=p>)</span>
+<span class=n>Frame</span> <span class=n>Type</span> <span class=o>=</span> <span class=n>DATA</span> <span class=p>(</span><span class=mi>00</span><span class=p>)</span>
+<span class=n>Flags</span> <span class=o>=</span> <span class=n>END_STREAM</span><span class=p>:</span><span class=mi>0</span><span class=n>x1</span> <span class=p>(</span><span class=mi>01</span><span class=p>)</span>
+<span class=n>Stream</span> <span class=n>Identifier</span> <span class=o>=</span> <span class=mi>3</span> <span class=p>(</span><span class=mi>00</span> <span class=mi>00</span> <span class=mi>00</span> <span class=mi>03</span><span class=p>)</span>
+<span class=n>gRPC</span> <span class=n>Compressed</span> <span class=n>Flag</span> <span class=o>=</span> <span class=mi>0</span> <span class=p>(</span><span class=mi>00</span><span class=p>)</span>
+<span class=n>Protobuf</span> <span class=n>Length</span> <span class=o>=</span> <span class=mi>16</span> <span class=p>(</span><span class=mi>00</span> <span class=mi>00</span> <span class=mi>00</span> <span class=mi>10</span><span class=p>)</span>
+<span class=n>Protobuf</span> <span class=n>Message</span> <span class=p>(</span><span class=n>users</span><span class=p>.</span><span class=n>v1</span><span class=p>.</span><span class=n>User</span><span class=p>)</span> <span class=o>=</span>
+   <span class=n>first_name</span><span class=p>:</span> <span class=s>"Alice"</span>
+   <span class=n>last_name</span><span class=p>:</span> <span class=s>"Redmond"</span>
+<span class=n>Hexdump</span> <span class=p>(</span><span class=n>Protobuf</span> <span class=n>Message</span><span class=p>)</span> <span class=o>=</span>
+   <span class=mi>0</span><span class=n>a</span> <span class=mi>05</span> <span class=mi>41</span> <span class=mi>6</span><span class=n>c</span> <span class=mi>69</span> <span class=mi>63</span> <span class=mi>65</span> <span class=mi>12</span> <span class=mi>07</span> <span class=mi>52</span> <span class=mi>65</span> <span class=mi>64</span> <span class=mi>6</span><span class=n>d</span> <span class=mi>6</span><span class=n>f</span> <span class=mi>6</span><span class=n>e</span> <span class=mi>64</span>
+<span class=o>----------------------------------------</span>
+<span class=p>...</span>
+</code></pre></div>
 
 <p>In addition to decoding the data frame and providing a "pretty" description of
 the deserialized <code>users.v1.User</code> coming across the wire, this also preserves
@@ -155,9 +154,8 @@ a port of my choosing. Unfortunately the AWS ELB<sup id=sf-http2-note-2-back><a 
 segment. This prefix gives information about the proxied IP for raw TCP
 connections that may not be able to convey<sup id=sf-http2-note-3-back><a href=#sf-http2-note-3 class=simple-footnote title="This is in contrast to HTTP, where the X-Forwarded-For header is commonly used to indicate a proxy">3</a></sup>
 such information, e.g.</p>
-<div class=highlight><pre><span></span>PROXY TCP4 198.51.100.22 203.0.113.7 35646 80
-</pre></div>
-
+<div class=highlight><pre><span></span><code>PROXY TCP4 198.51.100.22 203.0.113.7 35646 80
+</code></pre></div>
 
 <p>Due to my loopback IP vs. broadcast IP mixup, I wasn't able to get our
 <code>proxyprotocol</code> <a href="https://godoc.org/github.com/blend/go-sdk/proxyprotocol">package</a> working with the <code>google/tcpproxy</code> <a href="https://github.com/google/tcpproxy">package</a>.
@@ -168,62 +166,59 @@ proxy protocol prefix.</p>
 <h3 id=what>What?</h3>
 <p>The <code>tcp-h2-describe</code> reverse proxy directs HTTP/2 traffic<sup id=sf-http2-note-4-back><a href=#sf-http2-note-4 class=simple-footnote title="For now, this only supports unencrypted traffic, though it is possible to use TLS in such a proxy if the proxy is able to share the certs of the server being proxied">4</a></sup>
 from a client to a server:</p>
-<div class=highlight><pre><span></span>$ tcp-h2-describe --server-host website.invalid --server-port <span class=m>80</span>
+<div class=highlight><pre><span></span><code>$ tcp-h2-describe --server-host website.invalid --server-port <span class=m>80</span>
 Starting tcp-h2-describe proxy server on port <span class=m>24909</span>
   Proxying server located at website.invalid:80
 ...
-</pre></div>
-
+</code></pre></div>
 
 <p>Once a request is sent through, the TCP packet data is parsed as a series of
 HTTP/2 <a href="https://http2.github.io/http2-spec/#FramingLayer">frames</a> and each byte in the data is accounted for.</p>
 <p>In the HTTP <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0/EXAMPLE-HTTP.md">example</a> provided in the library's documentation, proxied
 traffic is sent to a locally running HTTP/2 server. The packet data from the
 first TCP segment sent by the client contains 84 bytes:</p>
-<div class=highlight><pre><span></span>00000000  50 52 49 20 2a 20 48 54  54 50 2f 32 2e 30 0d 0a  |PRI * HTTP/2.0..|
-00000010  0d 0a 53 4d 0d 0a 0d 0a  00 00 24 04 00 00 00 00  |..SM......$.....|
-00000020  00 00 01 00 00 10 00 00  02 00 00 00 01 00 04 00  |................|
-00000030  00 ff ff 00 05 00 00 40  00 00 03 00 00 00 64 00  |.......@......d.|
-00000040  06 00 01 00 00 00 00 06  04 00 00 00 00 00 00 02  |................|
-00000050  00 00 00 00                                       |....|
-00000054
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=mf>00000000</span>  <span class=mf>50</span> <span class=mf>52</span> <span class=mf>49</span> <span class=mf>20</span> <span class=mf>2</span><span class=n>a</span> <span class=mf>20</span> <span class=mf>48</span> <span class=mf>54</span>  <span class=mf>54</span> <span class=mf>50</span> <span class=mf>2</span><span class=n>f</span> <span class=mf>32</span> <span class=mf>2</span><span class=n>e</span> <span class=mf>30</span> <span class=mf>0</span><span class=n>d</span> <span class=mf>0</span><span class=n>a</span>  <span class=err>|</span><span class=n>PRI</span> <span class=o>*</span> <span class=n>HTTP</span><span class=o>/</span><span class=mf>2.0..</span><span class=err>|</span>
+<span class=mf>00000010</span>  <span class=mf>0</span><span class=n>d</span> <span class=mf>0</span><span class=n>a</span> <span class=mf>53</span> <span class=mf>4</span><span class=n>d</span> <span class=mf>0</span><span class=n>d</span> <span class=mf>0</span><span class=n>a</span> <span class=mf>0</span><span class=n>d</span> <span class=mf>0</span><span class=n>a</span>  <span class=mf>00</span> <span class=mf>00</span> <span class=mf>24</span> <span class=mf>04</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span>  <span class=err>|</span><span class=mf>..</span><span class=n>SM</span><span class=mf>......</span><span class=err>$</span><span class=mf>.....</span><span class=err>|</span>
+<span class=mf>00000020</span>  <span class=mf>00</span> <span class=mf>00</span> <span class=mf>01</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>10</span> <span class=mf>00</span> <span class=mf>00</span>  <span class=mf>02</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>01</span> <span class=mf>00</span> <span class=mf>04</span> <span class=mf>00</span>  <span class=err>|</span><span class=mf>................</span><span class=err>|</span>
+<span class=mf>00000030</span>  <span class=mf>00</span> <span class=n>ff</span> <span class=n>ff</span> <span class=mf>00</span> <span class=mf>05</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>40</span>  <span class=mf>00</span> <span class=mf>00</span> <span class=mf>03</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>64</span> <span class=mf>00</span>  <span class=err>|</span><span class=mf>.......</span><span class=err>@</span><span class=mf>......</span><span class=n>d</span><span class=mf>.</span><span class=err>|</span>
+<span class=mf>00000040</span>  <span class=mf>06</span> <span class=mf>00</span> <span class=mf>01</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>06</span>  <span class=mf>04</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>02</span>  <span class=err>|</span><span class=mf>................</span><span class=err>|</span>
+<span class=mf>00000050</span>  <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span> <span class=mf>00</span>                                       <span class=err>|</span><span class=mf>....</span><span class=err>|</span>
+<span class=mf>00000054</span>
+</code></pre></div>
 
 <p>We can see most of these bytes are not printable characters, however
 <code>tcp-h2-describe</code> breaks this TCP packet data down and explains how every
 single byte is used:</p>
-<div class=highlight><pre><span></span>...
-============================================================
-client(127.0.0.1:59600)-&gt;proxy-&gt;server(localhost:8080)
+<div class=highlight><pre><span></span><code><span class=p>...</span>
+<span class=o>============================================================</span>
+<span class=n>client</span><span class=p>(</span><span class=mf>127.0.0.1</span><span class=o>:</span><span class=mi>59600</span><span class=p>)</span><span class=o>-&gt;</span><span class=n>proxy</span><span class=o>-&gt;</span><span class=n>server</span><span class=p>(</span><span class=n>localhost</span><span class=o>:</span><span class=mi>8080</span><span class=p>)</span>
 
-Client Connection Preface = b'PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n'
-Hexdump (Client Connection Preface) =
-   50 52 49 20 2a 20 48 54 54 50 2f 32 2e 30 0d 0a
-   0d 0a 53 4d 0d 0a 0d 0a
-----------------------------------------
-Frame Length = 36 (00 00 24)
-Frame Type = SETTINGS (04)
-Flags = UNSET (00)
-Stream Identifier = 0 (00 00 00 00)
-Settings =
-   SETTINGS_HEADER_TABLE_SIZE:0x1 -&gt; 4096 (00 01 | 00 00 10 00)
-   SETTINGS_ENABLE_PUSH:0x2 -&gt; 1 (00 02 | 00 00 00 01)
-   SETTINGS_INITIAL_WINDOW_SIZE:0x4 -&gt; 65535 (00 04 | 00 00 ff ff)
-   SETTINGS_MAX_FRAME_SIZE:0x5 -&gt; 16384 (00 05 | 00 00 40 00)
-   SETTINGS_MAX_CONCURRENT_STREAMS:0x3 -&gt; 100 (00 03 | 00 00 00 64)
-   SETTINGS_MAX_HEADER_LIST_SIZE:0x6 -&gt; 65536 (00 06 | 00 01 00 00)
-----------------------------------------
-Frame Length = 6 (00 00 06)
-Frame Type = SETTINGS (04)
-Flags = UNSET (00)
-Stream Identifier = 0 (00 00 00 00)
-Settings =
-   SETTINGS_ENABLE_PUSH:0x2 -&gt; 0 (00 02 | 00 00 00 00)
-----------------------------------------
-...
-</pre></div>
-
+<span class=n>Client</span> <span class=n>Connection</span> <span class=n>Preface</span> <span class=o>=</span> <span class=n>b</span><span class=s>'PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n'</span>
+<span class=n>Hexdump</span> <span class=p>(</span><span class=n>Client</span> <span class=n>Connection</span> <span class=n>Preface</span><span class=p>)</span> <span class=o>=</span>
+   <span class=mi>50</span> <span class=mi>52</span> <span class=mi>49</span> <span class=mi>20</span> <span class=mi>2</span><span class=n>a</span> <span class=mi>20</span> <span class=mi>48</span> <span class=mi>54</span> <span class=mi>54</span> <span class=mi>50</span> <span class=mf>2f</span> <span class=mi>32</span> <span class=mi>2</span><span class=n>e</span> <span class=mi>30</span> <span class=mi>0</span><span class=n>d</span> <span class=mi>0</span><span class=n>a</span>
+   <span class=mi>0</span><span class=n>d</span> <span class=mi>0</span><span class=n>a</span> <span class=mi>53</span> <span class=mi>4</span><span class=n>d</span> <span class=mi>0</span><span class=n>d</span> <span class=mi>0</span><span class=n>a</span> <span class=mi>0</span><span class=n>d</span> <span class=mi>0</span><span class=n>a</span>
+<span class=o>----------------------------------------</span>
+<span class=n>Frame</span> <span class=nf>Length</span> <span class=o>=</span> <span class=mi>36</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>00</span> <span class=mi>24</span><span class=p>)</span>
+<span class=n>Frame</span> <span class=kr>Type</span> <span class=o>=</span> <span class=n>SETTINGS</span> <span class=p>(</span><span class=mo>04</span><span class=p>)</span>
+<span class=n>Flags</span> <span class=o>=</span> <span class=n>UNSET</span> <span class=p>(</span><span class=mo>00</span><span class=p>)</span>
+<span class=n>Stream</span> <span class=n>Identifier</span> <span class=o>=</span> <span class=mi>0</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mo>00</span><span class=p>)</span>
+<span class=n>Settings</span> <span class=o>=</span>
+   <span class=n>SETTINGS_HEADER_TABLE_SIZE</span><span class=o>:</span><span class=mh>0x1</span> <span class=o>-&gt;</span> <span class=mi>4096</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>01</span> <span class=o>|</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mi>10</span> <span class=mo>00</span><span class=p>)</span>
+   <span class=n>SETTINGS_ENABLE_PUSH</span><span class=o>:</span><span class=mh>0x2</span> <span class=o>-&gt;</span> <span class=mi>1</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>02</span> <span class=o>|</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mo>01</span><span class=p>)</span>
+   <span class=n>SETTINGS_INITIAL_WINDOW_SIZE</span><span class=o>:</span><span class=mh>0x4</span> <span class=o>-&gt;</span> <span class=mi>65535</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>04</span> <span class=o>|</span> <span class=mo>00</span> <span class=mo>00</span> <span class=n>ff</span> <span class=n>ff</span><span class=p>)</span>
+   <span class=n>SETTINGS_MAX_FRAME_SIZE</span><span class=o>:</span><span class=mh>0x5</span> <span class=o>-&gt;</span> <span class=mi>16384</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>05</span> <span class=o>|</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mi>40</span> <span class=mo>00</span><span class=p>)</span>
+   <span class=n>SETTINGS_MAX_CONCURRENT_STREAMS</span><span class=o>:</span><span class=mh>0x3</span> <span class=o>-&gt;</span> <span class=mi>100</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>03</span> <span class=o>|</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mi>64</span><span class=p>)</span>
+   <span class=n>SETTINGS_MAX_HEADER_LIST_SIZE</span><span class=o>:</span><span class=mh>0x6</span> <span class=o>-&gt;</span> <span class=mi>65536</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>06</span> <span class=o>|</span> <span class=mo>00</span> <span class=mo>01</span> <span class=mo>00</span> <span class=mo>00</span><span class=p>)</span>
+<span class=o>----------------------------------------</span>
+<span class=n>Frame</span> <span class=nf>Length</span> <span class=o>=</span> <span class=mi>6</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>00</span> <span class=mo>06</span><span class=p>)</span>
+<span class=n>Frame</span> <span class=kr>Type</span> <span class=o>=</span> <span class=n>SETTINGS</span> <span class=p>(</span><span class=mo>04</span><span class=p>)</span>
+<span class=n>Flags</span> <span class=o>=</span> <span class=n>UNSET</span> <span class=p>(</span><span class=mo>00</span><span class=p>)</span>
+<span class=n>Stream</span> <span class=n>Identifier</span> <span class=o>=</span> <span class=mi>0</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mo>00</span><span class=p>)</span>
+<span class=n>Settings</span> <span class=o>=</span>
+   <span class=n>SETTINGS_ENABLE_PUSH</span><span class=o>:</span><span class=mh>0x2</span> <span class=o>-&gt;</span> <span class=mi>0</span> <span class=p>(</span><span class=mo>00</span> <span class=mo>02</span> <span class=o>|</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mo>00</span> <span class=mo>00</span><span class=p>)</span>
+<span class=o>----------------------------------------</span>
+<span class=p>...</span>
+</code></pre></div>
 
 <h3 id=go-deeper>Go Deeper?</h3>
 <p>I was eventually able to handle the proxy protocol line that gets prepended by

@@ -147,7 +147,7 @@ packet capture for one of the offending services. Rather than trying to
 find errors across multiple pods, the first thing I did was scale the
 microservice down to one pod, being sure to remove the autoscaler in the
 process:</p>
-<div class=highlight><pre><span></span>$ kubectl delete horizontalpodautoscaler envelope-service
+<div class=highlight><pre><span></span><code>$ kubectl delete horizontalpodautoscaler envelope-service
 horizontalpodautoscaler.autoscaling "envelope-service" deleted
 $
 $ kubectl scale deployment/envelope-service --replicas 1
@@ -161,17 +161,15 @@ $
 $ kubectl get pods --selector app=envelope-service
 NAME                               READY   STATUS    RESTARTS   AGE
 envelope-service-bb5999898-7r865   3/3     Running   2          18h
-</pre></div>
-
+</code></pre></div>
 
 <p>From there, I pointed <code>ksniff</code> — a <code>kubectl</code> <a href="https://github.com/eldadru/ksniff">plugin</a> — at the
 pod and waited until an error occurred<sup id=sf-broken-pipe-2-back><a href=#sf-broken-pipe-2 class=simple-footnote title="Note the filter only applies to port 5432, the PostgreSQL port. The .pcap file only grew to 644KiB in ninety minutes but without a filter it would've been over 1GiB.">2</a></sup>:</p>
-<div class=highlight><pre><span></span>kubectl sniff \
+<div class=highlight><pre><span></span><code>kubectl sniff \
   envelope-service-bb5999898-7r865 \
   --output-file ./ksniff-5432.pcap \
   --filter "port 5432"
-</pre></div>
-
+</code></pre></div>
 
 <p>I captured packets in a ninety minute window and the error log
 lines started showing up around forty minutes in, from <code>18:39:55</code> to <code>18:43:14</code>
@@ -221,7 +219,7 @@ want something programmable (e.g. a proxy) so that we can send an RST without
 having to reach into the blackbox of the <code>postgres</code> binary running in a Docker
 container.</p>
 <p>First we run the database:</p>
-<div class=highlight><pre><span></span>docker run \
+<div class=highlight><pre><span></span><code>docker run \
   --detach \
   --name pg-trigger-rst \
   --hostname localhost \
@@ -230,25 +228,23 @@ container.</p>
   --env POSTGRES_USER=superuser \
   --env POSTGRES_PASSWORD=password \
   postgres:13.1-alpine
-</pre></div>
-
+</code></pre></div>
 
 <p>Next, using the <code>github.com/lib/pq</code> <a href="https://github.com/lib/pq">library</a>, the <code>broken-pipe.go</code>
-<a href="/code/wrapped-request.go">script</a> creates a single connection and then executes the statement
+<a href="/code/broken-pipe.go">script</a> creates a single connection and then executes the statement
 <code>SELECT 1</code> before and after a sleep statement. During the sleep, we expect
 an RST packet to be sent. In order to ensure with a high level of certainty
 that the RST packet has arrived, after the first statement the script indicates
 it has gone idle by writing to a (shared) state file and then sleeps for a
 second before executing the second statement. If we use the script to directly
 query <code>postgres</code> (i.e. without a proxy):</p>
-<div class=highlight><pre><span></span>$ go run ./broken-pipe.go --port 13370
+<div class=highlight><pre><span></span><code>$ go run ./broken-pipe.go --port 13370
 14:48:14.355999 Setting state to ACTIVE
 14:48:14.375156 Setting state to IDLE
 14:48:14.375429 Sleeping for 1 second
 14:48:15.376486 Done sleeping
 14:48:15.379833 Setting state to COMPLETE
-</pre></div>
-
+</code></pre></div>
 
 <p>The last bit here is the "network".  The <code>rst-proxy.go</code> <a href="/code/rst-proxy.go">script</a> runs a
 TCP proxy that <strong>usually</strong> shuttles packets between the Go client and the
@@ -256,7 +252,7 @@ TCP proxy that <strong>usually</strong> shuttles packets between the Go client a
 client has gone <code>IDLE</code> it closes the connection. In normal circumstances,
 closing the connection would still not result in an RST, the kernel<sup id=sf-broken-pipe-3-back><a href=#sf-broken-pipe-3 class=simple-footnote title="This part of the socket lifecycle is not managed by Go at all, but fully by the kernel.">3</a></sup> will send a FIN to gracefully close the connection. To modify
 this behavior we must set the <code>SO_LINGER</code> socket option:</p>
-<div class=highlight><pre><span></span><span class=nx>tc</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.(</span><span class=o>*</span><span class=nx>net</span><span class=p>.</span><span class=nx>TCPConn</span><span class=p>)</span>
+<div class=highlight><pre><span></span><code><span class=nx>tc</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>c</span><span class=p>.(</span><span class=o>*</span><span class=nx>net</span><span class=p>.</span><span class=nx>TCPConn</span><span class=p>)</span>
 <span class=c1>// ...</span>
 <span class=nx>sc</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>tc</span><span class=p>.</span><span class=nx>SyscallConn</span><span class=p>()</span>
 <span class=c1>// ...</span>
@@ -268,12 +264,11 @@ this behavior we must set the <code>SO_LINGER</code> socket option:</p>
         <span class=o>&amp;</span><span class=nx>syscall</span><span class=p>.</span><span class=nx>Linger</span><span class=p>{</span><span class=nx>Onoff</span><span class=p>:</span> <span class=mi>1</span><span class=p>,</span> <span class=nx>Linger</span><span class=p>:</span> <span class=mi>0</span><span class=p>},</span>
     <span class=p>)</span>
 <span class=p>})</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>When running the <code>rst-proxy.go</code> script and pointing our client at the proxy
 port, we can reproduce the error 100% of the time:</p>
-<div class=highlight><pre><span></span>$ go run ./content/code/rst-proxy.go
+<div class=highlight><pre><span></span><code>$ go run ./content/code/rst-proxy.go
 14:48:18.799745 Setting up TCP proxy on localhost:23370
 14:48:20.803298 Handling TCP connection from 127.0.0.1:57781
 14:48:20.905144 State file switched to IDLE, closing connection
@@ -288,8 +283,7 @@ $ go run ./broken-pipe.go --port 23370
 14:48:21.818725 Done sleeping
 14:48:21.818906 write tcp 127.0.0.1:57781-&gt;127.0.0.1:23370: write: broken pipe
 exit status 1
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=finding-the-bug>Finding the Bug</h3>
 <p>Once I had a very small loop for reproducing the error<sup id=sf-broken-pipe-4-back><a href=#sf-broken-pipe-4 class=simple-footnote title="I could've made it smaller if I ran the proxy and the client in the same binary, but in my initial sleuthing I was using Python for the proxy because of a great StackOverflow answer that taught me about SO_LINGER.">4</a></sup> it was time
@@ -309,7 +303,7 @@ types that satisfy a small set of interfaces from <code>database/sql</code> and
 and must have an <code>Open()</code> method that returns a connection satisfying
 <code>driver.Conn</code>. Using <code>ngrok/sqlmw</code>, I was able to log every invocation of a
 method from one of these interfaces, for example:</p>
-<div class=highlight><pre><span></span><span class=kd>type</span> <span class=nx>loggingInterceptor</span> <span class=kd>struct</span> <span class=p>{</span>
+<div class=highlight><pre><span></span><code><span class=kd>type</span> <span class=nx>loggingInterceptor</span> <span class=kd>struct</span> <span class=p>{</span>
     <span class=nx>sqlmw</span><span class=p>.</span><span class=nx>NullInterceptor</span>
 <span class=p>}</span>
 
@@ -330,8 +324,7 @@ method from one of these interfaces, for example:</p>
     <span class=nx>pool</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>sql</span><span class=p>.</span><span class=nx>Open</span><span class=p>(</span><span class=s>"postgres-wrapped"</span><span class=p>,</span> <span class=nx>dsn</span><span class=p>)</span>
     <span class=c1>// ...</span>
 <span class=p>}</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Once I was able to determine that <code>ExecContext()</code> was the source of the
 <code>write: broken pipe</code>, I started to modify <code>${GOPATH}/src/github.com/lib/pq</code>
@@ -358,7 +351,7 @@ from the <code>lib/pq</code> maintainers. The fix was to explicitly mark the err
 as <strong>safe to retry</strong> when we know zero bytes were written and then to return
 the <code>driver.ErrBadConn</code> sentinel to signal to <code>database/sql</code> that the
 connection should be removed from the pool:</p>
-<div class=highlight><pre><span></span><span class=gh>diff --git a/conn.go b/conn.go</span>
+<div class=highlight><pre><span></span><code><span class=gh>diff --git a/conn.go b/conn.go</span>
 <span class=gh>index f313c14..0d96600 100644</span>
 <span class=gd>--- a/conn.go</span>
 <span class=gi>+++ b/conn.go</span>
@@ -398,8 +391,7 @@ connection should be removed from the pool:</p>
     case error:
         if v == io.EOF || v.(error).Error() == "remote error: handshake failure" {
             *err = driver.ErrBadConn
-</pre></div>
-
+</code></pre></div>
 
 <p>I certainly didn't come up with this idea on my own. I previously mentioned
 that <code>pgx</code> did <strong>not</strong> have the same bug. When vetting <code>pgx</code>, I dug through

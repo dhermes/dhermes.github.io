@@ -220,7 +220,7 @@ the initial guess <span class="katex"><span class="katex-mathml"><math><semantic
 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">f</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathit" style="margin-right:0.10764em;">f</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math><semantics><mrow><msup><mi>f</mi><mo mathvariant="normal">&#8242;</mo></msup></mrow><annotation encoding="application/x-tex">f&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.946332em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">&#8242;</span></span></span></span></span></span></span></span></span></span></span></span>. We'll also (arbitrarily) stop
 after the value <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>f</mi><mo>(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">f(x_i)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathit" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord"><span class="mord mathit">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathit mtight">i</span></span></span></span><span class="vlist-s">&#8203;</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> drops below
 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>1</mn><msup><mn>0</mn><mrow><mo>&#8722;</mo><mn>8</mn></mrow></msup></mrow><annotation encoding="application/x-tex">10^{-8}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">&#8722;</span><span class="mord mtight">8</span></span></span></span></span></span></span></span></span></span></span></span> in absolute value.</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">newton_raphson_method</span><span class="p">(</span><span class="n">guess</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f_prime</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">newton_raphson_method</span><span class="p">(</span><span class="n">guess</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f_prime</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">next_value</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">value</span> <span class="o">-</span> <span class="n">f</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">*</span><span class="mf">1.0</span><span class="o">/</span><span class="n">f_prime</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
@@ -229,8 +229,7 @@ after the value <span class="katex"><span class="katex-mathml"><math><semantics>
         <span class="n">current</span> <span class="o">=</span> <span class="n">next_value</span><span class="p">(</span><span class="n">current</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">current</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>As you can see, once we have <code>f</code> and <code>f_prime</code>, everything else is easy
 because all the work in calculating the next value (via <code>next_value</code>)
@@ -248,7 +247,7 @@ derivative calculation:</p>
 hand, we write a function which will spit out the corresponding <code>f</code>
 and <code>f_prime</code> given the parameters <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>P</mi></mrow><annotation encoding="application/x-tex">P</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathit" style="margin-right:0.13889em;">P</span></span></span></span> (<code>principal</code>),
 <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>T</mi></mrow><annotation encoding="application/x-tex">T</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathit" style="margin-right:0.13889em;">T</span></span></span></span> (<code>term</code>) and <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathit" style="margin-right:0.00773em;">R</span></span></span></span> (<code>payment</code>):</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_polynomials</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">payment</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">generate_polynomials</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">payment</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">principal</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">**</span><span class="p">(</span><span class="n">term</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">-</span> <span class="p">(</span><span class="n">principal</span> <span class="o">+</span> <span class="n">payment</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">**</span><span class="n">term</span><span class="p">)</span> <span class="o">+</span>
                 <span class="n">payment</span><span class="p">)</span>
@@ -258,8 +257,7 @@ and <code>f_prime</code> given the parameters <span class="katex"><span class="k
                 <span class="p">(</span><span class="n">principal</span> <span class="o">+</span> <span class="n">payment</span><span class="p">)</span><span class="o">*</span><span class="n">term</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">**</span><span class="p">(</span><span class="n">term</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">f_prime</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Note that these functions only take a single argument (<code>m</code>), but we are able
 to use the other parameters from the parent scope beyond the life of the call
@@ -272,37 +270,34 @@ we can determine what sort of<code>guess</code>makes sense. In addition, once a 
 turn it into an <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>r</mi></mrow><annotation encoding="application/x-tex">r</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathit" style="margin-right:0.02778em;">r</span></span></span></span> value so functions <code>m</code> and <code>m_inverse</code>
 should be implemented. For our dummy case here, we'll assume monthly
 payments (and compounding):</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">m</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">m</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
     <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">r</span><span class="o">/</span><span class="mf">12.0</span>
 
 <span class="k">def</span> <span class="nf">m_inverse</span><span class="p">(</span><span class="n">m_value</span><span class="p">):</span>
     <span class="k">return</span> <span class="mf">12.0</span><span class="o">*</span><span class="p">(</span><span class="n">m_value</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Using these, and assuming that an interest rate of <strong>10%</strong> is a good
 guess, we can put all the pieces together:</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">solve_for_interest_rate</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">payment</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">m_inverse</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">solve_for_interest_rate</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">payment</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">m_inverse</span><span class="p">):</span>
     <span class="n">f</span><span class="p">,</span> <span class="n">f_prime</span> <span class="o">=</span> <span class="n">generate_polynomials</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">payment</span><span class="p">)</span>
 
     <span class="n">guess_m</span> <span class="o">=</span> <span class="n">m</span><span class="p">(</span><span class="mf">0.10</span><span class="p">)</span>  <span class="c1"># ten percent as a decimal</span>
     <span class="n">m_value</span> <span class="o">=</span> <span class="n">newton_raphson_method</span><span class="p">(</span><span class="n">guess_m</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">f_prime</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">m_inverse</span><span class="p">(</span><span class="n">m_value</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>To check that this makes sense, let's plug in some values. Using the
 <a href="http://www.bankrate.com/calculators/mortgages/mortgage-calculator.aspx">bankrate.com loan calculator</a>,
 if we have a 30-year loan (with <span class="katex"><span class="katex-mathml"><math><semantics><mrow><mn>12</mn><mo>&#8901;</mo><mn>30</mn><mo>=</mo><mn>360</mn></mrow><annotation encoding="application/x-tex">12 \cdot 30 = 360</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">1</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">&#8901;</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span><span class="mord">0</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.64444em;vertical-align:0em;"></span><span class="mord">3</span><span class="mord">6</span><span class="mord">0</span></span></span></span> months of
 payments) of $100,000 with an interest rate of 7%, the monthly payment
 would be $665.30. Plugging this into our pipeline:</p>
-<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">principal</span> <span class="o">=</span> <span class="mi">100000</span>
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">principal</span> <span class="o">=</span> <span class="mi">100000</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">term</span> <span class="o">=</span> <span class="mi">360</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">payment</span> <span class="o">=</span> <span class="mf">665.30</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">solve_for_interest_rate</span><span class="p">(</span><span class="n">principal</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">payment</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">m_inverse</span><span class="p">)</span>
 <span class="mf">0.0699996284703</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>And we see the rate of 7% is approximated quite well!</p>
 <h2>Bonus: Analyze the function to make sure we are right</h2>

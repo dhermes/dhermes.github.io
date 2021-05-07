@@ -121,15 +121,14 @@ module.</p>
 <p>Once this was done, I had also found I could replace most of the nice
 parts about Python with my own equivalent. For example, I was able to
 replace functionality I needed from the Python <code>set</code> datatype with</p>
-<div class="highlight"><pre><span></span><span class="kd">function</span> <span class="nx">uniq</span><span class="p">(</span><span class="nx">arr</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="kd">function</span> <span class="nx">uniq</span><span class="p">(</span><span class="nx">arr</span><span class="p">)</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="p">{};</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">val</span><span class="p">;</span> <span class="nx">val</span> <span class="o">=</span> <span class="nx">arr</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mf">0</span><span class="p">,</span> <span class="nx">val</span><span class="p">;</span> <span class="nx">val</span> <span class="o">=</span> <span class="nx">arr</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
     <span class="nx">result</span><span class="p">[</span><span class="nx">val</span><span class="p">]</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="k">return</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">result</span><span class="p">);</span>
 <span class="p">};</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>and I was able to replace the (amazingly) useful Python handling of <code>long</code>
 integers with a non-native node package called
@@ -152,7 +151,7 @@ implementation of Python.</p>
 </blockquote>
 <p>Here is what I found (averaging the runtime over 10 separate
 calls to each function, the results are):</p>
-<p><center>
+<p><center></p>
 <table>
   <tbody>
     <tr>
@@ -164,7 +163,7 @@ calls to each function, the results are):</p>
       <th>PyPy</th>
     </tr>
     <tr>
-      <td>1*</td>
+      <td>1\*</td>
       <td>233168</td>
       <td>1804ms</td>
       <td>1215ms</td>
@@ -172,7 +171,7 @@ calls to each function, the results are):</p>
       <td>385ms</td>
     </tr>
     <tr>
-      <td>2*</td>
+      <td>2\*</td>
       <td>4613732</td>
       <td>247ms</td>
       <td>102ms</td>
@@ -180,7 +179,7 @@ calls to each function, the results are):</p>
       <td>85ms</td>
     </tr>
     <tr>
-      <td>3*</td>
+      <td>3\*</td>
       <td>6857</td>
       <td>4725ms</td>
       <td>1508ms</td>
@@ -196,7 +195,7 @@ calls to each function, the results are):</p>
       <td>282ms</td>
     </tr>
     <tr>
-      <td>5*</td>
+      <td>5\*</td>
       <td>232792560</td>
       <td>136ms</td>
       <td>186ms</td>
@@ -204,7 +203,7 @@ calls to each function, the results are):</p>
       <td>114ms</td>
     </tr>
     <tr>
-      <td>6*</td>
+      <td>6\*</td>
       <td>25164150</td>
       <td>10ms</td>
       <td>4ms</td>
@@ -220,7 +219,7 @@ calls to each function, the results are):</p>
       <td>11ms</td>
     </tr>
     <tr>
-      <td>8*</td>
+      <td>8\*</td>
       <td>40824</td>
       <td>18045ms</td>
       <td>5014ms</td>
@@ -260,7 +259,7 @@ calls to each function, the results are):</p>
       <td>100ms</td>
     </tr>
     <tr>
-      <td>13*</td>
+      <td>13\*</td>
       <td>5537376230</td>
       <td>1795ms</td>
       <td>10710ms</td>
@@ -276,7 +275,7 @@ calls to each function, the results are):</p>
       <td>362ms</td>
     </tr>
     <tr>
-      <td>15*</td>
+      <td>15\*</td>
       <td>137846528820</td>
       <td>54ms</td>
       <td>18ms</td>
@@ -284,7 +283,7 @@ calls to each function, the results are):</p>
       <td>55ms</td>
     </tr>
     <tr>
-      <td>16*</td>
+      <td>16\*</td>
       <td>1366</td>
       <td>1844ms</td>
       <td>265ms</td>
@@ -300,7 +299,7 @@ calls to each function, the results are):</p>
       <td>7ms</td>
     </tr>
     <tr>
-      <td>18*</td>
+      <td>18\*</td>
       <td>1074</td>
       <td>2291ms</td>
       <td>1790ms</td>
@@ -308,7 +307,7 @@ calls to each function, the results are):</p>
       <td>1090ms</td>
     </tr>
     <tr>
-      <td>19*</td>
+      <td>19\*</td>
       <td>171</td>
       <td>2254ms</td>
       <td>336ms</td>
@@ -316,7 +315,7 @@ calls to each function, the results are):</p>
       <td>342ms</td>
     </tr>
     <tr>
-      <td>20*</td>
+      <td>20\*</td>
       <td>648</td>
       <td>1061ms</td>
       <td>9154ms</td>
@@ -348,7 +347,7 @@ calls to each function, the results are):</p>
       <td>1295ms</td>
     </tr>
     <tr>
-      <td>24*</td>
+      <td>24\*</td>
       <td>2783915460</td>
       <td>206ms</td>
       <td>210ms</td>
@@ -380,7 +379,7 @@ calls to each function, the results are):</p>
       <td>28288ms</td>
     </tr>
     <tr>
-      <td>28*</td>
+      <td>28\*</td>
       <td>669171001</td>
       <td>8509ms</td>
       <td>1037ms</td>
@@ -476,7 +475,7 @@ calls to each function, the results are):</p>
       <td>12ms</td>
     </tr>
     <tr>
-      <td>40*</td>
+      <td>40\*</td>
       <td>210</td>
       <td>326ms</td>
       <td>202ms</td>
@@ -516,7 +515,7 @@ calls to each function, the results are):</p>
       <td>6621ms</td>
     </tr>
     <tr>
-      <td>45*</td>
+      <td>45\*</td>
       <td>1533776805</td>
       <td>17ms</td>
       <td>4ms</td>
@@ -565,13 +564,13 @@ calls to each function, the results are):</p>
     </tr>
     <tr>
       <td colspan="6">
-      *These were very quick to run, so the runtimes are the time taken
+      \*These were very quick to run, so the runtimes are the time taken
       to run 10000 times.
       </td>
     </tr>
   </tbody>
 </table>
-</center></p>
+<p></center></p>
 <p>As you'll notice, standard Python gets its butt kicked. I was kind of
 saddened by this, but in the end, just giddy that our web is faster
 because of it (90% of my life is digital) and also that we can do

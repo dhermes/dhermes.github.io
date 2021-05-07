@@ -103,13 +103,12 @@ operations that make it work.</p>
 helper functions in
 <a href="http://code.google.com/p/gae-last-across-the-finish-line/source/browse/models.py"><code>models.py</code></a>,
 let's first review the imports:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">json</span>
 
 <span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">channel</span>
 <span class="kn">from</span> <span class="nn">google.appengine.ext.deferred</span> <span class="kn">import</span> <span class="n">defer</span>
 <span class="kn">from</span> <span class="nn">google.appengine.ext</span> <span class="kn">import</span> <span class="n">ndb</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Again, we import <a href="http://docs.python.org/library/json.html"><code>json</code></a>
 and <code>channel</code> for serialization and message passing. We import the
@@ -128,15 +127,14 @@ keyword arguments to that method.</p>
 <p>In order to keep our task from hanging indefinitely due to unseen errors
 and to implicitly include the work unit in the batch, we define a
 wrapper around these method calls:</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">AlwaysComplete</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">AlwaysComplete</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
   <span class="k">try</span><span class="p">:</span>
     <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
   <span class="k">except</span><span class="p">:</span>  <span class="c1"># TODO: Consider failing differently.</span>
     <span class="k">pass</span>
   <span class="k">finally</span><span class="p">:</span>
     <span class="n">defer</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">Complete</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>As you can see, we catch any and all errors thrown by our method and
 don't retry the method if it fails. In our example, if the call
@@ -160,24 +158,22 @@ if our user interface is not
 <p>As we saw above, we need a datastore model to represent tasks within a
 batch. We start out initially with a model having only one attribute &mdash; a
 boolean representing whether or not the task has completed.</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BatchTask</span><span class="p">(</span><span class="n">ndb</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">BatchTask</span><span class="p">(</span><span class="n">ndb</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
   <span class="c1"># Very important that the default value True of `indexed` is used here</span>
   <span class="c1"># since we need to query on BatchTask.completed</span>
-  <span class="n">completed</span> <span class="o">=</span> <span class="n">ndb</span><span class="o">.</span><span class="n">BooleanProperty</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</pre></div>
-
+  <span class="n">completed</span> <span class="o">=</span> <span class="n">ndb</span><span class="o">.</span><span class="n">BooleanProperty</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
 
 <p>As we know, we'll need to define a <code>Complete</code> method in order to use the task
 in <code>AlwaysComplete</code>, but before doing so, we'll define another method which
 will put the task object in the datastore and pass a unit of work to
 <code>AlwaysComplete</code>:</p>
-<div class="highlight"><pre><span></span>  <span class="nd">@ndb.transactional</span>
+<div class="highlight"><pre><span></span><code>  <span class="nd">@ndb</span><span class="o">.</span><span class="n">transactional</span>
   <span class="k">def</span> <span class="nf">Populate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">put</span><span class="p">()</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;_transactional&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;_transactional&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">defer</span><span class="p">(</span><span class="n">AlwaysComplete</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>In this <code>Populate</code> method, we first put the object in the datastore
 <a href="https://developers.google.com/appengine/docs/python/datastore/transactions">transactionally</a>
@@ -202,15 +198,14 @@ this consistency for a query that will help us determine if our batch is
 done.</p>
 <p>To signal that a unit of work has completed, we define the <code>Complete</code>
 method on the task object:</p>
-<div class="highlight"><pre><span></span>  <span class="nd">@ndb.transactional</span>
+<div class="highlight"><pre><span></span><code>  <span class="nd">@ndb</span><span class="o">.</span><span class="n">transactional</span>
   <span class="k">def</span> <span class="nf">Complete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">completed</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">completed</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">put</span><span class="p">()</span>
 
     <span class="n">batcher_parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-    <span class="n">defer</span><span class="p">(</span><span class="n">batcher_parent</span><span class="o">.</span><span class="n">CheckComplete</span><span class="p">,</span> <span class="n">_transactional</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</pre></div>
-
+    <span class="n">defer</span><span class="p">(</span><span class="n">batcher_parent</span><span class="o">.</span><span class="n">CheckComplete</span><span class="p">,</span> <span class="n">_transactional</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
 
 <p>It performs two functions. First, it sets <code>completed</code> to <code>True</code>
 in a transaction. Second, it retrieves the parent
@@ -239,10 +234,9 @@ going to use it to check when a batch is complete, we define the boolean
 attribute <code>all_tasks_loaded</code> to signal whether or not all worker tasks from
 the batch have begun. We can use this as a short circuit in our <code>CheckComplete</code>
 method (or as a guard against premature completion).</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">TaskBatcher</span><span class="p">(</span><span class="n">ndb</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-  <span class="n">all_tasks_loaded</span> <span class="o">=</span> <span class="n">ndb</span><span class="o">.</span><span class="n">BooleanProperty</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">indexed</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-</pre></div>
-
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">TaskBatcher</span><span class="p">(</span><span class="n">ndb</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+  <span class="n">all_tasks_loaded</span> <span class="o">=</span> <span class="n">ndb</span><span class="o">.</span><span class="n">BooleanProperty</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indexed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
 
 <p>To check if a batch is complete, we first determine if all tasks have
 loaded. If that is the case, we perform an
@@ -251,11 +245,11 @@ that simply attempts to fetch the first worker task in the entity group
 which has not yet completed. If such a task does not exist, we know the
 batch has completed, and so start to clean up the task and batch parent
 objects from the datastore.</p>
-<div class="highlight"><pre><span></span>  <span class="k">def</span> <span class="nf">CheckComplete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code>  <span class="k">def</span> <span class="nf">CheckComplete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="c1"># Does not need to be transactional since it doesn&#39;t change data</span>
     <span class="n">session_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">id</span><span class="p">()</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_tasks_loaded</span><span class="p">:</span>
-      <span class="n">incomplete</span> <span class="o">=</span> <span class="n">BatchTask</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BatchTask</span><span class="o">.</span><span class="n">completed</span> <span class="o">==</span> <span class="bp">False</span><span class="p">,</span>
+      <span class="n">incomplete</span> <span class="o">=</span> <span class="n">BatchTask</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BatchTask</span><span class="o">.</span><span class="n">completed</span> <span class="o">==</span> <span class="kc">False</span><span class="p">,</span>
                                    <span class="n">ancestor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
       <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incomplete</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">channel</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;complete&#39;</span><span class="p">}))</span>
@@ -263,8 +257,7 @@ objects from the datastore.</p>
         <span class="k">return</span>
 
     <span class="n">channel</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;incomplete&#39;</span><span class="p">}))</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>We again do the utmost at this step to ensure consistency
 by using an ancestor query:</p>
@@ -282,28 +275,26 @@ using the session ID for the channel. In order to correctly handle these
 messages on the client, we'll need to update the <code>onmessage</code> handler (defined
 in <a href="/2012/08/last-to-cross-finish-line-part-two.html">part two</a>)
 to account for status updates:</p>
-<div class="highlight"><pre><span></span><span class="nx">socket</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">msg</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="nx">socket</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">msg</span><span class="p">)</span> <span class="p">{</span>
   <span class="kd">var</span> <span class="nx">response</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
   <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">!==</span> <span class="kc">undefined</span><span class="p">)</span> <span class="p">{</span>
     <span class="nx">setStatus</span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span><span class="p">);</span>
   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">squareIndex</span> <span class="o">=</span> <span class="mi">8</span><span class="o">*</span><span class="nx">response</span><span class="p">.</span><span class="nx">row</span> <span class="o">+</span> <span class="nx">response</span><span class="p">.</span><span class="nx">column</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">squareIndex</span> <span class="o">=</span> <span class="mf">8</span><span class="o">*</span><span class="nx">response</span><span class="p">.</span><span class="nx">row</span> <span class="o">+</span> <span class="nx">response</span><span class="p">.</span><span class="nx">column</span><span class="p">;</span>
     <span class="kd">var</span> <span class="nx">squareId</span> <span class="o">=</span> <span class="s1">&#39;#square&#39;</span> <span class="o">+</span> <span class="nx">squareIndex</span><span class="p">.</span><span class="nx">toString</span><span class="p">();</span>
     <span class="nx">$</span><span class="p">(</span><span class="nx">squareId</span><span class="p">).</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;background-color&#39;</span><span class="p">,</span> <span class="nx">response</span><span class="p">.</span><span class="nx">color</span><span class="p">);</span>
   <span class="p">}}</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Just as the <code>setStatus</code> method revealed the progress spinner when work began,
 it will remove the spinner when the status is complete.</p>
 <p>We'll next define the <code>CleanUp</code> method that is called when the batch is
 complete:</p>
-<div class="highlight"><pre><span></span>  <span class="k">def</span> <span class="nf">CleanUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">children</span> <span class="o">=</span> <span class="n">BatchTask</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ancestor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="n">keys_only</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code>  <span class="k">def</span> <span class="nf">CleanUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="n">BatchTask</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">ancestor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="n">keys_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">ndb</span><span class="o">.</span><span class="n">delete_multi</span><span class="p">(</span><span class="n">children</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>This method uses the key from the batch parent to perform another ancestor
 query and creates an object which can
@@ -317,13 +308,12 @@ all tasks in the batch are deleted.</p>
 <p>As a final method on <code>TaskBatcher</code>, we define something similar to
 <code>BatchTask.Populate</code> that is triggered after all workers in the batch have been
 added:</p>
-<div class="highlight"><pre><span></span>  <span class="nd">@ndb.transactional</span>
+<div class="highlight"><pre><span></span><code>  <span class="nd">@ndb</span><span class="o">.</span><span class="n">transactional</span>
   <span class="k">def</span> <span class="nf">Ready</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">all_tasks_loaded</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">all_tasks_loaded</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">put</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">CheckComplete</span><span class="p">()</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>This simply signals that all tasks from the batch have loaded by setting
 <code>all_tasks_loaded</code> to <code>True</code> and calls <code>CheckComplete</code> in case all the tasks
@@ -339,38 +329,34 @@ function used (in
 by the <code>BeginWork</code> handler. We want users of this function to be able to call
 it directly, but don't want it to block the process they call it in, so we wrap
 the real function in a function that will simply defer the work:</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">PopulateBatch</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">work</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">PopulateBatch</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">work</span><span class="p">):</span>
   <span class="n">defer</span><span class="p">(</span><span class="n">_PopulateBatch</span><span class="p">,</span> <span class="n">session_id</span><span class="p">,</span> <span class="n">work</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>In the actual function, we first create a <code>TaskBatcher</code> object using the
 session ID as the key and put it into the datastore using the default value of
 <code>False</code> for <code>all_tasks_loaded</code>. Since this is a single synchronous <code>put</code>, it
 blocks the thread of execution and we can be sure our parent is in the datastore
 before members of the entity group (the task objects) are created.</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_PopulateBatch</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">work</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">_PopulateBatch</span><span class="p">(</span><span class="n">session_id</span><span class="p">,</span> <span class="n">work</span><span class="p">):</span>
   <span class="n">batcher_key</span> <span class="o">=</span> <span class="n">ndb</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">TaskBatcher</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span>
   <span class="n">batcher</span> <span class="o">=</span> <span class="n">TaskBatcher</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">batcher_key</span><span class="p">)</span>
   <span class="n">batcher</span><span class="o">.</span><span class="n">put</span><span class="p">()</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>After doing this, we loop through all the 3-tuples in the passed in batch of
 <code>work</code>. For each unit of work, we create a task using the batcher as parent and
 then call the <code>Populate</code> method on the task using the method, positional
 arguments and keyword arguments provided in the unit of work.</p>
-<div class="highlight"><pre><span></span>  <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="ow">in</span> <span class="n">work</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code>  <span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="ow">in</span> <span class="n">work</span><span class="p">:</span>
     <span class="n">task</span> <span class="o">=</span> <span class="n">BatchTask</span><span class="p">(</span><span class="n">parent</span><span class="o">=</span><span class="n">batcher_key</span><span class="p">)</span>
     <span class="n">task</span><span class="o">.</span><span class="n">Populate</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Finally, to signal that all tasks in the batch have been added, we call
 the <code>Ready</code> method on the batch parent:</p>
-<div class="highlight"><pre><span></span>  <span class="n">batcher</span><span class="o">.</span><span class="n">Ready</span><span class="p">()</span>
-</pre></div>
-
+<div class="highlight"><pre><span></span><code>  <span class="n">batcher</span><span class="o">.</span><span class="n">Ready</span><span class="p">()</span>
+</code></pre></div>
 
 <blockquote>
 <p><strong>Note:</strong> This approach can cause performance issues as the number of

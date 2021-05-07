@@ -112,31 +112,29 @@ first and hence will render the New York Times page for
 <a href="http://people.com/">people.com</a>.</p>
 <p>The first step to do this was to find the IP address for the replacement
 site:</p>
-<div class="highlight"><pre><span></span>$ ping www.nytimes.com
+<div class="highlight"><pre><span></span><code>$ ping www.nytimes.com
 PING www.nytimes.com <span class="o">(</span><span class="m">199</span>.239.136.200<span class="o">)</span>: <span class="m">56</span> data bytes
 <span class="m">64</span> bytes from <span class="m">199</span>.239.136.200: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">0</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.062 ms
 <span class="m">64</span> bytes from <span class="m">199</span>.239.136.200: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">1</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.054 ms
 ...
-</pre></div>
-
+</code></pre></div>
 
 <p>For the second (and final) step, I just needed to add an entry to the
 <code>hosts</code> file. After
 <a href="http://en.wikipedia.org/wiki/Hosts_(file)#Location_in_the_file_system">locating</a>
 the file on her Macbook in <code>/etc/hosts</code>, I updated the contents:</p>
-<div class="highlight"><pre><span></span>##
-# Host Database
+<div class="highlight"><pre><span></span><code>##
+# <span class="nv">Host</span> <span class="nv">Database</span>
 #
-# localhost is used to configure the loopback interface
-# when the system is booting.  Do not change this entry.
+# <span class="nv">localhost</span> <span class="nv">is</span> <span class="nv">used</span> <span class="nv">to</span> <span class="nv">configure</span> <span class="nv">the</span> <span class="nv">loopback</span> <span class="nv">interface</span>
+# <span class="nv">when</span> <span class="nv">the</span> <span class="nv">system</span> <span class="nv">is</span> <span class="nv">booting</span>.  <span class="k">Do</span> <span class="nv">not</span> <span class="nv">change</span> <span class="nv">this</span> <span class="nv">entry</span>.
 ##
-127.0.0.1       localhost
-255.255.255.255 broadcasthost
-::1             localhost
-fe80::1%lo0     localhost
-199.239.136.200 people.com  # New entry
-</pre></div>
-
+<span class="mi">127</span>.<span class="mi">0</span>.<span class="mi">0</span>.<span class="mi">1</span>       <span class="nv">localhost</span>
+<span class="mi">255</span>.<span class="mi">255</span>.<span class="mi">255</span>.<span class="mi">255</span> <span class="nv">broadcasthost</span>
+::<span class="mi">1</span>             <span class="nv">localhost</span>
+<span class="nv">fe80</span>::<span class="mi">1</span><span class="o">%</span><span class="nv">lo0</span>     <span class="nv">localhost</span>
+<span class="mi">199</span>.<span class="mi">239</span>.<span class="mi">136</span>.<span class="mi">200</span> <span class="nv">people</span>.<span class="nv">com</span>  # <span class="nv">New</span> <span class="nv">entry</span>
+</code></pre></div>
 
 <p>Voil&#0224;! With that, the prank was complete and the next time she visited
 <a href="http://people.com/">people.com</a>, the got the contents of

@@ -97,22 +97,21 @@ with my own
 method. (OK, <a href="/images/prepare-yourself.jpg">prepare yourselves</a>,
 a bunch of code is about to happen. See the necessary
 <a href="#imports">imports</a> at the bottom of the post.)</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ExtendedHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ExtendedHandler</span><span class="p">(</span><span class="n">RequestHandler</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">handle_exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">,</span> <span class="n">debug_mode</span><span class="p">):</span>
         <span class="n">traceback_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">format_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()))</span>
-        <span class="n">email_admins</span><span class="p">(</span><span class="n">traceback_info</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">email_admins</span><span class="p">(</span><span class="n">traceback_info</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">serve_500</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Awesome! By making all my handlers inherit from <code>ExtendedHandler</code>,
 I can use the native Python modules <code>traceback</code> and <code>sys</code>
 to get the traceback and my handy dandy</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">email_admins</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">email_admins</span><span class="p">(</span><span class="n">error_msg</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">defer_now</span><span class="p">:</span>
-        <span class="n">defer</span><span class="p">(</span><span class="n">email_admins</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">defer</span><span class="p">(</span><span class="n">email_admins</span><span class="p">,</span> <span class="n">error_msg</span><span class="p">,</span> <span class="n">defer_now</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span>
 
     <span class="n">sender</span> <span class="o">=</span> <span class="s1">&#39;YOUR APP Errors &lt;errors@your_app_id_here.appspotmail.com&gt;&#39;</span>
@@ -126,8 +125,7 @@ to get the traceback and my handy dandy</p>
 
     <span class="n">mail</span><span class="o">.</span><span class="n">send_mail</span><span class="p">(</span><span class="n">sender</span><span class="o">=</span><span class="n">sender</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">to</span><span class="p">,</span>
                    <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>to send out the email in the
 <a href="http://code.google.com/appengine/articles/deferred.html">deferred queue</a>
@@ -154,13 +152,12 @@ directly from <code>Exception</code>'s parent class:<code>BaseException</code>.<
 I explain how I did it while keeping my code Pythonic by using
 <a href="http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python#6581949">metaclasses</a>.</p>
 <h2 id="imports">Imports:</h2>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">mail</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">google.appengine.api</span> <span class="kn">import</span> <span class="n">mail</span>
 <span class="kn">from</span> <span class="nn">google.appengine.ext.deferred</span> <span class="kn">import</span> <span class="n">defer</span>
 <span class="kn">from</span> <span class="nn">google.appengine.ext.webapp</span> <span class="kn">import</span> <span class="n">RequestHandler</span>
-<span class="kn">import</span> <span class="nn">sysfrom</span> <span class="nn">traceback</span> <span class="nn">import</span> <span class="nn">format_exception</span>
+<span class="kn">import</span> <span class="nn">sysfrom</span> <span class="n">traceback</span> <span class="kn">import</span> <span class="nn">format_exception</span>
 <span class="kn">from</span> <span class="nn">SOME_APP_SPECIFIC_LIBRARY</span> <span class="kn">import</span> <span class="n">serve_500</span>
-</pre></div>
-
+</code></pre></div>
 
 <h4>Pythonic:</h4>
 <blockquote>

@@ -121,7 +121,8 @@ through four different deadlock scenarios that timeout.</p>
 <h3 id=prerequisites>Prerequisites</h3>
 <!-- For posterity
 
-<div class="highlight"><pre><span></span>$ docker version
+
+<div class="highlight"><pre><span></span><code>$ docker version
 Client: Docker Engine - Community
  Version:           <span class="m">19</span>.03.12
 $
@@ -136,7 +137,7 @@ $ git --git-dir <span class="si">${</span><span class="nv">GOPATH</span><span cl
 $
 $ git --git-dir <span class="si">${</span><span class="nv">GOPATH</span><span class="si">}</span>/src/github.com/hashicorp/errwrap/.git log -1 --pretty<span class="o">=</span>%H
 7b00e5db719c64d14dd0caaacbd13e76254d02c0
-</pre></div>
+</code></pre></div>
 
 
 -->
@@ -146,7 +147,7 @@ $ git --git-dir <span class="si">${</span><span class="nv">GOPATH</span><span cl
 installed as well.</p>
 <p>In order to run the examples, make sure a local <code>postgres</code> server is
 running<sup id=sf-go-pq-prevent-deadlock-1-back><a href=#sf-go-pq-prevent-deadlock-1 class=simple-footnote title="Take note of the connection parameters">1</a></sup>:</p>
-<div class=highlight><pre><span></span>docker run \
+<div class=highlight><pre><span></span><code>docker run \
   --detach \
   --hostname localhost \
   --publish 28007:5432 \
@@ -155,29 +156,26 @@ running<sup id=sf-go-pq-prevent-deadlock-1-back><a href=#sf-go-pq-prevent-deadlo
   --env POSTGRES_USER=superuser \
   --env POSTGRES_PASSWORD=testpassword_superuser \
   postgres:10.6-alpine
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=intentional-contention>Intentional Contention</h3>
 <p>In order to introduce a deadlock, we borrow an example from
 <a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/">When Postgres blocks: 7 tips for dealing with locks</a>.
 In the first transaction we update "hello" rows followed by "world" rows</p>
-<div class=highlight><pre><span></span><span class=k>BEGIN</span><span class=p>;</span>
+<div class=highlight><pre><span></span><code><span class=k>BEGIN</span><span class=p>;</span>
 <span class=k>UPDATE</span> <span class=n>might_deadlock</span> <span class=k>SET</span> <span class=n>counter</span> <span class=o>=</span> <span class=n>counter</span> <span class=o>+</span> <span class=mi>1</span> <span class=k>WHERE</span> <span class=k>key</span> <span class=o>=</span> <span class=s1>'hello'</span><span class=p>;</span>
 <span class=c1>-- Sleep for 200ms</span>
 <span class=k>UPDATE</span> <span class=n>might_deadlock</span> <span class=k>SET</span> <span class=n>counter</span> <span class=o>=</span> <span class=n>counter</span> <span class=o>+</span> <span class=mi>1</span> <span class=k>WHERE</span> <span class=k>key</span> <span class=o>=</span> <span class=s1>'world'</span><span class=p>;</span>
 <span class=k>COMMIT</span><span class=p>;</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>and in the second transaction we update the rows in the opposite order</p>
-<div class=highlight><pre><span></span><span class=k>BEGIN</span><span class=p>;</span>
+<div class=highlight><pre><span></span><code><span class=k>BEGIN</span><span class=p>;</span>
 <span class=k>UPDATE</span> <span class=n>might_deadlock</span> <span class=k>SET</span> <span class=n>counter</span> <span class=o>=</span> <span class=n>counter</span> <span class=o>+</span> <span class=mi>1</span> <span class=k>WHERE</span> <span class=k>key</span> <span class=o>=</span> <span class=s1>'world'</span><span class=p>;</span>
 <span class=c1>-- Sleep for 200ms</span>
 <span class=k>UPDATE</span> <span class=n>might_deadlock</span> <span class=k>SET</span> <span class=n>counter</span> <span class=o>=</span> <span class=n>counter</span> <span class=o>+</span> <span class=mi>1</span> <span class=k>WHERE</span> <span class=k>key</span> <span class=o>=</span> <span class=s1>'hello'</span><span class=p>;</span>
 <span class=k>COMMIT</span><span class=p>;</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=example-set-up>Example Set Up</h3>
 <p>In order to trigger different failure modes, we allow two different
@@ -204,25 +202,23 @@ and then kicks off two simultaneous goroutines to intentionally cause
 deadlock. The places in the script relevant to the discussion are the usage of
 <code>lock_timeout</code> in the mostly hardcoded connection string (more on this
 <a href=#lock-timeout-dsn>later</a>):</p>
-<div class=highlight><pre><span></span><span class=kd>func</span> <span class=nx>createPool</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>cfg</span> <span class=o>*</span><span class=nx>Config</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>sql</span><span class=p>.</span><span class=nx>DB</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+<div class=highlight><pre><span></span><code><span class=kd>func</span> <span class=nx>createPool</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>cfg</span> <span class=o>*</span><span class=nx>Config</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>sql</span><span class=p>.</span><span class=nx>DB</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
     <span class=nx>dsnTemplate</span> <span class=o>:=</span> <span class=s>"postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?lock_timeout=%s&amp;sslmode=disable"</span>
     <span class=nx>dsn</span> <span class=o>:=</span> <span class=nx>fmt</span><span class=p>.</span><span class=nx>Sprintf</span><span class=p>(</span><span class=nx>dsnTemplate</span><span class=p>,</span> <span class=nx>cfg</span><span class=p>.</span><span class=nx>LockTimeout</span><span class=p>)</span>
     <span class=nx>pool</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>sql</span><span class=p>.</span><span class=nx>Open</span><span class=p>(</span><span class=s>"postgres"</span><span class=p>,</span> <span class=nx>dsn</span><span class=p>)</span>
     <span class=c1>// ...</span>
 <span class=p>}</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>and the creation of a Go context that sets a deadline based on the context
 timeout<sup id=sf-go-pq-prevent-deadlock-2-back><a href=#sf-go-pq-prevent-deadlock-2 class=simple-footnote title="It's crucial that we pass this context in to every database method that has a Context-accepting variant">2</a></sup>:</p>
-<div class=highlight><pre><span></span><span class=nx>deadline</span> <span class=o>:=</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Now</span><span class=p>().</span><span class=nx>Add</span><span class=p>(</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ContextTimeout</span><span class=p>)</span>
+<div class=highlight><pre><span></span><code><span class=nx>deadline</span> <span class=o>:=</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Now</span><span class=p>().</span><span class=nx>Add</span><span class=p>(</span><span class=nx>cfg</span><span class=p>.</span><span class=nx>ContextTimeout</span><span class=p>)</span>
 <span class=nx>ctx</span><span class=p>,</span> <span class=nx>cancel</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nx>WithDeadline</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nx>Background</span><span class=p>(),</span> <span class=nx>deadline</span><span class=p>)</span>
 <span class=k>defer</span> <span class=nx>cancel</span><span class=p>()</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>The deadlock itself happens in the function kicked off in the goroutines:</p>
-<div class=highlight><pre><span></span><span class=kd>func</span> <span class=nx>contendReads</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>wg</span> <span class=o>*</span><span class=nx>sync</span><span class=p>.</span><span class=nx>WaitGroup</span><span class=p>,</span> <span class=nx>tx</span> <span class=o>*</span><span class=nx>sql</span><span class=p>.</span><span class=nx>Tx</span><span class=p>,</span> <span class=nx>key1</span><span class=p>,</span> <span class=nx>key2</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>cfg</span> <span class=o>*</span><span class=nx>Config</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+<div class=highlight><pre><span></span><code><span class=kd>func</span> <span class=nx>contendReads</span><span class=p>(</span><span class=nx>ctx</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Context</span><span class=p>,</span> <span class=nx>wg</span> <span class=o>*</span><span class=nx>sync</span><span class=p>.</span><span class=nx>WaitGroup</span><span class=p>,</span> <span class=nx>tx</span> <span class=o>*</span><span class=nx>sql</span><span class=p>.</span><span class=nx>Tx</span><span class=p>,</span> <span class=nx>key1</span><span class=p>,</span> <span class=nx>key2</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>cfg</span> <span class=o>*</span><span class=nx>Config</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
     <span class=k>defer</span> <span class=nx>wg</span><span class=p>.</span><span class=nx>Done</span><span class=p>()</span>
 
     <span class=nx>updateRows</span> <span class=o>:=</span> <span class=s>"UPDATE might_deadlock SET counter = counter + 1 WHERE key = $1;"</span>
@@ -235,22 +231,20 @@ timeout<sup id=sf-go-pq-prevent-deadlock-2-back><a href=#sf-go-pq-prevent-deadlo
     <span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nx>tx</span><span class=p>.</span><span class=nx>ExecContext</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>updateRows</span><span class=p>,</span> <span class=nx>key2</span><span class=p>)</span>
     <span class=k>return</span> <span class=nx>err</span>
 <span class=p>}</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=failures>Failures</h3>
 <h4>Via <code>lock_timeout</code></h4>
 <p>By setting <code>lock_timeout</code> to 10 milliseconds, much shorter than the 200
 millisecond sleep between statements, we can induce <a href="https://www.postgresql.org/docs/10/errcodes-appendix.html">error</a>
 <code>55P03: lock_not_available</code> directly from <code>postgres</code>:</p>
-<div class=highlight><pre><span></span>$ LOCK_TIMEOUT=10ms CONTEXT_TIMEOUT=600ms go run ./pq-prevent-deadlock.go
+<div class=highlight><pre><span></span><code>$ LOCK_TIMEOUT=10ms CONTEXT_TIMEOUT=600ms go run ./pq-prevent-deadlock.go
 0.039350 Starting transactions
 0.059424 Transactions opened
 0.286993 Error(s):
 0.287104 - &amp;pq.Error{Severity:"ERROR", Code:"55P03", Message:"canceling statement due to lock timeout", Detail:"", Hint:"", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,1) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"postgres.c", Line:"2989", Routine:"ProcessInterrupts"}
 0.287119 - &amp;pq.Error{Severity:"ERROR", Code:"55P03", Message:"canceling statement due to lock timeout", Detail:"", Hint:"", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,2) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"postgres.c", Line:"2989", Routine:"ProcessInterrupts"}
-</pre></div>
-
+</code></pre></div>
 
 <p>This shows that (A) putting <code>lock_timeout</code> in the connection string used by
 Go actually sets a timeout and (B) the database engine does the work of
@@ -260,46 +254,42 @@ canceling statements and providing a useful error to the client.</p>
 leave <code>postgres</code> on its own to suffer with (and detect) the deadlock.
 After less than two seconds the deadlock is detected and error
 <code>40P01: deadlock_detected</code> is returned:</p>
-<div class=highlight><pre><span></span>$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=10s go run ./pq-prevent-deadlock.go
+<div class=highlight><pre><span></span><code>$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=10s go run ./pq-prevent-deadlock.go
 0.043090 Starting transactions
 0.058350 Transactions opened
 1.276383 Error(s):
 1.276474 - &amp;pq.Error{Severity:"ERROR", Code:"40P01", Message:"deadlock detected", Detail:"Process 2385 waits for ShareLock on transaction 624; blocked by process 2384.\nProcess 2384 waits for ShareLock on transaction 625; blocked by process 2385.", Hint:"See server log for query details.", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,1) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"deadlock.c", Line:"1140", Routine:"DeadLockReport"}
-</pre></div>
-
+</code></pre></div>
 
 <h4>Go <code>context</code> Cancelation In Between Queries in a Transaction</h4>
 <p>By setting the context timeout to 100 milliseconds (half the length of the
 sleep between statements), the transaction will be canceled <strong>during</strong> the
 sleep which means the next statement will not even attempt to communicate
 with <code>postgres</code>:</p>
-<div class=highlight><pre><span></span>$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=100ms go run ./pq-prevent-deadlock.go
+<div class=highlight><pre><span></span><code>$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=100ms go run ./pq-prevent-deadlock.go
 0.049146 Starting transactions
 0.060474 Transactions opened
 0.268488 Error(s):
 0.268542 - context.deadlineExceededError{}
 0.268547 - context.deadlineExceededError{}
-</pre></div>
-
+</code></pre></div>
 
 <h4>Cancel "Stuck" Deadlock via Go context Cancelation</h4>
 <p>Setting the context timeout to 600 milliseconds is long enough that the sleep
 between statements completes but not so long that <code>postgres</code> detects the
 deadlock. In this case a <code>57014: query_canceled</code> is returned:</p>
-<div class=highlight><pre><span></span>$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=600ms go run ./pq-prevent-deadlock.go
+<div class=highlight><pre><span></span><code>$ LOCK_TIMEOUT=10s CONTEXT_TIMEOUT=600ms go run ./pq-prevent-deadlock.go
 0.037892 Starting transactions
 0.048328 Transactions opened
 0.610551 Error(s):
 0.610640 - &amp;pq.Error{Severity:"ERROR", Code:"57014", Message:"canceling statement due to user request", Detail:"", Hint:"", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,1) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"postgres.c", Line:"3026", Routine:"ProcessInterrupts"}
 0.610663 - &amp;pq.Error{Severity:"ERROR", Code:"57014", Message:"canceling statement due to user request", Detail:"", Hint:"", Position:"", InternalPosition:"", InternalQuery:"", Where:"while updating tuple (0,2) in relation \"might_deadlock\"", Schema:"", Table:"", Column:"", DataTypeName:"", Constraint:"", File:"postgres.c", Line:"3026", Routine:"ProcessInterrupts"}
-</pre></div>
-
+</code></pre></div>
 
 <p>This is somewhat of a pleasant surprise because the in-flight statement:</p>
-<div class=highlight><pre><span></span><span class=nx>time</span><span class=p>.</span><span class=nx>Sleep</span><span class=p>(</span><span class=mi>200</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Millisecond</span><span class=p>)</span>
+<div class=highlight><pre><span></span><code><span class=nx>time</span><span class=p>.</span><span class=nx>Sleep</span><span class=p>(</span><span class=mi>200</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Millisecond</span><span class=p>)</span>
 <span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nx>tx</span><span class=p>.</span><span class=nx>ExecContext</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>updateRows</span><span class=p>,</span> <span class=nx>key2</span><span class=p>)</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>might very well be expected to block indefinitely. Instead, an event loop
 in <code>github.com/lib/pq</code> detects the context cancelation and manages to
@@ -308,10 +298,9 @@ communicate the canceled query to <code>postgres</code> as well.</p>
 <p>Though <code>lock_timeout</code> is directly supported in the connection string in
 <code>github.com/lib/pq</code>, it's <a href="https://www.postgresql.org/docs/10/libpq-connect.html#LIBPQ-PARAMKEYWORDS">explicitly</a> <strong>not</strong> supported in
 <code>psql</code> / <code>libpq</code>:</p>
-<div class=highlight><pre><span></span>$ psql "postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?lock_timeout=10ms&amp;sslmode=disable"
+<div class=highlight><pre><span></span><code>$ psql "postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?lock_timeout=10ms&amp;sslmode=disable"
 psql: error: could not connect to server: invalid URI query parameter: "lock_timeout"
-</pre></div>
-
+</code></pre></div>
 
 <p>Instead <code>github.com/lib/pq</code> parses all query parameters when <a href="https://github.com/lib/pq/blob/v1.8.0/connector.go#L67-L69">reading a DSN</a>
 and then passes all non-driver settings through as key-value pairs when
@@ -328,7 +317,7 @@ settings for run-time parameters.)</p>
 </blockquote>
 <p>Using <code>PGOPTIONS="-c {key}={value}"</code> with <code>psql</code> enables <a href="https://www.postgresql.org/docs/10/app-postgres.html#id-1.9.5.13.6.3">setting</a>
 named run-time parameters<sup id=sf-go-pq-prevent-deadlock-4-back><a href=#sf-go-pq-prevent-deadlock-4 class=simple-footnote title="It's also worth noting that github.com/lib/pq is PGOPTIONS-aware">4</a></sup>:</p>
-<div class=highlight><pre><span></span>$ PGOPTIONS="-c lock_timeout=10ms" psql "postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?connect_timeout=5&amp;sslmode=disable"
+<div class=highlight><pre><span></span><code>$ PGOPTIONS="-c lock_timeout=10ms" psql "postgres://superuser:testpassword_superuser@localhost:28007/superuser_db?connect_timeout=5&amp;sslmode=disable"
 ...
 superuser_db=# SHOW lock_timeout;
  lock_timeout
@@ -337,7 +326,7 @@ superuser_db=# SHOW lock_timeout;
 (1 row)
 
 superuser_db=# \q
-</pre></div><ol class=simple-footnotes><li id=sf-go-pq-prevent-deadlock-1>Take note of the connection parameters <a href=#sf-go-pq-prevent-deadlock-1-back class=simple-footnote-back>↩</a></li><li id=sf-go-pq-prevent-deadlock-2>It's crucial that we pass this context in to every database
+</code></pre></div><ol class=simple-footnotes><li id=sf-go-pq-prevent-deadlock-1>Take note of the connection parameters <a href=#sf-go-pq-prevent-deadlock-1-back class=simple-footnote-back>↩</a></li><li id=sf-go-pq-prevent-deadlock-2>It's crucial that we pass this context in to every database
 method that has a <code>Context</code>-accepting variant <a href=#sf-go-pq-prevent-deadlock-2-back class=simple-footnote-back>↩</a></li><li id=sf-go-pq-prevent-deadlock-3>Though 13 are supported by
 <code>github.com/lib/pq</code>, there are 29 <code>postgres</code> <a href="https://www.postgresql.org/docs/10/libpq-connect.html#LIBPQ-PARAMKEYWORDS">parameter keywords</a> <a href=#sf-go-pq-prevent-deadlock-3-back class=simple-footnote-back>↩</a></li><li id=sf-go-pq-prevent-deadlock-4>It's also worth noting that <code>github.com/lib/pq</code>
 is <code>PGOPTIONS</code>-<a href="https://github.com/lib/pq/blob/v1.8.0/conn.go#L1945-L1946">aware</a> <a href=#sf-go-pq-prevent-deadlock-4-back class=simple-footnote-back>↩</a></li></ol></div>

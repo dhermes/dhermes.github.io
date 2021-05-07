@@ -111,7 +111,7 @@ so can be accessed via <code>os.environ</code> or <code>os.getenv</code>, yippee
 and let the function do it's own work in peace.</p>
 <p>Upon realizing the usefulness of such a decorator, I decided to write
 about it, so here it is:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">functools</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">google.appengine.ext.deferred</span> <span class="kn">import</span> <span class="n">defer</span>
@@ -122,20 +122,19 @@ about it, so here it is:</p>
 <span class="n">URL_KEY</span> <span class="o">=</span> <span class="s1">&#39;PATH_INFO&#39;</span>
 
 <span class="k">def</span> <span class="nf">DeferredWorkerDecorator</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
-  <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+  <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
   <span class="k">def</span> <span class="nf">DeferredOnlyMethod</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="n">path_info</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL_KEY</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">path_info</span> <span class="o">!=</span> <span class="n">_DEFAULT_URL</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span><span class="s1">&#39;Wrong path of execution: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path_info</span><span class="p">))</span>
+      <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span><span class="s1">&#39;Wrong path of execution: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path_info</span><span class="p">))</span>
     <span class="n">queue_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">QUEUE_KEY</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">queue_name</span> <span class="o">!=</span> <span class="n">_DEFAULT_QUEUE</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span><span class="s1">&#39;Wrong queue name: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">queue_name</span><span class="p">))</span>
+      <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span><span class="s1">&#39;Wrong queue name: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">queue_name</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
   <span class="k">return</span> <span class="n">DeferredOnlyMethod</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>This decorator first checks if the environment variable <code>PATH_INFO</code>
 is set to the default value for the deferred queue: <code>/_ah/queue/deferred</code>.
@@ -146,7 +145,7 @@ queue: <code>default</code>. Again, if this is incorrect or unset, an <code>Envi
 is raised. If both these checks pass, the decorated method is called with
 its arguments and the value is returned.</p>
 <p>To use this decorator:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">from</span> <span class="nn">google.appengine.ext.deferred</span> <span class="kn">import</span> <span class="n">SingularTaskFailure</span>
 
@@ -160,13 +159,12 @@ its arguments and the value is returned.</p>
 
 <span class="n">WorkerMethod</span><span class="p">()</span>  <span class="c1"># This will fail with an EnvironmentError</span>
 <span class="n">defer</span><span class="p">(</span><span class="n">WorkerMethod</span><span class="p">)</span>  <span class="c1"># This will perform the work, but in it&#39;s own task</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>In case you want to extend this, here is a more "complete" list of some
 helpful values that you may be able to retrieve from environment
 variables:</p>
-<div class="highlight"><pre><span></span><span class="n">HTTP_X_APPENGINE_TASKRETRYCOUNT</span>
+<div class="highlight"><pre><span></span><code><span class="n">HTTP_X_APPENGINE_TASKRETRYCOUNT</span>
 <span class="n">HTTP_X_APPENGINE_QUEUENAME</span>
 <span class="n">HTTP_X_APPENGINE_TASKNAME</span>
 <span class="n">HTTP_X_APPENGINE_TASKEXECUTIONCOUNT</span>
@@ -174,8 +172,7 @@ variables:</p>
 <span class="n">HTTP_X_APPENGINE_COUNTRY</span>
 <span class="n">HTTP_X_APPENGINE_CURRENT_NAMESPACE</span>
 <span class="n">PATH_INFO</span>
-</pre></div>
-
+</code></pre></div>
 
 <div id="special">
 <blockquote>

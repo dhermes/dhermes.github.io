@@ -100,15 +100,13 @@ document.getElementById('site-search').onsubmit = site_search_submit;
   <div class="entry-content"><p>In my day job at <a href="https://blend.com/careers/">Blend</a>, I write a lot of TypeScript<sup id=sf-type-guards-for-union-types-1-back><a href=#sf-type-guards-for-union-types-1 class=simple-footnote title="This may surprise many of my colleagues from the Python world">1</a></sup>. One great feature of
 TypeScript is the ability to specify an enum with a finite set of values
 as a <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types">union type</a>:</p>
-<div class=highlight><pre><span></span><span class=nx>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span> <span class=o>|</span> <span class=s1>'y'</span>
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=kd>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span> <span class=o>|</span> <span class=s1>'y'</span>
+</code></pre></div>
 
 <p>which then gives compile time checking for values of this type</p>
-<div class=highlight><pre><span></span><span class=kr>const</span> <span class=nx>coordinate</span>: <span class=kt>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span>
+<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>coordinate</span>: <span class=kt>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span>
 <span class=c1>// This will not compile: const coordinate: Coordinate = 'donut'</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3>Contents</h3>
 <ul>
@@ -122,29 +120,26 @@ as a <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#u
 <p>Unfortunately, there is no utility built into the language that will provide
 an array of the values in the union type. I.e. for our <code>Coordinate</code> type, we
 often want:</p>
-<div class=highlight><pre><span></span><span class=kr>const</span> <span class=nx>COORDINATES</span>: <span class=kt>Coordinate</span><span class=p>[]</span> <span class=o>=</span> <span class=p>[</span><span class=s1>'x'</span><span class=p>,</span> <span class=s1>'y'</span><span class=p>]</span>
+<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>COORDINATES</span>: <span class=kt>Coordinate</span><span class=p>[]</span> <span class=o>=</span> <span class=p>[</span><span class=s1>'x'</span><span class=p>,</span> <span class=s1>'y'</span><span class=p>]</span>
 <span class=c1>// Or even better, make it immutable: Object.freeze(['x', 'y'])</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Such a <code>COORDINATES</code> array has many uses. It's common to use such an array
 to write a <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types">type guard</a></p>
-<div class=highlight><pre><span></span><span class=kd>function</span> <span class=nx>isCoordinate</span><span class=p>(</span><span class=nx>value</span>: <span class=kt>string</span><span class=p>)</span><span class=o>:</span> <span class=nx>value</span> <span class=nx>is</span> <span class=nx>Coordinate</span> <span class=p>{</span>
+<div class=highlight><pre><span></span><code><span class=kd>function</span> <span class=nx>isCoordinate</span><span class=p>(</span><span class=nx>value</span>: <span class=kt>string</span><span class=p>)</span><span class=o>:</span> <span class=nx>value</span> <span class=nx>is</span> <span class=nx>Coordinate</span> <span class=p>{</span>
   <span class=k>return</span> <span class=nx>COORDINATES</span><span class=p>.</span><span class=nx>includes</span><span class=p>(</span><span class=nx>value</span><span class=p>)</span>
 <span class=p>}</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>or to specify a <a href="https://github.com/hapijs/joi"><code>Joi</code> schema</a> for an external facing API:</p>
-<div class=highlight><pre><span></span><span class=kr>import</span> <span class=o>*</span> <span class=kr>as</span> <span class=nx>Joi</span> <span class=nx>from</span> <span class=s1>'@hapi/joi'</span>
+<div class=highlight><pre><span></span><code><span class=k>import</span> <span class=o>*</span> <span class=kr>as</span> <span class=nx>Joi</span> <span class=k>from</span> <span class=s1>'@hapi/joi'</span>
 
-<span class=kr>const</span> <span class=nx>REPLACE_VALUE</span>: <span class=kt>Joi.ObjectSchema</span> <span class=o>=</span> <span class=nx>Joi</span><span class=p>.</span><span class=nx>object</span><span class=p>({</span>
+<span class=kd>const</span> <span class=nx>REPLACE_VALUE</span>: <span class=kt>Joi.ObjectSchema</span> <span class=o>=</span> <span class=nx>Joi</span><span class=p>.</span><span class=nx>object</span><span class=p>({</span>
   <span class=nx>id</span>: <span class=kt>Joi.string</span><span class=p>().</span><span class=nx>guid</span><span class=p>().</span><span class=nx>required</span><span class=p>(),</span>
   <span class=nx>coordinate</span>: <span class=kt>Joi.string</span><span class=p>().</span><span class=nx>valid</span><span class=p>(</span><span class=nx>COORDINATES</span><span class=p>).</span><span class=nx>required</span><span class=p>(),</span>
   <span class=nx>value</span>: <span class=kt>Joi.number</span><span class=p>().</span><span class=nx>required</span><span class=p>(),</span>
 <span class=p>})</span>
-</pre></div>
-
+</code></pre></div>
 
 <h3 id=what-can-go-wrong>What Can Go Wrong</h3>
 <p>It's easy enough to just hardcode <code>COORDINATES</code> to exactly agree with your
@@ -153,9 +148,8 @@ the values. Even better, since <code>COORDINATES</code> has the type <code>Coord
 have a guarantee<sup id=sf-type-guards-for-union-types-2-back><a href=#sf-type-guards-for-union-types-2 class=simple-footnote title="Provided you don't use any as Coordinate[] type assertion funny business">2</a></sup> from the <code>tsc</code>
 compiler that you won't have any invalid values.</p>
 <p>However, let's say one day your codebase decides to expand from 2D into 3D:</p>
-<div class=highlight><pre><span></span><span class=nx>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span> <span class=o>|</span> <span class=s1>'y'</span> <span class=o>|</span> <span class=s1>'z'</span>
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=kd>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span> <span class=o>|</span> <span class=s1>'y'</span> <span class=o>|</span> <span class=s1>'z'</span>
+</code></pre></div>
 
 <p>None of the rest of your code will break, but it <strong>should have</strong>! Your
 <code>COORDINATES</code> covering set is no longer a covering set, but both <code>x</code> and <code>y</code>
@@ -171,17 +165,16 @@ make any extra assertions to act as a guard rail.</p>
 <p>Unit tests to the rescue! We can write a single unit test (<a href="https://github.com/avajs/ava">with <code>ava</code></a>)
 that is guaranteed to fail if either the <code>Coordinate</code> union type or the
 <code>COORDINATES</code> value is changed:</p>
-<div class=highlight><pre><span></span><span class=kr>import</span> <span class=nx>test</span> <span class=nx>from</span> <span class=s1>'ava'</span>
+<div class=highlight><pre><span></span><code><span class=k>import</span> <span class=nx>test</span> <span class=k>from</span> <span class=s1>'ava'</span>
 
 <span class=nx>test</span><span class=p>(</span><span class=s1>'COORDINATES covers the Coordinate union type'</span><span class=p>,</span> <span class=nx>t</span> <span class=o>=&gt;</span> <span class=p>{</span>
-  <span class=kr>const</span> <span class=nx>asKeys</span>: <span class=kt>Record</span><span class=o>&lt;</span><span class=nx>Coordinate</span><span class=p>,</span> <span class=kt>number</span><span class=o>&gt;</span> <span class=o>=</span> <span class=p>{</span> <span class=nx>x</span>: <span class=kt>0</span><span class=p>,</span> <span class=nx>y</span>: <span class=kt>0</span> <span class=p>}</span>
-  <span class=kr>const</span> <span class=nx>expectedKeys</span> <span class=o>=</span> <span class=nb>Object</span><span class=p>.</span><span class=nx>keys</span><span class=p>(</span><span class=nx>asKeys</span><span class=p>).</span><span class=nx>sort</span><span class=p>()</span>
+  <span class=kd>const</span> <span class=nx>asKeys</span>: <span class=kt>Record</span><span class=o>&lt;</span><span class=nx>Coordinate</span><span class=p>,</span> <span class=kt>number</span><span class=o>&gt;</span> <span class=o>=</span> <span class=p>{</span> <span class=nx>x</span>: <span class=kt>0</span><span class=p>,</span> <span class=nx>y</span>: <span class=kt>0</span> <span class=p>}</span>
+  <span class=kd>const</span> <span class=nx>expectedKeys</span> <span class=o>=</span> <span class=nb>Object</span><span class=p>.</span><span class=nx>keys</span><span class=p>(</span><span class=nx>asKeys</span><span class=p>).</span><span class=nx>sort</span><span class=p>()</span>
   <span class=c1>// NOTE: Sort `COORDINATES` without mutating it.</span>
-  <span class=kr>const</span> <span class=nx>actualKeys</span> <span class=o>=</span> <span class=nx>COORDINATES</span><span class=p>.</span><span class=nx>concat</span><span class=p>().</span><span class=nx>sort</span><span class=p>()</span>
+  <span class=kd>const</span> <span class=nx>actualKeys</span> <span class=o>=</span> <span class=nx>COORDINATES</span><span class=p>.</span><span class=nx>concat</span><span class=p>().</span><span class=nx>sort</span><span class=p>()</span>
   <span class=nx>t</span><span class=p>.</span><span class=nx>deepEqual</span><span class=p>(</span><span class=nx>expectedKeys</span><span class=p>,</span> <span class=nx>actualKeys</span><span class=p>)</span>
 <span class=p>})</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>Using the <a href="https://stackoverflow.com/a/51937036/1068170"><code>Record&lt;&gt;</code> type</a> allows the <strong>compiler</strong> to tell us if any
 members of the <code>Coordinate</code> are absent keys in <code>asKeys</code>. Then at <strong>runtime</strong>
@@ -191,15 +184,14 @@ against <code>COORDINATES</code>.</p>
 <h3 id=but-what-about>But What About ...</h3>
 <p>The snippet in the unit test absolutely provides a template for doing this
 inline (i.e. without the support of a unit test):</p>
-<div class=highlight><pre><span></span><span class=nx>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span> <span class=o>|</span> <span class=s1>'y'</span>
-<span class=kr>const</span> <span class=nx>asKeys</span>: <span class=kt>Record</span><span class=o>&lt;</span><span class=nx>Coordinate</span><span class=p>,</span> <span class=kt>number</span><span class=o>&gt;</span> <span class=o>=</span> <span class=p>{</span> <span class=nx>x</span>: <span class=kt>0</span><span class=p>,</span> <span class=nx>y</span>: <span class=kt>0</span> <span class=p>}</span>
-<span class=kr>const</span> <span class=nx>COORDINATES</span>: <span class=kt>Coordinate</span><span class=p>[]</span> <span class=o>=</span> <span class=nb>Object</span><span class=p>.</span><span class=nx>keys</span><span class=p>(</span><span class=nx>asKeys</span><span class=p>)</span>
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=kd>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span> <span class=o>|</span> <span class=s1>'y'</span>
+<span class=kd>const</span> <span class=nx>asKeys</span>: <span class=kt>Record</span><span class=o>&lt;</span><span class=nx>Coordinate</span><span class=p>,</span> <span class=kt>number</span><span class=o>&gt;</span> <span class=o>=</span> <span class=p>{</span> <span class=nx>x</span>: <span class=kt>0</span><span class=p>,</span> <span class=nx>y</span>: <span class=kt>0</span> <span class=p>}</span>
+<span class=kd>const</span> <span class=nx>COORDINATES</span>: <span class=kt>Coordinate</span><span class=p>[]</span> <span class=o>=</span> <span class=nb>Object</span><span class=p>.</span><span class=nx>keys</span><span class=p>(</span><span class=nx>asKeys</span><span class=p>)</span>
+</code></pre></div>
 
 <p>however, this snippet of code will fail due to the return type of
 <code>Object.keys()</code>:</p>
-<div class=highlight><pre><span></span><span class=gp>$</span> tsc snippet.ts
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>tsc snippet.ts
 <span class=go>snippet.ts:6:7 - error TS2322: Type 'string[]' is not assignable to type 'Coordinate[]'.</span>
 <span class=go>  Type 'string' is not assignable to type 'Coordinate'.</span>
 
@@ -208,8 +200,7 @@ inline (i.e. without the support of a unit test):</p>
 
 
 <span class=go>Found 1 error.</span>
-</pre></div>
-
+</code></pre></div>
 
 <p>So in order to use it, you'd need to resort back to a type assertion (and IMO
 type assertions should be avoided at all costs).</p>
@@ -222,33 +213,30 @@ worse.</p>
 was provided by <code>Record&lt;&gt;</code>. It's equally fine to define that mapping
 directly and derive the <code>Coordinate</code> union type from it via the
 <a href="https://mariusschulz.com/blog/typescript-2-1-keyof-and-lookup-types"><code>keyof</code> keyword</a></p>
-<div class=highlight><pre><span></span><span class=kr>interface</span> <span class=nx>Point</span> <span class=p>{</span>
+<div class=highlight><pre><span></span><code><span class=kd>interface</span> <span class=nx>Point</span> <span class=p>{</span>
   <span class=nx>x</span>: <span class=kt>number</span>
   <span class=nx>y</span>: <span class=kt>number</span>
 <span class=p>}</span>
-<span class=nx>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=nx>keyof</span> <span class=nx>Point</span>
-</pre></div>
-
+<span class=kd>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=nx>keyof</span> <span class=nx>Point</span>
+</code></pre></div>
 
 <p>Then the unit test will change ever so slightly<sup id=sf-type-guards-for-union-types-3-back><a href=#sf-type-guards-for-union-types-3 class=simple-footnote title="In cases where some of the keys are optional, a Required<Point> must be used for the type of asKeys. The Required<> type was added in TypeScript 2.8.)">3</a></sup></p>
-<div class=highlight><pre><span></span><span class=kr>const</span> <span class=nx>asKeys</span>: <span class=kt>Point</span> <span class=o>=</span> <span class=p>{</span> <span class=nx>x</span>: <span class=kt>0</span><span class=p>,</span> <span class=nx>y</span>: <span class=kt>0</span> <span class=p>}</span>
-</pre></div>
-
+<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>asKeys</span>: <span class=kt>Point</span> <span class=o>=</span> <span class=p>{</span> <span class=nx>x</span>: <span class=kt>0</span><span class=p>,</span> <span class=nx>y</span>: <span class=kt>0</span> <span class=p>}</span>
+</code></pre></div>
 
 <p>In codebases where "no magic constants" is a rule<sup id=sf-type-guards-for-union-types-4-back><a href=#sf-type-guards-for-union-types-4 class=simple-footnote title="I.e. typing 'x' or 'y' would not be allowed">4</a></sup>, a convenience <code>enum</code> can
 be provided to give named variables for each value in the <code>Coordinate</code> type:</p>
-<div class=highlight><pre><span></span><span class=kr>enum</span> <span class=nx>CoordinateNames</span> <span class=p>{</span>
+<div class=highlight><pre><span></span><code><span class=kd>enum</span> <span class=nx>CoordinateNames</span> <span class=p>{</span>
   <span class=nx>x</span> <span class=o>=</span> <span class=s1>'x'</span><span class=p>,</span>
   <span class=nx>y</span> <span class=o>=</span> <span class=s1>'y'</span><span class=p>,</span>
 <span class=p>}</span>
-<span class=nx>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=nx>keyof</span> <span class=k>typeof</span> <span class=nx>CoordinateNames</span>
-</pre></div>
-
+<span class=kd>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=nx>keyof</span> <span class=k>typeof</span> <span class=nx>CoordinateNames</span>
+</code></pre></div>
 
 <p>Since a <a href="https://www.typescriptlang.org/docs/handbook/enums.html">TypeScript <code>enum</code></a> is really just an <code>object</code>, we can use it
 directly in our unit test without having to form the stand-in <code>asKeys</code> value</p>
-<div class=highlight><pre><span></span><span class=kr>const</span> <span class=nx>expectedKeys</span> <span class=o>=</span> <span class=nb>Object</span><span class=p>.</span><span class=nx>keys</span><span class=p>(</span><span class=nx>CoordinateNames</span><span class=p>).</span><span class=nx>sort</span><span class=p>()</span>
-</pre></div><ol class=simple-footnotes><li id=sf-type-guards-for-union-types-1>This may surprise
+<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>expectedKeys</span> <span class=o>=</span> <span class=nb>Object</span><span class=p>.</span><span class=nx>keys</span><span class=p>(</span><span class=nx>CoordinateNames</span><span class=p>).</span><span class=nx>sort</span><span class=p>()</span>
+</code></pre></div><ol class=simple-footnotes><li id=sf-type-guards-for-union-types-1>This may surprise
 many of my colleagues from the Python world <a href=#sf-type-guards-for-union-types-1-back class=simple-footnote-back>↩</a></li><li id=sf-type-guards-for-union-types-2>Provided you don't use any
 <code>as Coordinate[]</code> <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html#type-assertions">type assertion</a> funny business <a href=#sf-type-guards-for-union-types-2-back class=simple-footnote-back>↩</a></li><li id=sf-type-guards-for-union-types-3>In cases where some of the
 keys are optional, a <code>Required&lt;Point&gt;</code> must be used for the type of <code>asKeys</code>.
