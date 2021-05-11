@@ -1,5 +1,236 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2020-12-01T00:00:00-08:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Broken Pipe in a Haystack</title><link href="https://blog.bossylobster.com/2020/12/broken-pipe.html" rel="alternate"></link><published>2020-12-01T00:00:00-08:00</published><updated>2020-12-01T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-12-01:/2020/12/broken-pipe.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-05-11T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>The Node.js CA Footgun</title><link href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html" rel="alternate"></link><published>2021-05-11T00:00:00-07:00</published><updated>2021-05-11T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-05-11:/2021/05/node-ca-footgun.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Door to Nowhere" src="/images/door-nowhere.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;This is a story of a brief outage caused by a slightly unintuitive API&lt;sup id=sf-node-ca-footgun-1-back&gt;&lt;a href=#sf-node-ca-footgun-1 class=simple-footnote title="Like a door to nowhere."&gt;1&lt;/a&gt;&lt;/sup&gt; that has some very &lt;a href="https://en.wiktionary.org/wiki/footgun"&gt;sharp corners&lt;/a&gt; for the
+uninitiated. The outage, though brief, was of the "wake up at 4am" variety so
+the lesson was especially salient.&lt;/p&gt;
+&lt;p&gt;This &lt;strong&gt;is not&lt;/strong&gt; a post trying to tear …&lt;/p&gt;</summary><content type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Door to Nowhere" src="/images/door-nowhere.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;This is a story of a brief outage caused by a slightly unintuitive API&lt;sup id=sf-node-ca-footgun-1-back&gt;&lt;a href=#sf-node-ca-footgun-1 class=simple-footnote title="Like a door to nowhere."&gt;1&lt;/a&gt;&lt;/sup&gt; that has some very &lt;a href="https://en.wiktionary.org/wiki/footgun"&gt;sharp corners&lt;/a&gt; for the
+uninitiated. The outage, though brief, was of the "wake up at 4am" variety so
+the lesson was especially salient.&lt;/p&gt;
+&lt;p&gt;This &lt;strong&gt;is not&lt;/strong&gt; a post trying to tear down the Node.js authors or cast blame.
+The Node.js runtime and standard library are incredible force multipliers
+that help teams ship code quickly. This particular story is about a codebase
+misusing the connection options offered by the &lt;code&gt;tls&lt;/code&gt; package in the Node.js
+standard library. This usage was based on an "obvious" interpretation of one
+option name and an expectation that another option would behave similarly to
+how it works in other technology stacks. These options are very
+well documented, but one option could really benefit from being renamed and the
+other could benefit from a small change in behavior. However, for a programming
+language runtime with such a large userbase it's essentially impossible to
+rename options or change behavior in a core package once released.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#the-good&gt;The Good&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#the-bad&gt;The Bad&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#the-ugly&gt;The Ugly&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#takeaways&gt;Takeaways&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=the-good&gt;The Good&lt;/h3&gt;
+&lt;p&gt;This outage motivated me to try to address the biggest issue in this
+outage: the &lt;code&gt;ca&lt;/code&gt; TLS option wipes away the default root trust store.
+I'll be writing up "Fixing the Custom CA Problem in Node.js" soon to showcase
+how &lt;code&gt;ca&lt;/code&gt; is currently broken and to demonstrate how my &lt;code&gt;ca-append&lt;/code&gt; &lt;a href="https://github.com/dhermes/ca-append-js"&gt;package&lt;/a&gt;
+tries to patch the brokenness.&lt;/p&gt;
+&lt;h3 id=the-bad&gt;The Bad&lt;/h3&gt;
+&lt;p&gt;Here I want to lay out the sharpest corner: the &lt;code&gt;ca&lt;/code&gt; TLS option in Node.js
+(I mentioned two connection options in this story, but the second one —
+&lt;code&gt;cert&lt;/code&gt; — was a less significant contributor to the outage).&lt;/p&gt;
+&lt;p&gt;When applications securely connect over TLS, they always&lt;sup id=sf-node-ca-footgun-2-back&gt;&lt;a href=#sf-node-ca-footgun-2 class=simple-footnote title="Almost always. But they should always verify."&gt;2&lt;/a&gt;&lt;/sup&gt; verify that the server's X.509 certificate
+has been signed by a trusted certificate authority (CA). Most language
+runtimes — including Node.js — have a default root trust store of
+well-known CAs.&lt;/p&gt;
+&lt;p&gt;However, some applications need to connect to private or internal servers that
+have X.509 certificates signed by a CA &lt;strong&gt;outside of&lt;/strong&gt; the default root trust
+store. For example, during local development we may want to run a server over
+TLS on &lt;code&gt;localhost&lt;/code&gt;. Or, some third parties may have a private CA that
+they use to sign certificates for internal APIs.&lt;/p&gt;
+&lt;p&gt;In these situations it's crucial to be able to modify the default root trust
+store and Node.js provides a &lt;code&gt;ca&lt;/code&gt; TLS connection option&lt;sup id=sf-node-ca-footgun-3-back&gt;&lt;a href=#sf-node-ca-footgun-3 class=simple-footnote title=' Node.js also supports a NODE_EXTRA_CA_CERTS environment variable for the custom CA use case. However, NODE_EXTRA_CA_CERTS is a "catch-all" that applies to every connection, which can be a problem in multi-tenant applications.'&gt;3&lt;/a&gt;&lt;/sup&gt; for doing just that. The problem with the &lt;a href="https://nodejs.org/docs/latest-v14.x/api/tls.html#tls_tls_createsecurecontext_options"&gt;&lt;code&gt;ca&lt;/code&gt; option&lt;/a&gt;
+is that it completely replaces the existing trust store (rather than appending
+to it):&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Optionally override the trusted CA certificates. Default is to trust the
+well-known CAs curated by Mozilla. Mozilla's CAs are completely replaced
+when CAs are explicitly specified using this option.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This means that we can no longer hit public servers over TLS if the &lt;code&gt;ca&lt;/code&gt; option
+is used. For example, we'd expect to be able to communicate with
+&lt;code&gt;https://www.google.com&lt;/code&gt; but unless the CA that signed the Google public
+certificate is present in our &lt;code&gt;ca&lt;/code&gt; input, the connection will fail.&lt;/p&gt;
+&lt;h3 id=the-ugly&gt;The Ugly&lt;/h3&gt;
+&lt;p&gt;We'll start with the outage here and then work our way backwards to understand
+how the code and configuration got in a brittle and then broken state.
+To tell the story of the outage, I'll introduce a fictional API and private
+CA, but keep the core ideas intact. The API uses mutual TLS (mTLS)
+to authenticate requests, so the the characters in the story are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Server&lt;/strong&gt;: &lt;code&gt;https://api.acme.invalid&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Server Root CA&lt;/strong&gt;: DigiCert&lt;sup id=sf-node-ca-footgun-4-back&gt;&lt;a href=#sf-node-ca-footgun-4 class=simple-footnote title="DigiCert is one of the most     reputable Certificate Authorities, if not the most reputable."&gt;4&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Client Root CA&lt;/strong&gt;: Acme Corp Legitimate Root CA&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Both the server and client public certificate were signed by
+intermediates&lt;sup id=sf-node-ca-footgun-5-back&gt;&lt;a href=#sf-node-ca-footgun-5 class=simple-footnote title="As opposed to being directly signed by the root CA."&gt;5&lt;/a&gt;&lt;/sup&gt;
+as well:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;Root           CN: DigiCert High Assurance EV Root CA
+  Intermediate CN: DigiCert SHA2 Extended Validation Server CA
+    Leaf       CN: api.acme.invalid
+
+Root           CN: Acme Corp Legitimate Root CA
+  Intermediate CN: Acme Corp Production Intermediate CA
+    Leaf       CN: 3975092b-4484-4b36-9f22-f84d4dd1e95a
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In order to sign mTLS requests as the client, the TLS connection was configured
+with a public certificate, a private key and a pair of
+relevant CAs&lt;sup id=sf-node-ca-footgun-6-back&gt;&lt;a href=#sf-node-ca-footgun-6 class=simple-footnote title="The astute observer may notice one CA is an intermediate and the other is a root. This is not a typo, but is also not something that is particularly correct. More on that later."&gt;6&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;const&lt;/span&gt; &lt;span class=nx&gt;options&lt;/span&gt;: &lt;span class=kt&gt;tls.SecureContextOptions&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+  &lt;span class=nx&gt;key&lt;/span&gt;: &lt;span class=kt&gt;fs.readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/client-key.pem`&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+  &lt;span class=nx&gt;cert&lt;/span&gt;: &lt;span class=kt&gt;fs.readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/client-cert.pem`&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+  &lt;span class=nx&gt;ca&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=p&gt;[&lt;/span&gt;
+    &lt;span class=nx&gt;fs&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/client-intermediate.pem`&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=nx&gt;fs&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/DigiCertHighAssuranceEVRootCA.crt.pem`&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+  &lt;span class=p&gt;],&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Unfortunately, the &lt;code&gt;api.acme.invalid&lt;/code&gt; certificate &lt;strong&gt;expired&lt;/strong&gt; 23 months after
+the code using this configuration was written and deployed. This is a textbook
+case of "it works today, ship it" gone wrong. The service and API integration
+worked perfectly fine for 22 months. Then, when Acme rotated the server
+certificate, everything fell apart.&lt;/p&gt;
+&lt;p&gt;From Acme's perspective, nothing had changed about the &lt;code&gt;api.acme.invalid&lt;/code&gt;
+server because the new certificate was from DigiCert as well. As a result,
+no communications or warnings were sent out to the API clients when the
+certificate was rotated. However, DigiCert has &lt;strong&gt;multiple&lt;/strong&gt; roots and the
+new certificate was issued by a &lt;strong&gt;different&lt;/strong&gt; CA certificate:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;Root           CN: DigiCert Global Root CA
+  Intermediate CN: DigiCert TLS RSA SHA256 2020 CA1
+    Leaf       CN: api.acme.invalid
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now the addition of &lt;code&gt;DigiCertHighAssuranceEVRootCA.crt.pem&lt;/code&gt; to the &lt;code&gt;ca&lt;/code&gt;
+override provides no help. After the server certificate was rotated, a
+&lt;code&gt;SELF_SIGNED_CERT_IN_CHAIN&lt;/code&gt; error immediately started to occur on
+&lt;strong&gt;every request&lt;/strong&gt; to the Acme API&lt;sup id=sf-node-ca-footgun-7-back&gt;&lt;a href=#sf-node-ca-footgun-7 class=simple-footnote title="This error indicates that the CA — DigiCert Global Root CA — is not trusted by the custom ca bundle override used by the application."&gt;7&lt;/a&gt;&lt;/sup&gt;. Worse still, the on-call
+engineer at the time had insufficient context on the original implementation
+and had &lt;strong&gt;never seen&lt;/strong&gt; this self-signed certificate error before. Combined
+with the fact that Acme had not sent out change notifications, the code had
+not changed and the service had not been redeployed recently, this sudden
+outage was confounding.&lt;/p&gt;
+&lt;p&gt;Once the on-call engineer pulled in another team more familiar with
+TLS, the error was clear but the source of the configuration was not.
+Eventually, the &lt;code&gt;ca&lt;/code&gt; override was found collaboratively and the API
+integration was fixed by adding &lt;code&gt;DigiCertGlobalRootCA.crt.pem&lt;/code&gt; to the &lt;code&gt;ca&lt;/code&gt;
+bundle override.&lt;/p&gt;
+&lt;h4 id=why-override&gt;Why Override &lt;code&gt;ca&lt;/code&gt; at All?&lt;/h4&gt;
+&lt;p&gt;In sensitive or zero trust environments, it's common to use mutual TLS (mTLS).
+Often in this scenario, an API provider will run a private CA and will use
+it to sign &lt;a href="https://en.wikipedia.org/wiki/Certificate_signing_request"&gt;CSRs&lt;/a&gt; for client certificates. When working with Acme Corp to
+get a valid client certificate, the team generated a private key file
+&lt;code&gt;client-key.pem&lt;/code&gt; and sent off a CSR. Acme Corp gladly signed the CSR and sent
+back the file &lt;code&gt;client-chain.pem&lt;/code&gt;. This chain file contained both the public
+certificate &lt;code&gt;3975092b-4484-4b36-9f22-f84d4dd1e95a&lt;/code&gt; and the
+Acme Corp Production Intermediate CA certificate.&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;name&lt;/strong&gt; of the &lt;code&gt;cert&lt;/code&gt; option is what caused confusion and triggered the
+brittle outage-inducing configuration. After a literal reading of the names
+&lt;code&gt;cert&lt;/code&gt; and &lt;code&gt;ca&lt;/code&gt; in the TLS options, the team decided to split the up
+&lt;code&gt;client-chain.pem&lt;/code&gt; into two files:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;const&lt;/span&gt; &lt;span class=nx&gt;options&lt;/span&gt;: &lt;span class=kt&gt;tls.SecureContextOptions&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+  &lt;span class=nx&gt;key&lt;/span&gt;: &lt;span class=kt&gt;fs.readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/client-key.pem`&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+  &lt;span class=nx&gt;cert&lt;/span&gt;: &lt;span class=kt&gt;fs.readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/client-cert.pem`&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+  &lt;span class=nx&gt;ca&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=p&gt;[&lt;/span&gt;&lt;span class=nx&gt;fs&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/client-intermediate.pem`&lt;/span&gt;&lt;span class=p&gt;)],&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;However, attempting to using this configuration during development failed
+(as expected): &lt;code&gt;SELF_SIGNED_CERT_IN_CHAIN&lt;/code&gt;&lt;sup id=sf-node-ca-footgun-8-back&gt;&lt;a href=#sf-node-ca-footgun-8 class=simple-footnote title="The self-signed error occurs if a server presents a full chain, i.e. leaf, intermediate and root. However, it's more common for a server to only present a leaf and intermediate, in which case the equivalent Node.js error would be UNABLE_TO_GET_ISSUER_CERT_LOCALLY."&gt;8&lt;/a&gt;&lt;/sup&gt;.
+This error is caused by the &lt;code&gt;ca&lt;/code&gt; issue discussed &lt;a href=#the-bad&gt;above&lt;/a&gt;: the root
+DigiCert High Assurance EV Root CA was no longer trusted in the connection
+because all of the default public root CAs have been replaced. In order to
+solve this connection issue, the team &lt;a href="https://www.digicert.com/kb/digicert-root-certificates.htm"&gt;downloaded&lt;/a&gt;
+&lt;code&gt;DigiCertHighAssuranceEVRootCA.crt.pem&lt;/code&gt; and added it to the &lt;code&gt;ca&lt;/code&gt; override.&lt;/p&gt;
+&lt;h4 id=could-avoided&gt;Could This Have Been Avoided?&lt;/h4&gt;
+&lt;p&gt;If the team had used &lt;code&gt;client-chain.pem&lt;/code&gt; directly, there would have been no need
+to override the &lt;code&gt;ca&lt;/code&gt; in the connection:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;const&lt;/span&gt; &lt;span class=nx&gt;options&lt;/span&gt;: &lt;span class=kt&gt;tls.SecureContextOptions&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+  &lt;span class=nx&gt;key&lt;/span&gt;: &lt;span class=kt&gt;fs.readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/client-key.pem`&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+  &lt;span class=nx&gt;cert&lt;/span&gt;: &lt;span class=kt&gt;fs.readFileSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;CONFIGURATION_DIR&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/client-chain.pem`&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If &lt;strong&gt;only&lt;/strong&gt; the leaf certificate&lt;sup id=sf-node-ca-footgun-9-back&gt;&lt;a href=#sf-node-ca-footgun-9 class=simple-footnote title="The alternative to only the leaf certificate is a chain file containing both the leaf certificate and the intermediate CA that signed it."&gt;9&lt;/a&gt;&lt;/sup&gt; is
+used in the &lt;code&gt;cert&lt;/code&gt; option, many servers will fail an mTLS request with
+&lt;code&gt;UNABLE_TO_VERIFY_LEAF_SIGNATURE&lt;/code&gt; or a similar error. This is because the
+client party must present the leaf certificate &lt;strong&gt;and&lt;/strong&gt; any intermediates
+along the chain up to the root CA. The documentation for &lt;code&gt;cert&lt;/code&gt;
+&lt;a href="https://nodejs.org/docs/latest-v14.x/api/tls.html#tls_tls_createsecurecontext_options"&gt;makes this clear&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Cert chains in PEM format ... Each cert chain should consist of the PEM
+formatted certificate for a provided private key, followed by the PEM
+formatted intermediate certificates (if any), in order, and not including
+the root CA (the root CA must be pre-known to the peer, see &lt;code&gt;ca&lt;/code&gt;).&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Renaming the option from &lt;code&gt;cert&lt;/code&gt; to &lt;code&gt;chain&lt;/code&gt; in the &lt;code&gt;tls&lt;/code&gt; package would be much
+clearer. But the Node.js runtime and the standard library &lt;code&gt;tls&lt;/code&gt; package have
+&lt;strong&gt;wide&lt;/strong&gt; usage and such a rename is likely impossible to pull off.&lt;/p&gt;
+&lt;p&gt;Once the intermediate CA is removed from the file used in &lt;code&gt;cert&lt;/code&gt;, Node.js
+can't hope to present the intermediate CA certificate during an mTLS handshake.
+However, if the intermediate CA certificate is added via &lt;code&gt;ca&lt;/code&gt;, Node.js can
+find it in the root trust store and then present it to the server as the issuer
+of the leaf.&lt;/p&gt;
+&lt;h4 id=rotation-blame&gt;Is the Server Certificate Rotation to Blame?&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt;: No&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;By design, X.509 certificates issued by public CAs expire often because they
+have short lifetimes (typically &lt;a href="https://letsencrypt.org/2015/11/09/why-90-days.html"&gt;ninety days&lt;/a&gt; to two years). Shorter
+lifetimes require certificate and key rotations. Rotations help limit the
+impact of key compromise and help make sure the public internet "upgrades" key
+strength as technology improves.&lt;/p&gt;
+&lt;h3 id=takeaways&gt;Takeaways&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is a textbook case of "it works today, ship it" gone wrong.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The connection option misuse described here was exacerbated by service
+operators lacking familiarity with the class of errors typical when TLS
+connections fail. But TLS is squarely one of those "here be dragons" topics for
+most engineering teams (including information security teams). The takeaways
+from this outage are not cut and dry:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;It's unreasonable for every type of engineering team to have deep knowledge
+    in this part of the stack, on-call service operators should &lt;strong&gt;quickly&lt;/strong&gt;
+    loop in teams or people that do have that knowledge during an outage&lt;/li&gt;
+&lt;li&gt;Teams that don't have deep knowledge of a given technology (e.g. TLS),
+    should try to avoid "deep" customization when using it or try to share
+    the burden of the complexity e.g. by using an auxiliary service provided
+    by another team&lt;/li&gt;
+&lt;li&gt;Writing "tests" for things that work today but might break in the future
+    is &lt;strong&gt;very hard&lt;/strong&gt;. "Modern" software tooling is very good, but there
+    are many kinds of assumptions that are just not possible to encode in
+    unit tests or acceptance tests in today's landscape&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr style="margin-bottom: 25px; width: 50%;"&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-node-ca-footgun-1&gt;Like
+a door to nowhere. &lt;a href=#sf-node-ca-footgun-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-node-ca-footgun-2&gt;Almost always. But
+they &lt;strong&gt;should&lt;/strong&gt; always verify. &lt;a href=#sf-node-ca-footgun-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-node-ca-footgun-3&gt;
+Node.js also supports a &lt;code&gt;NODE_EXTRA_CA_CERTS&lt;/code&gt; environment variable for the
+custom CA use case. However, &lt;code&gt;NODE_EXTRA_CA_CERTS&lt;/code&gt; is a "catch-all" that
+applies to every connection, which can be a problem in multi-tenant
+applications. &lt;a href=#sf-node-ca-footgun-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-node-ca-footgun-4&gt;DigiCert is one of the most
+    reputable Certificate Authorities, if not &lt;strong&gt;the&lt;/strong&gt; most reputable. &lt;a href=#sf-node-ca-footgun-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-node-ca-footgun-5&gt;As opposed to being directly signed by the root CA. &lt;a href=#sf-node-ca-footgun-5-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-node-ca-footgun-6&gt;The astute observer may notice one CA is an intermediate
+and the other is a root. This is not a typo, but is also not something
+that is particularly correct. More on that later. &lt;a href=#sf-node-ca-footgun-6-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-node-ca-footgun-7&gt;This error indicates that the
+CA — DigiCert Global Root CA — is not trusted by the custom &lt;code&gt;ca&lt;/code&gt;
+bundle override used by the application. &lt;a href=#sf-node-ca-footgun-7-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-node-ca-footgun-8&gt;The self-signed error occurs if
+a server presents a &lt;strong&gt;full&lt;/strong&gt; chain, i.e. leaf, intermediate and root. However,
+it's more common for a server to only present a leaf and intermediate, in
+which case the equivalent Node.js error would be
+&lt;code&gt;UNABLE_TO_GET_ISSUER_CERT_LOCALLY&lt;/code&gt;. &lt;a href=#sf-node-ca-footgun-8-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-node-ca-footgun-9&gt;The alternative to &lt;strong&gt;only&lt;/strong&gt; the
+leaf certificate is a chain file containing both the leaf certificate
+and the intermediate CA that signed it. &lt;a href=#sf-node-ca-footgun-9-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Node.js"></category><category term="TLS"></category><category term="CA"></category><category term="Certificate Authority"></category></entry><entry><title>Broken Pipe in a Haystack</title><link href="https://blog.bossylobster.com/2020/12/broken-pipe.html" rel="alternate"></link><published>2020-12-01T00:00:00-08:00</published><updated>2020-12-01T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2020-12-01:/2020/12/broken-pipe.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="Broken Pipe" src="/images/broken-pipe.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;I recently put on my detective hat and tracked down a bug in network error
