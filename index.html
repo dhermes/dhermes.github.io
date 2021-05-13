@@ -72,6 +72,26 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-12-node-ca-append.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-05-12T00:00:00-07:00" pubdate>May 12, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><blockquote>
+<p><strong>TL;DR</strong>: Using the <code>ca</code> field to specify custom CAs (certificate
+authorities) in Node.js is a <a href="/2021/05/node-ca-footgun.html">footgun</a>. It replaces (rather than appends
+to) the root trust store which can lead to unintended consequences. I've
+seen this behavior cause outages in production when a third party server does
+a routine â€¦</p></blockquote></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-11-node-ca-footgun.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
@@ -152,28 +172,6 @@ network â€¦</p></div>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-01-go-pq-prevent-deadlock.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-09-01T00:00:00-07:00" pubdate>Sep 01, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p><img alt="All About Locks" src="/images/Lock-Up-The-Forest.jpg"></p>
-<p>I've been writing a library for running PostgreSQL migrations in Go. One
-of the primary pieces of advice I <a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/">keep</a> coming <a href="https://benchling.engineering/move-fast-and-migrate-things-how-we-automated-migrations-in-postgres-d60aba0fc3d4">across</a> is</p>
-<blockquote>
-<p>Beware of lock queues, use lock timeouts</p>
-</blockquote>
-<p>In other words, each migration stage should happen <strong>instantaneously</strong> (or
-almost instantaneously). For real-time applications, if a migration runs "for â€¦</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/2">&larr; Older</a>
 
@@ -188,6 +186,9 @@ almost instantaneously). For real-time applications, if a migration runs "for â€
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
       </li>
       <li class="post">
@@ -198,9 +199,6 @@ almost instantaneously). For real-time applications, if a migration runs "for â€
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
       </li>
     </ul>
   </section>

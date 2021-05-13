@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Fixing the Custom CA Problem in Node.js &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Monkey Patching an Unintuitive API" />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Fixing the Custom CA Problem in Node.js</p>" />
+<meta itemprop="description" content="Monkey Patching an Unintuitive API" />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/heavy-duty-patch.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Fixing the Custom CA Problem in Node.js</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/heavy-duty-patch.png" />
+<meta property="og:description" content="Monkey Patching an Unintuitive API" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Fixing the Custom CA Problem in Node.js</p>" />
+<meta name="twitter:description" content="Monkey Patching an Unintuitive API" />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/heavy-duty-patch.png" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-12-node-ca-append.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Fixing the Custom CA Problem in Node.js</h1>
+    <p class="meta">
+<time datetime="2021-05-12T00:00:00-07:00" pubdate>May 12, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><blockquote>
+<p><strong>TL;DR</strong>: Using the <code>ca</code> field to specify custom CAs (certificate
+authorities) in Node.js is a <a href="/2021/05/node-ca-footgun.html">footgun</a>. It replaces (rather than appends
+to) the root trust store which can lead to unintended consequences. I've
+seen this behavior cause outages in production when a third party server does
+a routine certificate rotation.</p>
+<p>By using the <code>ca-append</code> <a href="https://www.npmjs.com/package/ca-append">package</a>, the built-in handling in
+Node.js will be monkey patched so that the <code>ca</code> field is not supported.
+Instead we replace it with two fields <code>caAppend</code> and <code>caReplace</code>.</p>
+</blockquote>
+<p>Below we'll run a TLS server using a custom CA certificate. We'll
+compare the difference in behavior between <code>curl</code> and Node.js when making
+TLS requests to this server and to <code>google.com</code> with the same configuration.
+Finally, after seeing how Node.js differs from <code>curl</code> in this regard, we'll
+show how to use the <code>ca-append</code> <a href="https://www.npmjs.com/package/ca-append">package</a> to fix the issues with the
+<code>ca</code> TLS option in Node.js.</p>
+<p>See <a href="/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a> for more details on a real world situation
+that showcases a problematic situation caused by the behavior of the <code>ca</code>
+TLS option.</p>
+<ul>
+<li><a href="#server">Server</a></li>
+<li><a href="#clients">Clients</a></li>
+<li><a href="#append-vs-replace">Append vs. Replace</a></li>
+<li><a href="#patching-node-js">Patching Node.js</a></li>
+</ul>
+<h3 id="server">Server</h3>
+<p>We can <a href="/code/node-ca/server.ts">define</a> a hello world TLS / HTTPS server with a
+<a href="/code/node-ca/localhost-key.pem">private key</a> / X.509 <a href="/code/node-ca/localhost-cert.pem">certificate</a> pair for <code>localhost</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">key</span>: <span class="kt">fs.readFileSync</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">__dirname</span><span class="si">}</span><span class="sb">/localhost-key.pem`</span><span class="p">),</span>
+  <span class="nx">cert</span>: <span class="kt">fs.readFileSync</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">__dirname</span><span class="si">}</span><span class="sb">/localhost-cert.pem`</span><span class="p">),</span>
+<span class="p">};</span>
+<span class="nx">https</span>
+  <span class="p">.</span><span class="nx">createServer</span><span class="p">(</span><span class="nx">options</span><span class="p">,</span> <span class="p">(</span><span class="nx">_req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">writeHead</span><span class="p">(</span><span class="mf">200</span><span class="p">);</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="s1">&#39;hello world\n&#39;</span><span class="p">);</span>
+  <span class="p">})</span>
+  <span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="nx">port</span><span class="p">);</span>
+</code></pre></div>
+
+<p>Running this server on port 9072, we'll attempt to securely connect
+to it in a number of different ways:</p>
+<div class="highlight"><pre><span></span><code>$ npx ts-node server.ts 9072
+Running TLS server on localhost:9072
+</code></pre></div>
+
+<h3 id="clients">Clients</h3>
+<h4><code>curl</code> Command Line Client</h4>
+<p>By default, clients don't trust an X.509 certificate signed by a custom CA:</p>
+<div class="highlight"><pre><span></span><code>$ curl https://localhost:9072
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+</code></pre></div>
+
+<p>so we need to supply a custom CA <a href="/code/node-ca/root-ca-cert.pem">certificate</a>:</p>
+<div class="highlight"><pre><span></span><code>$ curl --cacert ./root-ca-cert.pem https://localhost:9072
+hello world
+</code></pre></div>
+
+<h4 id="node-with-ca">Node.js Client</h4>
+<p>Similarly when using Node.js, the default client options can't verify the
+server. However, when specifying <code>ca</code> to point at the custom root CA, the
+connection succeeds. Running a <code>client.ts</code> <a href="/code/node-ca/client.ts">script</a> we see:</p>
+<div class="highlight"><pre><span></span><code>$ npx ts-node client.ts https://localhost:9072
+Using URL=&quot;https://localhost:9072&quot;;
+Failure when `ca` not included:
+  error code:    UNABLE_TO_VERIFY_LEAF_SIGNATURE
+  error message: unable to verify the first certificate
+Success when `ca` included:
+  response.status: 200
+</code></pre></div>
+
+<p>These two requests are made with slightly different configurations:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span> <span class="nx">withoutCA</span>: <span class="kt">axios.AxiosRequestConfig</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">httpsAgent</span>: <span class="kt">new</span> <span class="nx">https</span><span class="p">.</span><span class="nx">Agent</span><span class="p">({</span>
+    <span class="c1">// ...</span>
+  <span class="p">}),</span>
+  <span class="c1">// ...</span>
+<span class="p">};</span>
+
+<span class="kd">const</span> <span class="nx">withCA</span>: <span class="kt">axios.AxiosRequestConfig</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">httpsAgent</span>: <span class="kt">new</span> <span class="nx">https</span><span class="p">.</span><span class="nx">Agent</span><span class="p">({</span>
+    <span class="nx">ca</span><span class="o">:</span> <span class="p">[</span><span class="nx">customRootCA</span><span class="p">],</span>
+    <span class="c1">// ...</span>
+  <span class="p">}),</span>
+  <span class="c1">// ...</span>
+<span class="p">};</span>
+</code></pre></div>
+
+<h3 id="append-vs-replace">Append vs. Replace</h3>
+<h4><code>curl</code> Command Line Client</h4>
+<p>When reaching public servers like <code>google.com</code>, <code>curl</code> can utilize the
+root trust store by default:</p>
+<div class="highlight"><pre><span></span><code>$ curl \
+&gt;   --write-out &quot;Status Code: %{http_code}\n&quot; --output /dev/null --silent \
+&gt;   https://www.google.com/
+Status Code: 200
+</code></pre></div>
+
+<p>and supplying <code>--cacert</code> doesn't impede this connection:</p>
+<div class="highlight"><pre><span></span><code>$ curl \
+&gt;   --write-out &quot;Status Code: %{http_code}\n&quot; --output /dev/null --silent \
+&gt;   --cacert ./root-ca-cert.pem \
+&gt;   https://www.google.com/
+Status Code: 200
+</code></pre></div>
+
+<p>In other words, <code>--cacert</code> <strong>appends</strong> to the root trust store (as opposed to
+<strong>replacing</strong> it).</p>
+<h4>Node.js Client</h4>
+<p>On the other hand, using our Node.js client to reach Google's servers, we
+see that the presence of <code>ca</code> keeps us from trusting a CA in our root trust
+store:</p>
+<div class="highlight"><pre><span></span><code>$ npx ts-node client.ts https://www.google.com/
+Using URL=&quot;https://www.google.com/&quot;;
+Success when `ca` not included:
+  response.status: 200
+Failure when `ca` included:
+  error code:    UNABLE_TO_GET_ISSUER_CERT_LOCALLY
+  error message: unable to get local issuer certificate
+</code></pre></div>
+
+<p>This should be somewhat jarring; we expect the CA for <code>google.com</code> to
+<strong>always</strong> be trustworthy.</p>
+<h3 id="patching-node-js">Patching Node.js</h3>
+<p>In order to fix this problem with Node.js, i.e. to provide a way to
+<strong>append to</strong> rather than <strong>replace</strong> the root trust store, I have
+<a href="https://github.com/dhermes/ca-append-js">written</a> the <code>ca-append</code> package. To use the package, import it and
+activate the monkey patch:</p>
+<div class="highlight"><pre><span></span><code><span class="k">import</span> <span class="o">*</span> <span class="kr">as</span> <span class="nx">caAppend</span> <span class="k">from</span> <span class="s1">&#39;ca-append&#39;</span><span class="p">;</span>
+<span class="nx">caAppend</span><span class="p">.</span><span class="nx">monkeyPatch</span><span class="p">();</span>
+</code></pre></div>
+
+<p>and it will monkey patch the core <code>tls.createSecureContext()</code> function.</p>
+<p>Once patched, the <code>ca</code> option will be rejected and replaced with choices that
+are more descriptive: <code>caAppend</code> and <code>caReplace</code>. Let's see the <code>caAppend</code>
+option in use as well as <strong>rejection</strong> of the <code>ca</code> option. First we'll
+re-attempt communicating with our server running on <code>localhost</code> and
+observe the same behavior we saw above in <a href="#node-with-ca">Node.js Client</a>:</p>
+<div class="highlight"><pre><span></span><code>$ npx ts-node clientPatched.ts https://localhost:9072
+Using URL=&quot;https://localhost:9072&quot;;
+Failure when `ca` / `caAppend` not included:
+  error code:    UNABLE_TO_VERIFY_LEAF_SIGNATURE
+  error message: unable to verify the first certificate
+Failure when `ca` included:
+  error code:    undefined
+  error message: tls.createSecureContext(): `ca` option has been deprecated
+Success when `caAppend` included:
+  response.status: 200
+</code></pre></div>
+
+<p>The connection to Google servers now works in both cases as well:</p>
+<div class="highlight"><pre><span></span><code>$ npx ts-node clientPatched.ts https://www.google.com/
+Using URL=&quot;https://www.google.com/&quot;;
+Success when `ca` / `caAppend` not included:
+  response.status: 200
+Failure when `ca` included:
+  error code:    undefined
+  error message: tls.createSecureContext(): `ca` option has been deprecated
+Success when `caAppend` included:
+  response.status: 200
+</code></pre></div>
+
+<p>This all comes from <a href="/code/node-ca/clientPatched.ts">using</a> <code>caAppend</code> in <code>clientPatched.ts</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span> <span class="nx">optionsWithCAAppend</span> <span class="o">=</span> <span class="nx">makeOptions</span><span class="p">({</span> <span class="nx">caAppend</span><span class="o">:</span> <span class="p">[</span><span class="nx">customRootCA</span><span class="p">]</span> <span class="p">});</span>
+</code></pre></div>
+
+<p>versus using <code>ca</code> in <code>client.ts</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span> <span class="nx">optionsWith</span> <span class="o">=</span> <span class="nx">makeOptions</span><span class="p">({</span> <span class="nx">ca</span><span class="o">:</span> <span class="p">[</span><span class="nx">customRootCA</span><span class="p">]</span> <span class="p">});</span>
+</code></pre></div>
+
+<h3 id="post-script">Post Script: Warning</h3>
+<p>The Node.js module system returns a singleton for every import, so once
+<code>ca-append</code> monkey patches the <code>tls</code> package, every other import of
+<code>tls</code> will see the effects. This will likely not be directly visible in
+application code; <code>tls</code> is more likely to be imported transitively in an
+application by packages that provide HTTP / HTTPS clients.</p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2021-05-12T00:00:00-07:00" pubdate>May 12, 2021</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/nodejs.html">Node.js</a>,    <a class="category" href="https://blog.bossylobster.com/tag/tls.html">TLS</a>,    <a class="category" href="https://blog.bossylobster.com/tag/monkey-patch.html">Monkey Patch</a>,    <a class="category" href="https://blog.bossylobster.com/tag/ca.html">CA</a>,    <a class="category" href="https://blog.bossylobster.com/tag/certificate-authority.html">Certificate Authority</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2021/05/node-ca-append.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2021/05/node-ca-append.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2021  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2021/05/node-ca-append.html';
+    var disqus_url = 'https://blog.bossylobster.com/2021/05/node-ca-append.html';
+    var disqus_title = "<p>Fixing the Custom CA Problem in Node.js</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

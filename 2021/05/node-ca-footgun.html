@@ -124,7 +124,7 @@ rename options or change behavior in a core package once released.</p>
 <h3 id=the-good>The Good</h3>
 <p>This outage motivated me to try to address the biggest issue in this
 outage: the <code>ca</code> TLS option wipes away the default root trust store.
-I'll be writing up "Fixing the Custom CA Problem in Node.js" soon to showcase
+I wrote <a href="/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a> to showcase
 how <code>ca</code> is currently broken and to demonstrate how my <code>ca-append</code> <a href="https://github.com/dhermes/ca-append-js">package</a>
 tries to patch the brokenness.</p>
 <h3 id=the-bad>The Bad</h3>
@@ -352,6 +352,9 @@ and the intermediate CA that signed it. <a href=#sf-node-ca-footgun-9-back class
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
       </li>
       <li class="post">
@@ -362,9 +365,6 @@ and the intermediate CA that signed it. <a href=#sf-node-ca-footgun-9-back class
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
       </li>
     </ul>
   </section>
