@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Fri, 09 Jul 2021 00:00:00 -0700</lastBuildDate><item><title>"Importing" External Keys into Vault</title><link>https://blog.bossylobster.com/2021/07/vault-import.html</link><description>&lt;p&gt;&lt;img alt=Vault src="/images/Vault_PrimaryLogo_Black_RGB.png"&gt;&lt;/p&gt;
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Fri, 09 Jul 2021 00:00:00 -0700</lastBuildDate><item><title>Importing External Keys into Vault</title><link>https://blog.bossylobster.com/2021/07/vault-import.html</link><description>&lt;p&gt;&lt;img alt=Vault src="/images/Vault_PrimaryLogo_Black_RGB.png"&gt;&lt;/p&gt;
 &lt;h3&gt;Contents&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=#motivation&gt;Motivation&lt;/a&gt;&lt;/li&gt;
