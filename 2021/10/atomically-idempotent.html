@@ -2,10 +2,11 @@
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<head itemscope itemtype="http://schema.org/Article">
   <meta charset="utf-8">
-  <title>Bossy Lobster</title>
+  <title>Atomically Idempotent &mdash; Bossy Lobster</title>
   <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Safe Initialization In Concurrent Go" />
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
         title="Bossy Lobster Atom Feed" />
@@ -16,6 +17,21 @@
 <link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
 
 
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Atomically Idempotent</p>" />
+<meta itemprop="description" content="Safe Initialization In Concurrent Go" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Atomically Idempotent</p>" />
+<meta property="og:description" content="Safe Initialization In Concurrent Go" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Atomically Idempotent</p>" />
+<meta name="twitter:description" content="Safe Initialization In Concurrent Go" />
+<meta name="twitter:creator" content="@bossylobster" />
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -69,13 +85,11 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 </ul></nav>
   <div id="main">
     <div id="content">
-<div class="blog-index">
-      <article>
+<div>
+  <article class="hentry" role="article">
 <header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-04-atomically-idempotent.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Atomically Idempotent</a>
-      </h1>
+      <h1 class="entry-title">Atomically Idempotent</h1>
     <p class="meta">
 <time datetime="2021-10-04T00:00:00-07:00" pubdate>Oct 04, 2021</time>    </p>
 </header>
@@ -86,109 +100,66 @@ initialization had some requirement of atomicity. The code essentially boiled
 down to:</p>
 <div class="highlight"><pre><span></span><code><span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">T</span><span class="p">)</span> <span class="nx">Start</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">.</span><span class="nx">State</span><span class="p">)</span> <span class="o">==</span> <span class="nx">Started</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="c1">// Early Exit …</span></code></pre></div></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-07-09-vault-import.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/07/vault-import.html">Importing External Keys into Vault</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-07-09T00:00:00-07:00" pubdate>Jul 09, 2021</time>    </p>
-</header>
+        <span class="k">return</span> <span class="c1">// Early Exit</span>
+    <span class="p">}</span>
 
-  <div class="entry-content"><p><img alt=Vault src="/images/Vault_PrimaryLogo_Black_RGB.png"></p>
-<h3>Contents</h3>
-<ul>
-<li><a href=#motivation>Motivation</a></li>
-<li><a href=#importing-via-restore>"Importing" via Restore</a></li>
-<li><a href=#decrypting-exported-ciphertext>Decrypting Exported Ciphertext</a></li>
-<li><a href=#key-backup-format>Key Backup Format</a></li>
-</ul>
-<h3 id=motivation>Motivation</h3>
-<p>To understand why it's helpful to import external keys into Vault, it's
-important to understand</p>
-<ul>
-<li>How and why encrypted data is stored in databases</li>
-<li>How Vault provides features that aid in encrypting and decrypting data</li>
-<li>Reasons for data …</li></ul></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/07/vault-import.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-12-node-ca-append.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-05-12T00:00:00-07:00" pubdate>May 12, 2021</time>    </p>
-</header>
+    <span class="nx">atomic</span><span class="p">.</span><span class="nx">StoreInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">.</span><span class="nx">State</span><span class="p">,</span> <span class="nx">Started</span><span class="p">)</span>
+    <span class="nx">t</span><span class="p">.</span><span class="nx">Starting</span> <span class="o">&lt;-</span> <span class="nx">Sentinel</span>
+<span class="p">}</span>
+</code></pre></div>
 
-  <div class="entry-content"><blockquote>
-<p><strong>TL;DR</strong>: Using the <code>ca</code> field to specify custom CAs (certificate
-authorities) in Node.js is a <a href="/2021/05/node-ca-footgun.html">footgun</a>. It replaces (rather than appends
-to) the root trust store which can lead to unintended consequences. I've
-seen this behavior cause outages in production when a third party server does
-a routine …</p></blockquote></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-11-node-ca-footgun.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-05-11T00:00:00-07:00" pubdate>May 11, 2021</time>    </p>
-</header>
+<p>However, we noted that this code is not truly atomic. The read and write of
+the <code>State</code> value are individually atomic, but they are not atomic
+<strong>together</strong>. One way to achieve atomicity here would be to just hold a mutex.
+However, our discussion led to another way to avoid the mutex and to continue
+to use the <code>int32</code> state value.</p>
+<h3 id="atomicity-first">Atomicity First</h3>
+<p>In order to ensure that our goroutine is the <strong>only</strong> one that can trigger
+the sentinel event to the <code>Starting</code> channel, we need an atomic
+compare-and-swap (CAS). This checks that our goroutine was the <strong>first</strong> to
+attempt to set the state to <code>Started</code> and <strong>only then</strong> send the sentinel
+value to the channel:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">T</span><span class="p">)</span> <span class="nx">Start</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">previous</span> <span class="o">:=</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">.</span><span class="nx">State</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nx">previous</span> <span class="o">==</span> <span class="nx">Started</span> <span class="p">{</span>
+        <span class="k">return</span>
+    <span class="p">}</span>
 
-  <div class="entry-content"><div style="text-align: center;">
-<p><img alt="Door to Nowhere" src="/images/door-nowhere.jpg"></p>
+    <span class="nx">swapped</span> <span class="o">:=</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">CompareAndSwapInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">.</span><span class="nx">State</span><span class="p">,</span> <span class="nx">previous</span><span class="p">,</span> <span class="nx">Started</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">!</span><span class="nx">swapped</span> <span class="p">{</span>
+        <span class="k">return</span>
+    <span class="p">}</span>
+    <span class="nx">t</span><span class="p">.</span><span class="nx">Starting</span> <span class="o">&lt;-</span> <span class="nx">Sentinel</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="idempotency-first">YMMV: Idempotent First</h3>
+<p>Depending on the design goals of the code, the idempotency may be
+a more crucial feature than the atomicity. For example, the code using a
+<code>T</code> can be constructed in a way that sending <strong>multiple</strong> sentinel values to
+the <code>Starting</code> channel is safely idempotent. In this case, a race between two
+goroutines with the first code would not be problematic because they could
+both send a sentinel.</p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2021-10-04T00:00:00-07:00" pubdate>Oct 04, 2021</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/go.html">Go</a>,    <a class="category" href="https://blog.bossylobster.com/tag/atomic.html">Atomic</a>,    <a class="category" href="https://blog.bossylobster.com/tag/idempotent.html">Idempotent</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2021/10/atomically-idempotent.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2021/10/atomically-idempotent.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
 </div>
-<p>This is a story of a brief outage caused by a slightly unintuitive API<sup id=sf-node-ca-footgun-1-back><a href=#sf-node-ca-footgun-1 class=simple-footnote title="Like a door to nowhere.">1</a></sup> that has some very <a href="https://en.wiktionary.org/wiki/footgun">sharp corners</a> for the
-uninitiated. The outage, though brief, was of the "wake up at 4am" variety so
-the lesson was especially salient.</p>
-<p>This <strong>is not</strong> a post trying to tear …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-12-01-broken-pipe.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-12-01T00:00:00-08:00" pubdate>Dec 01, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><div style="text-align: center;">
-<p><img alt="Broken Pipe" src="/images/broken-pipe.jpg"></p>
-</div>
-<p>I recently put on my detective hat and tracked down a bug in network error
-recovery in a popular PostgreSQL library. Below, we'll walk through
-the process of bugfinding and iteratively making the feedback loop smaller
-and smaller. In order to find and fix the bug I</p>
-<ul>
-<li>Confirmed the root …</li></ul></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Read On &crarr;</a>
-  </footer>
-      </article>
-<div class="pagination">
-    <a class="prev" href="https://blog.bossylobster.com/page/2">&larr; Older</a>
-
-  <br />
-</div></div>
 <aside class="sidebar">
   <section class="sidebar-img">
     <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
@@ -263,6 +234,9 @@ and smaller. In order to find and fix the bug I</p>
 </script>
   <script type="text/javascript">
     var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2021/10/atomically-idempotent.html';
+    var disqus_url = 'https://blog.bossylobster.com/2021/10/atomically-idempotent.html';
+    var disqus_title = "<p>Atomically Idempotent</p>";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';

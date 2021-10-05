@@ -1,5 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-07-09T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Importing External Keys into Vault</title><link href="https://blog.bossylobster.com/2021/07/vault-import.html" rel="alternate"></link><published>2021-07-09T00:00:00-07:00</published><updated>2021-07-09T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-07-09:/2021/07/vault-import.html</id><summary type="html">&lt;p&gt;&lt;img alt=Vault src="/images/Vault_PrimaryLogo_Black_RGB.png"&gt;&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-10-04T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Atomically Idempotent</title><link href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html" rel="alternate"></link><published>2021-10-04T00:00:00-07:00</published><updated>2021-10-04T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-04:/2021/10/atomically-idempotent.html</id><summary type="html">&lt;p&gt;Recently, I was analyzing some initialization code in Go with a &lt;a href="https://github.com/mat285"&gt;teammate&lt;/a&gt;.
+The value being initialized was meant to be used in concurrent Go, so
+initialization had some requirement of atomicity. The code essentially boiled
+down to:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;t&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;T&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;Start&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nx"&gt;atomic&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;LoadInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;t&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;State&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nx"&gt;Started&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="c1"&gt;// Early Exit …&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;Recently, I was analyzing some initialization code in Go with a &lt;a href="https://github.com/mat285"&gt;teammate&lt;/a&gt;.
+The value being initialized was meant to be used in concurrent Go, so
+initialization had some requirement of atomicity. The code essentially boiled
+down to:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;t&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;T&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;Start&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nx"&gt;atomic&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;LoadInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;t&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;State&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nx"&gt;Started&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="c1"&gt;// Early Exit&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="nx"&gt;atomic&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;StoreInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;t&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;State&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;Started&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nx"&gt;t&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Starting&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;-&lt;/span&gt; &lt;span class="nx"&gt;Sentinel&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;However, we noted that this code is not truly atomic. The read and write of
+the &lt;code&gt;State&lt;/code&gt; value are individually atomic, but they are not atomic
+&lt;strong&gt;together&lt;/strong&gt;. One way to achieve atomicity here would be to just hold a mutex.
+However, our discussion led to another way to avoid the mutex and to continue
+to use the &lt;code&gt;int32&lt;/code&gt; state value.&lt;/p&gt;
+&lt;h3 id="atomicity-first"&gt;Atomicity First&lt;/h3&gt;
+&lt;p&gt;In order to ensure that our goroutine is the &lt;strong&gt;only&lt;/strong&gt; one that can trigger
+the sentinel event to the &lt;code&gt;Starting&lt;/code&gt; channel, we need an atomic
+compare-and-swap (CAS). This checks that our goroutine was the &lt;strong&gt;first&lt;/strong&gt; to
+attempt to set the state to &lt;code&gt;Started&lt;/code&gt; and &lt;strong&gt;only then&lt;/strong&gt; send the sentinel
+value to the channel:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;t&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;T&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;Start&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;previous&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="nx"&gt;atomic&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;LoadInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;t&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;State&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nx"&gt;previous&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nx"&gt;Started&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="nx"&gt;swapped&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="nx"&gt;atomic&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;CompareAndSwapInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;t&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;State&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;previous&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;Started&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;swapped&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="nx"&gt;t&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Starting&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;-&lt;/span&gt; &lt;span class="nx"&gt;Sentinel&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id="idempotency-first"&gt;YMMV: Idempotent First&lt;/h3&gt;
+&lt;p&gt;Depending on the design goals of the code, the idempotency may be
+a more crucial feature than the atomicity. For example, the code using a
+&lt;code&gt;T&lt;/code&gt; can be constructed in a way that sending &lt;strong&gt;multiple&lt;/strong&gt; sentinel values to
+the &lt;code&gt;Starting&lt;/code&gt; channel is safely idempotent. In this case, a race between two
+goroutines with the first code would not be problematic because they could
+both send a sentinel.&lt;/p&gt;</content><category term="misc"></category><category term="Go"></category><category term="Atomic"></category><category term="Idempotent"></category></entry><entry><title>Importing External Keys into Vault</title><link href="https://blog.bossylobster.com/2021/07/vault-import.html" rel="alternate"></link><published>2021-07-09T00:00:00-07:00</published><updated>2021-07-09T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-07-09:/2021/07/vault-import.html</id><summary type="html">&lt;p&gt;&lt;img alt=Vault src="/images/Vault_PrimaryLogo_Black_RGB.png"&gt;&lt;/p&gt;
 &lt;h3&gt;Contents&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=#motivation&gt;Motivation&lt;/a&gt;&lt;/li&gt;
