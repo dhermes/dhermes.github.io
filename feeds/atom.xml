@@ -1,5 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-10-04T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Atomically Idempotent</title><link href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html" rel="alternate"></link><published>2021-10-04T00:00:00-07:00</published><updated>2021-10-04T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-04:/2021/10/atomically-idempotent.html</id><summary type="html">&lt;p&gt;Recently, I was analyzing some initialization code in Go with a &lt;a href="https://github.com/mat285"&gt;teammate&lt;/a&gt;.
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-10-05T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Decrypting Vault Ciphertext with a Context</title><link href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html" rel="alternate"></link><published>2021-10-05T00:00:00-07:00</published><updated>2021-10-05T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-05:/2021/10/decrypt-vault-ciphertext-context.html</id><summary type="html">&lt;p&gt;In a previous &lt;a href="/2021/07/vault-import.html"&gt;post&lt;/a&gt;, I described a use case for customer provided keys
+with Vault. One of the implications of this was the need for decryption after a
+bulk data export. In that post, I gave a concrete example of decrypting Vault
+ciphertext &lt;strong&gt;directly&lt;/strong&gt; with a customer provided key. However …&lt;/p&gt;</summary><content type="html">&lt;p&gt;In a previous &lt;a href="/2021/07/vault-import.html"&gt;post&lt;/a&gt;, I described a use case for customer provided keys
+with Vault. One of the implications of this was the need for decryption after a
+bulk data export. In that post, I gave a concrete example of decrypting Vault
+ciphertext &lt;strong&gt;directly&lt;/strong&gt; with a customer provided key. However, it's also
+very common to encrypt using a derived key, created with a
+&lt;strong&gt;user-supplied context&lt;/strong&gt;. In this post, we'll give a concrete example of
+generating a derived key and then decrypting Vault ciphertext with it.&lt;/p&gt;
+&lt;h3 id="initialize"&gt;Initialize&lt;/h3&gt;
+&lt;p&gt;First, start a test Vault instance with transit encryption enabled:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ docker run \
+&amp;gt;   --rm \
+&amp;gt;   --detach \
+&amp;gt;   --name vault-dev-server \
+&amp;gt;   --publish 8200:8200 \
+&amp;gt;   --cap-add IPC_LOCK \
+&amp;gt;   --env VAULT_DEV_ROOT_TOKEN_ID=root \
+&amp;gt;   vault:1.8.3
+$
+$ export VAULT_TOKEN=root VAULT_ADDR=http://localhost:8200
+$ vault secrets enable transit
+Success! Enabled the transit secrets engine at: transit/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then simulate a customer provided key and &lt;strong&gt;require&lt;/strong&gt; that a user-supplied
+context must always be used by setting &lt;code&gt;derived=true&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ vault write transit/keys/acme-co-provided \
+&amp;gt;   type=aes256-gcm96 \
+&amp;gt;   allow_plaintext_backup=true \
+&amp;gt;   exportable=true \
+&amp;gt;   derived=true
+Success! Data written to: transit/keys/acme-co-provided
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id="encrypt-data"&gt;Encrypt Data&lt;/h3&gt;
+&lt;p&gt;If we try to encrypt &lt;strong&gt;without&lt;/strong&gt; a context, it will fail since key derivation
+is required:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ echo -n &amp;#39;FOO&amp;#39; | base64
+Rk9P
+$ vault write transit/encrypt/acme-co-provided plaintext=Rk9P
+Error writing data to transit/encrypt/acme-co-provided: Error making API request.
+
+URL: PUT http://localhost:8200/v1/transit/encrypt/acme-co-provided
+Code: 400. Errors:
+
+* missing &amp;#39;context&amp;#39; for key derivation; the key was created using a derived
+  key, which means additional, per-request information must be included in order
+  to perform operations with the key
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Instead, we encrypt the data with the context &lt;code&gt;{"bar":"baz"}&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ echo -n &amp;#39;{&amp;quot;bar&amp;quot;:&amp;quot;baz&amp;quot;}&amp;#39; | base64
+eyJiYXIiOiJiYXoifQ==
+$ vault write transit/encrypt/acme-co-provided plaintext=Rk9P context=eyJiYXIiOiJiYXoifQ==
+Key            Value
+---            -----
+ciphertext     vault:v1:1pEqzFnkQEa5RA35ynhOd0Ye907S9PvWIq5dRPDP3Q==
+key_version    1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id="read-key-inputs"&gt;Read Key Inputs&lt;/h3&gt;
+&lt;p&gt;First, take note of the key derivation function used and the key type:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ vault read transit/keys/acme-co-provided
+Key                       Value
+---                       -----
+...
+kdf                       hkdf_sha256
+...
+type                      aes256-gcm96
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then, export the key via the backup API:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ vault read transit/backup/acme-co-provided
+Key       Value
+---       -----
+backup    eyJwb2xpY3kiOnsibmFtZS...
+$
+$ vault read --field=backup transit/backup/acme-co-provided | base64 --decode | jq
+{
+  &amp;quot;policy&amp;quot;: {
+    &amp;quot;name&amp;quot;: &amp;quot;acme-co-provided&amp;quot;,
+    &amp;quot;keys&amp;quot;: {
+      &amp;quot;1&amp;quot;: {
+        &amp;quot;key&amp;quot;: &amp;quot;rph2pwTQCx+TD/lk+7o9igzQw5A7FU3+S+Z24Cf9Duk=&amp;quot;,
+        ...
+      }
+    },
+    ...
+  },
+  ...
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id="decrypt-ciphertext"&gt;Decrypt Ciphertext&lt;/h3&gt;
+&lt;!-- Uses `cryptography@35.0.0` --&gt;
+
+&lt;p&gt;With the key, algorithms and ciphertext in hand, we are ready to decrypt.
+First, create a derived key using the context:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;cryptography.hazmat.primitives.hashes&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;algorithm&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cryptography&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hazmat&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;primitives&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hashes&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SHA256&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;cryptography.hazmat.backends&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;backend&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cryptography&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hazmat&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;backends&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;default_backend&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;base64&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;context&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;base64&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;b64decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sa"&gt;b&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;eyJiYXIiOiJiYXoifQ==&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;context&lt;/span&gt;
+&lt;span class="sa"&gt;b&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;{&amp;quot;bar&amp;quot;:&amp;quot;baz&amp;quot;}&amp;#39;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;cryptography.hazmat.primitives.kdf.hkdf&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;hkdf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cryptography&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hazmat&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;primitives&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;kdf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hkdf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;HKDF&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+&lt;span class="o"&gt;...&lt;/span&gt;     &lt;span class="n"&gt;algorithm&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;algorithm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;length&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;32&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;context&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;backend&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;backend&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;salt&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;None&lt;/span&gt;
+&lt;span class="o"&gt;...&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;base64&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;base64&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;b64decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;rph2pwTQCx+TD/lk+7o9igzQw5A7FU3+S+Z24Cf9Duk=&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;derived_key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;hkdf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;derive&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;derived_key&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="mi"&gt;32&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;derived_key&lt;/span&gt;
+&lt;span class="sa"&gt;b&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;uU&lt;/span&gt;&lt;span class="se"&gt;\x18\xdf&lt;/span&gt;&lt;span class="s1"&gt;...&amp;#39;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Then, decrypt the ciphertext with the derived key:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;encoded&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;1pEqzFnkQEa5RA35ynhOd0Ye907S9PvWIq5dRPDP3Q==&amp;quot;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;iv_and_ciphertext&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;base64&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;b64decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;encoded&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;iv_bytes&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;iv_and_ciphertext&lt;/span&gt;&lt;span class="p"&gt;[:&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;ciphertext_bytes&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;iv_and_ciphertext&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;:]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;cryptography.hazmat.primitives.ciphers.aead&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;aead_cipher&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cryptography&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hazmat&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;primitives&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ciphers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;aead&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;AESGCM&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;derived_key&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;aead_cipher&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decrypt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;iv_bytes&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ciphertext_bytes&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="sa"&gt;b&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;FOO&amp;#39;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="Hashicorp"></category><category term="Vault"></category><category term="Import"></category><category term="Encryption"></category></entry><entry><title>Atomically Idempotent</title><link href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html" rel="alternate"></link><published>2021-10-04T00:00:00-07:00</published><updated>2021-10-04T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-04:/2021/10/atomically-idempotent.html</id><summary type="html">&lt;p&gt;Recently, I was analyzing some initialization code in Go with a &lt;a href="https://github.com/mat285"&gt;teammate&lt;/a&gt;.
 The value being initialized was meant to be used in concurrent Go, so
 initialization had some requirement of atomicity. The code essentially boiled
 down to:&lt;/p&gt;
@@ -156,9 +291,9 @@ key_version    1
 &lt;p&gt;The encrypted content comes after the header &lt;code&gt;vault:v1:&lt;/code&gt;, which in this
 case is 31 bytes base64 encoded. Of these, the &lt;a href="https://discuss.hashicorp.com/t/what-is-the-vault-ciphertext-format-in-case-i-want-to-parse-it/3574/2"&gt;first 12&lt;/a&gt; bytes&lt;sup id=sf-vault-import-3-back&gt;&lt;a href=#sf-vault-import-3 class=simple-footnote title="The IV is 12 bytes (or 96 bits) since the scheme used is aes256-gcm96."&gt;3&lt;/a&gt;&lt;/sup&gt;
 are the initialization vector (IV):&lt;/p&gt;
-&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;base64&lt;/span&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;encoded&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s2&gt;"aMEvW33l8iXqoDcvXl8KTtkaJEVcB8yeSsQ69mOltw=="&lt;/span&gt;
 &lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;
-&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;encoded&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s2&gt;"aMEvW33l8iXqoDcvXl8KTtkaJEVcB8yeSsQ69mOltw=="&lt;/span&gt;
+&lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=nn&gt;base64&lt;/span&gt;
 &lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;iv_and_ciphertext&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;base64&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;b64decode&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;encoded&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
 &lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;iv_bytes&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;iv_and_ciphertext&lt;/span&gt;&lt;span class=p&gt;[:&lt;/span&gt;&lt;span class=mi&gt;12&lt;/span&gt;&lt;span class=p&gt;]&lt;/span&gt;
 &lt;span class=o&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=n&gt;ciphertext_bytes&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;iv_and_ciphertext&lt;/span&gt;&lt;span class=p&gt;[&lt;/span&gt;&lt;span class=mi&gt;12&lt;/span&gt;&lt;span class=p&gt;:]&lt;/span&gt;
