@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Go Duration, PostgreSQL Interval &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Best of Both Worlds" />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Go Duration, PostgreSQL Interval</p>" />
+<meta itemprop="description" content="Best of Both Worlds" />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/TODO.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Go Duration, PostgreSQL Interval</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/TODO.png" />
+<meta property="og:description" content="Best of Both Worlds" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Go Duration, PostgreSQL Interval</p>" />
+<meta name="twitter:description" content="Best of Both Worlds" />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/TODO.png" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-06-go-duration-postgresql-interval.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Go Duration, PostgreSQL Interval</h1>
+    <p class="meta">
+<time datetime="2021-10-06T00:00:00-07:00" pubdate>Oct 06, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p>Building a web application in Go and using PostgreSQL as the database is a real
+joy. Both of these tools are produced by incredibly vibrant open source
+projects. These projects represent some of the best attributes of the open
+source movement. When used in combination, occasionally idioms from Go don't
+translate to PostgreSQL and vice versa. Often this can be chalked up to the
+object-relational impedance <a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_impedance_mismatch">mismatch</a>, but not always<sup id=sf-go-duration-postgresql-interval-1-back><a href=#sf-go-duration-postgresql-interval-1 class=simple-footnote title="Since a core design goal of Go is composition over inheritance, typical OOP patterns aren't that prevalant. As a result, object-relational impedance mismatch doesn't really rear its head very often.">1</a></sup>.</p>
+<p>Recently, a <a href="https://twitter.com/perryfromsoma">teammate</a> and I bumped up against one of these rare situations
+where the idioms don't line up. In Go, <code>time.Duration</code> is an integer, but
+in PostgreSQL <code>INTERVAL</code> is essentially text from an application's perspective.</p>
+<h3 id=go-details>Go Details</h3>
+<p>The <code>time.Duration</code> standard library <a href="https://github.com/golang/go/blob/go1.17.1/src/time/time.go#L587-L590">type</a> is a 64-bit integer, with
+associated methods tacked on via a type definition declaration:</p>
+<div class=highlight><pre><span></span><code><span class=kd>type</span> <span class=nx>Duration</span> <span class=kt>int64</span>
+</code></pre></div>
+
+<p>This type can represent durations accurate to nanosecond precision, with
+positive and negative extremes around 292 years.</p>
+<h3 id=postgresql-details>PostgreSQL Details</h3>
+<p>The PostgreSQL <code>INTERVAL</code> type is <a href="https://www.postgresql.org/docs/14/datatype-datetime.html">stored</a> as 128-bits internally and is
+serialized as text over the wire in one of four <a href="https://www.postgresql.org/docs/14/datatype-datetime.html#INTERVAL-STYLE-OUTPUT-TABLE">output</a> formats.
+It has less precision than a Go <code>time.Duration</code> (microseconds instead of
+nanoseconds) but due to having twice as much space for storage, can support
+much larger magnitudes: positive and negative extremes around 178,000,000
+years.</p>
+<h3 id=now-what>Now What?</h3>
+<p>TL;DR using Go and PostgreSQL idioms simultaneously is beneficial, let's try
+to make it work.</p>
+<p>If the types are <strong>so</strong> different, what can we do? First of all, it's important
+to understand the use case. The <strong>overwhelming</strong> majority of applications
+are just fine with the lowest common denominator covered by both types:
+microsecond precision and positive and negative extremes around 292 years.
+For applications outside this majority, this is where you give up and roll
+your own.</p>
+<p>But even with this, why not just use a <code>string</code> in Go or use a <code>BIGINT</code> in
+PostgreSQL<sup id=sf-go-duration-postgresql-interval-2-back><a href=#sf-go-duration-postgresql-interval-2 class=simple-footnote title="A PostgreSQL BIGINT exactly maps to int64 in Go.">2</a></sup>? A
+<code>string</code> in Go would be pretty worthless for actual use beyond just telling
+the database to do <strong>all</strong> of the business logic involving intervals. Using a
+<code>BIGINT</code> in PostgreSQL similarly limits hinders the database. For example, an
+<code>INTERVAL</code> allows sweeping for stale sessions in a PostgreSQL native way:</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- CREATE TABLE web_sessions (</span>
+<span class=c1>--   id UUID NOT NULL,</span>
+<span class=c1>--   email TEXT NOT NULL,</span>
+<span class=c1>--   created_at TIMESTAMP WITH TIME ZONE NOT NULL,</span>
+<span class=c1>--   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,</span>
+<span class=c1>--   max_age INTERVAL</span>
+<span class=c1>-- )</span>
+<span class=k>SELECT</span>
+  <span class=n>id</span><span class=p>,</span> <span class=n>email</span>
+<span class=k>FROM</span>
+  <span class=n>web_sessions</span>
+<span class=k>WHERE</span>
+  <span class=n>updated_at</span> <span class=o>&lt;</span> <span class=p>(</span><span class=n>NOW</span><span class=p>()</span> <span class=o>-</span> <span class=n>max_age</span><span class=p>)</span>
+</code></pre></div>
+
+<p>Conversion from <code>BIGINT</code> <strong>to</strong> <code>INTERVAL</code> can be done on the fly but this
+breaks down for certain inputs:</p>
+<div class=highlight><pre><span></span><code><span class=n>go_duration</span><span class=o>=&gt;</span> <span class=k>SELECT</span> <span class=k>EXTRACT</span><span class=p>(</span><span class=n>epoch</span> <span class=k>from</span> <span class=s1>'3 days 04:05:06'</span><span class=p>::</span><span class=nb>INTERVAL</span><span class=p>);</span>
+ <span class=n>date_part</span>
+<span class=c1>-----------</span>
+    <span class=mi>273906</span>
+<span class=p>(</span><span class=mi>1</span> <span class=k>row</span><span class=p>)</span>
+
+<span class=n>go_duration</span><span class=o>=&gt;</span> <span class=k>SELECT</span> <span class=n>make_interval</span><span class=p>(</span><span class=n>secs</span> <span class=o>=&gt;</span> <span class=mi>273906</span><span class=p>);</span>
+ <span class=n>make_interval</span>
+<span class=c1>---------------</span>
+ <span class=mi>76</span><span class=p>:</span><span class=mi>05</span><span class=p>:</span><span class=mi>06</span>
+<span class=p>(</span><span class=mi>1</span> <span class=k>row</span><span class=p>)</span>
+
+<span class=n>go_duration</span><span class=o>=&gt;</span> <span class=k>SELECT</span>
+<span class=n>go_duration</span><span class=o>-&gt;</span>   <span class=n>make_interval</span><span class=p>(</span><span class=n>days</span> <span class=o>=&gt;</span> <span class=mi>3</span><span class=p>,</span> <span class=n>hours</span> <span class=o>=&gt;</span> <span class=mi>4</span><span class=p>,</span> <span class=n>mins</span> <span class=o>=&gt;</span> <span class=mi>5</span><span class=p>,</span> <span class=n>secs</span> <span class=o>=&gt;</span> <span class=mi>6</span><span class=p>)</span> <span class=o>-</span>
+<span class=n>go_duration</span><span class=o>-&gt;</span>   <span class=n>make_interval</span><span class=p>(</span><span class=n>secs</span> <span class=o>=&gt;</span> <span class=mi>273906</span><span class=p>)</span> <span class=k>AS</span> <span class=n>delta</span><span class=p>;</span>
+      <span class=n>delta</span>
+<span class=c1>------------------</span>
+ <span class=mi>3</span> <span class=n>days</span> <span class=o>-</span><span class=mi>72</span><span class=p>:</span><span class=mi>00</span><span class=p>:</span><span class=mi>00</span>
+<span class=p>(</span><span class=mi>1</span> <span class=k>row</span><span class=p>)</span>
+</code></pre></div>
+
+<h3 id=making-go-do-the-work>Making Go Do the Work</h3>
+<p>In cases like this — where the database wire representation differs from
+the target value in Go — the Go standard library has our back. The
+<code>sql.Scanner</code> <a href="https://github.com/golang/go/blob/go1.17.1/src/database/sql/sql.go#L395-L416">interface</a> allows custom transformation when reading data
+in and the <code>driver.Valuer</code> <a href="https://github.com/golang/go/blob/go1.17.1/src/database/sql/driver/types.go#L35-L43">interface</a> allows custom transformation when
+writing data out.</p>
+<p>For example, assuming the active PostgreSQL session has <code>IntervalStyle</code> set
+to <code>postgres</code>:</p>
+<div class=highlight><pre><span></span><code><span class=kd>type</span> <span class=nx>DurationWrapped</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>time</span><span class=p>.</span><span class=nx>Duration</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=p>(</span><span class=nx>dw</span> <span class=o>*</span><span class=nx>DurationWrapped</span><span class=p>)</span> <span class=nx>Scan</span><span class=p>(</span><span class=nx>src</span> <span class=kd>interface</span><span class=p>{})</span> <span class=kt>error</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=nx>src</span> <span class=o>==</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>dw</span><span class=p>.</span><span class=nx>Duration</span> <span class=p>=</span> <span class=mi>0</span>
+        <span class=k>return</span> <span class=kc>nil</span>
+    <span class=p>}</span>
+
+    <span class=nx>srcStr</span><span class=p>,</span> <span class=nx>ok</span> <span class=o>:=</span> <span class=nx>src</span><span class=p>.(</span><span class=kt>string</span><span class=p>)</span>
+  <span class=k>if</span> <span class=p>!</span><span class=nx>ok</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>fmt</span><span class=p>.</span><span class=nx>Errorf</span><span class=p>(</span><span class=s>"duration column was not text; type %T"</span><span class=p>,</span> <span class=nx>src</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=c1>// See: https://www.postgresql.org/docs/14/datatype-datetime.html</span>
+    <span class=c1>//      IntervalStyle Output Table</span>
+    <span class=k>return</span> <span class=nx>unmarshalForIntervalStyle</span><span class=p>(</span><span class=nx>srcStr</span><span class=p>,</span> <span class=s>"postgres"</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>dw</span><span class=p>.</span><span class=nx>Duration</span><span class=p>)</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=p>(</span><span class=nx>dw</span> <span class=nx>DurationWrapped</span><span class=p>)</span> <span class=nx>Value</span><span class=p>()</span> <span class=p>(</span><span class=nx>driver</span><span class=p>.</span><span class=nx>Value</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+    <span class=k>return</span> <span class=nx>marshalForIntervalStyle</span><span class=p>(</span><span class=nx>dw</span><span class=p>.</span><span class=nx>Duration</span><span class=p>,</span> <span class=s>"postgres"</span><span class=p>),</span> <span class=kc>nil</span>
+<span class=p>}</span>
+</code></pre></div>
+
+<p>This approach works great in codebases where database calls directly interact
+with <code>database/sql</code> primitives:</p>
+<div class=highlight><pre><span></span><code><span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nx>pool</span><span class=p>.</span><span class=nx>ExecContext</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=s>"UPDATE ... max_age = $1"</span><span class=p>,</span> <span class=nx>dw</span><span class=p>)</span>
+<span class=c1>// ...</span>
+<span class=nx>rows</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>pool</span><span class=p>.</span><span class=nx>QueryContext</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=s>"SELECT ..."</span><span class=p>)</span>
+<span class=c1>// ...</span>
+<span class=nx>err</span> <span class=p>=</span> <span class=nx>rows</span><span class=p>.</span><span class=nx>Scan</span><span class=p>(</span><span class=o>&amp;</span><span class=nx>session</span><span class=p>.</span><span class=nx>ID</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>session</span><span class=p>.</span><span class=nx>Email</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>session</span><span class=p>.</span><span class=nx>UpdatedAt</span><span class=p>,</span> <span class=o>&amp;</span><span class=nx>dw</span><span class=p>)</span>
+<span class=nx>session</span><span class=p>.</span><span class=nx>MaxAge</span> <span class=p>=</span> <span class=nx>dw</span><span class=p>.</span><span class=nx>Duration</span>
+</code></pre></div>
+
+<p>However, it's common for Go codebases to use a higher-level ORM or database
+package that uses reflection to map database columns to fields in a Go struct.
+For such codebases, it may be much more challenging (or even impossible) to
+use a <code>DurationWrapped</code> value. It would be possible to just use a
+<code>DurationWrapped</code> as the column type:</p>
+<div class=highlight><pre><span></span><code><span class=kd>type</span> <span class=nx>Session</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>ID</span>        <span class=nx>uuid</span><span class=p>.</span><span class=nx>UUID</span>       <span class=s>`db:"id"`</span>
+    <span class=nx>Email</span>     <span class=kt>string</span>          <span class=s>`db:"email"`</span>
+    <span class=nx>CreatedAt</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Time</span>       <span class=s>`db:"created_at"`</span>
+    <span class=nx>UpdatedAt</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Time</span>       <span class=s>`db:"updated_at"`</span>
+    <span class=nx>MaxAge</span>    <span class=nx>DurationWrapped</span> <span class=s>`db:"max_age"`</span>
+<span class=p>}</span>
+</code></pre></div>
+
+<p>However, using a <code>DurationWrapped</code> instead of a <code>time.Duration</code> <strong>everywhere</strong>
+the type is used is a large sacrifice. In my opinion, it is the tail wagging
+the dog.</p>
+<h3 id=making-postgresql-do-the-work>Making PostgreSQL Do the Work</h3>
+<p>Instead of doing all the work in Go, we could instead invert the approach and
+do all of the extra work in PostgreSQL. It's likely that most of this
+conversion work will be more efficient (and possibly more correct) when done
+in PostgreSQL vs. in our application code.</p>
+<p>For example, when <strong>reading</strong>, convert to nanoseconds in the
+database<sup id=sf-go-duration-postgresql-interval-3-back><a href=#sf-go-duration-postgresql-interval-3 class=simple-footnote title="The ::BIGINT conversion can go poorly for INTERVAL values that produce an epoch value too large to fit in an int64, but we are assuming our application doesn't need such values.">3</a></sup>:</p>
+<div class=highlight><pre><span></span><code><span class=k>SELECT</span>
+  <span class=n>id</span><span class=p>,</span> <span class=n>email</span><span class=p>,</span> <span class=p>(</span><span class=k>EXTRACT</span><span class=p>(</span><span class=n>epoch</span> <span class=k>FROM</span> <span class=n>max_age</span><span class=p>)</span> <span class=o>*</span> <span class=mi>1000000000</span><span class=p>)::</span><span class=nb>BIGINT</span>
+<span class=k>FROM</span>
+  <span class=n>web_sessions</span>
+</code></pre></div>
+
+<p>and when <strong>writing</strong>, make a best effort to convert from nanoseconds to
+an <code>INTERVAL</code>:</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- -- NOTE: This is likely too simple.</span>
+<span class=c1>-- CREATE OR REPLACE FUNCTION interval_from_nanoseconds(ns BIGINT)</span>
+<span class=c1>-- RETURNS INTERVAL AS $$</span>
+<span class=c1>-- SELECT make_interval(secs =&gt; ns::NUMERIC / 1000000000);</span>
+<span class=c1>-- $$ LANGUAGE sql;</span>
+<span class=k>UPDATE</span> <span class=n>web_sessions</span>
+<span class=k>SET</span>
+  <span class=n>updated_at</span> <span class=o>=</span> <span class=n>NOW</span><span class=p>(),</span>
+  <span class=n>max_age</span> <span class=o>=</span> <span class=n>interval_from_nanoseconds</span><span class=p>(</span><span class=err>$</span><span class=mi>2</span><span class=p>)</span>
+<span class=k>WHERE</span>
+  <span class=n>id</span> <span class=o>=</span> <span class=err>$</span><span class=mi>1</span>
+</code></pre></div>
+
+<h3 id=takeaways>Takeaways</h3>
+<p>Clearly, the above approaches are filled with sharp corners and compromise.
+However, the compromises above are likely acceptable for most applications
+and the have the <strong>huge</strong> benefit of allowing usage of the Go and PostgreSQL
+types that are "standard" for the task at hand.</p>
+<p>The <code>time.Duration</code> and <code>INTERVAL</code> types are fundamentally designed for
+different purposes — e.g. <code>'1 year 2 mons'::INTERVAL</code> always means "add a
+year and a month" independent of the literal number of nanoseconds between the
+two timestamps. In order to benefit from both of them, it's important to ensure
+that usage both in Go and PostgreSQL aligns with the common set of
+functionality shared by both types.</p>
+<hr style="margin-bottom: 25px; width: 50%;"><ol class=simple-footnotes><li id=sf-go-duration-postgresql-interval-1>Since a core
+design goal of Go is composition over inheritance, typical OOP patterns aren't
+that prevalant. As a result, object-relational impedance mismatch doesn't
+really rear its head very often. <a href=#sf-go-duration-postgresql-interval-1-back class=simple-footnote-back>↩</a></li><li id=sf-go-duration-postgresql-interval-2>A PostgreSQL <code>BIGINT</code> exactly maps to <code>int64</code> in Go. <a href=#sf-go-duration-postgresql-interval-2-back class=simple-footnote-back>↩</a></li><li id=sf-go-duration-postgresql-interval-3>The <code>::BIGINT</code> conversion can go poorly for <code>INTERVAL</code> values
+that produce an epoch value too large to fit in an <code>int64</code>, but we are assuming
+our application doesn't need such values. <a href=#sf-go-duration-postgresql-interval-3-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2021-10-06T00:00:00-07:00" pubdate>Oct 06, 2021</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/go.html">Go</a>,    <a class="category" href="https://blog.bossylobster.com/tag/golang.html">Golang</a>,    <a class="category" href="https://blog.bossylobster.com/tag/postgresql.html">PostgreSQL</a>,    <a class="category" href="https://blog.bossylobster.com/tag/time.html">Time</a>,    <a class="category" href="https://blog.bossylobster.com/tag/duration.html">Duration</a>,    <a class="category" href="https://blog.bossylobster.com/tag/interval.html">Interval</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html">Go Duration, PostgreSQL Interval</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Decrypting Vault Ciphertext with a Context</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Atomically Idempotent</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/07/vault-import.html">Importing External Keys into Vault</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2021  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2021/10/go-duration-postgresql-interval.html';
+    var disqus_url = 'https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html';
+    var disqus_title = "<p>Go Duration, PostgreSQL Interval</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

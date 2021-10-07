@@ -6,6 +6,7 @@
   <meta charset="utf-8">
   <title>Decrypting Vault Ciphertext with a Context &mdash; Bossy Lobster</title>
   <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Mechanics of Vault Derived Keys" />
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
         title="Bossy Lobster Atom Feed" />
@@ -18,20 +19,20 @@
 
 <!-- Schema.org markup for Google+ -->
 <meta itemprop="name" content="<p>Decrypting Vault Ciphertext with a Context</p>" />
-<meta itemprop="description" content="" />
+<meta itemprop="description" content="Mechanics of Vault Derived Keys" />
 <meta itemprop="image" content="https://blog.bossylobster.com/images/Vault_PrimaryLogo_Black_RGB.png" />
 
 <!-- Open Graph data -->
 <meta property="og:type" content="article" />
 <meta property="og:title" content="<p>Decrypting Vault Ciphertext with a Context</p>" />
 <meta property="og:image" content="https://blog.bossylobster.com/images/Vault_PrimaryLogo_Black_RGB.png" />
-<meta property="og:description" content="" />
+<meta property="og:description" content="Mechanics of Vault Derived Keys" />
 
 <!-- Twitter Card data -->
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@bossylobster" />
 <meta name="twitter:title" content="<p>Decrypting Vault Ciphertext with a Context</p>" />
-<meta name="twitter:description" content="" />
+<meta name="twitter:description" content="Mechanics of Vault Derived Keys" />
 <meta name="twitter:creator" content="@bossylobster" />
 <meta name="twitter:image" content="https://blog.bossylobster.com/images/Vault_PrimaryLogo_Black_RGB.png" />
 
@@ -209,7 +210,6 @@ First, create a derived key using the context:</p>
 <span class="o">...</span>     <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">salt</span><span class="o">=</span><span class="kc">None</span>
 <span class="o">...</span> <span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">base64</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">key</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="s2">&quot;rph2pwTQCx+TD/lk+7o9igzQw5A7FU3+S+Z24Cf9Duk=&quot;</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">derived_key</span> <span class="o">=</span> <span class="n">hkdf</span><span class="o">.</span><span class="n">derive</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">derived_key</span><span class="p">)</span>
@@ -237,7 +237,7 @@ First, create a derived key using the context:</p>
     </span>
   </span>
 <time datetime="2021-10-05T00:00:00-07:00" pubdate>Oct 05, 2021</time>  <span class="categories">
-    <a class="category" href="https://blog.bossylobster.com/tag/hashicorp.html">Hashicorp</a>,    <a class="category" href="https://blog.bossylobster.com/tag/vault.html">Vault</a>,    <a class="category" href="https://blog.bossylobster.com/tag/import.html">Import</a>,    <a class="category" href="https://blog.bossylobster.com/tag/encryption.html">Encryption</a>  </span>
+    <a class="category" href="https://blog.bossylobster.com/tag/hashicorp.html">Hashicorp</a>,    <a class="category" href="https://blog.bossylobster.com/tag/vault.html">Vault</a>,    <a class="category" href="https://blog.bossylobster.com/tag/encryption.html">Encryption</a>,    <a class="category" href="https://blog.bossylobster.com/tag/key-derivation.html">Key Derivation</a>  </span>
 </p><div class="sharing">
   <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html" >Tweet</a>
   <div class="g-plusone" data-size="medium"></div>
@@ -258,6 +258,9 @@ First, create a derived key using the context:</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html">Go Duration, PostgreSQL Interval</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Decrypting Vault Ciphertext with a Context</a>
       </li>
       <li class="post">
@@ -268,9 +271,6 @@ First, create a derived key using the context:</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
       </li>
     </ul>
   </section>

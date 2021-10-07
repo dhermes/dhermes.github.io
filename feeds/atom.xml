@@ -1,5 +1,189 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-10-05T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Decrypting Vault Ciphertext with a Context</title><link href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html" rel="alternate"></link><published>2021-10-05T00:00:00-07:00</published><updated>2021-10-05T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-05:/2021/10/decrypt-vault-ciphertext-context.html</id><summary type="html">&lt;p&gt;In a previous &lt;a href="/2021/07/vault-import.html"&gt;post&lt;/a&gt;, I described a use case for customer provided keys
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-10-06T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Go Duration, PostgreSQL Interval</title><link href="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html" rel="alternate"></link><published>2021-10-06T00:00:00-07:00</published><updated>2021-10-06T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-06:/2021/10/go-duration-postgresql-interval.html</id><summary type="html">&lt;p&gt;Building a web application in Go and using PostgreSQL as the database is a real
+joy. Both of these tools are produced by incredibly vibrant open source
+projects. These projects represent some of the best attributes of the open
+source movement. When used in combination, occasionally idioms from Go don't …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Building a web application in Go and using PostgreSQL as the database is a real
+joy. Both of these tools are produced by incredibly vibrant open source
+projects. These projects represent some of the best attributes of the open
+source movement. When used in combination, occasionally idioms from Go don't
+translate to PostgreSQL and vice versa. Often this can be chalked up to the
+object-relational impedance &lt;a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_impedance_mismatch"&gt;mismatch&lt;/a&gt;, but not always&lt;sup id=sf-go-duration-postgresql-interval-1-back&gt;&lt;a href=#sf-go-duration-postgresql-interval-1 class=simple-footnote title="Since a core design goal of Go is composition over inheritance, typical OOP patterns aren't that prevalant. As a result, object-relational impedance mismatch doesn't really rear its head very often."&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;Recently, a &lt;a href="https://twitter.com/perryfromsoma"&gt;teammate&lt;/a&gt; and I bumped up against one of these rare situations
+where the idioms don't line up. In Go, &lt;code&gt;time.Duration&lt;/code&gt; is an integer, but
+in PostgreSQL &lt;code&gt;INTERVAL&lt;/code&gt; is essentially text from an application's perspective.&lt;/p&gt;
+&lt;h3 id=go-details&gt;Go Details&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;time.Duration&lt;/code&gt; standard library &lt;a href="https://github.com/golang/go/blob/go1.17.1/src/time/time.go#L587-L590"&gt;type&lt;/a&gt; is a 64-bit integer, with
+associated methods tacked on via a type definition declaration:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;type&lt;/span&gt; &lt;span class=nx&gt;Duration&lt;/span&gt; &lt;span class=kt&gt;int64&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This type can represent durations accurate to nanosecond precision, with
+positive and negative extremes around 292 years.&lt;/p&gt;
+&lt;h3 id=postgresql-details&gt;PostgreSQL Details&lt;/h3&gt;
+&lt;p&gt;The PostgreSQL &lt;code&gt;INTERVAL&lt;/code&gt; type is &lt;a href="https://www.postgresql.org/docs/14/datatype-datetime.html"&gt;stored&lt;/a&gt; as 128-bits internally and is
+serialized as text over the wire in one of four &lt;a href="https://www.postgresql.org/docs/14/datatype-datetime.html#INTERVAL-STYLE-OUTPUT-TABLE"&gt;output&lt;/a&gt; formats.
+It has less precision than a Go &lt;code&gt;time.Duration&lt;/code&gt; (microseconds instead of
+nanoseconds) but due to having twice as much space for storage, can support
+much larger magnitudes: positive and negative extremes around 178,000,000
+years.&lt;/p&gt;
+&lt;h3 id=now-what&gt;Now What?&lt;/h3&gt;
+&lt;p&gt;TL;DR using Go and PostgreSQL idioms simultaneously is beneficial, let's try
+to make it work.&lt;/p&gt;
+&lt;p&gt;If the types are &lt;strong&gt;so&lt;/strong&gt; different, what can we do? First of all, it's important
+to understand the use case. The &lt;strong&gt;overwhelming&lt;/strong&gt; majority of applications
+are just fine with the lowest common denominator covered by both types:
+microsecond precision and positive and negative extremes around 292 years.
+For applications outside this majority, this is where you give up and roll
+your own.&lt;/p&gt;
+&lt;p&gt;But even with this, why not just use a &lt;code&gt;string&lt;/code&gt; in Go or use a &lt;code&gt;BIGINT&lt;/code&gt; in
+PostgreSQL&lt;sup id=sf-go-duration-postgresql-interval-2-back&gt;&lt;a href=#sf-go-duration-postgresql-interval-2 class=simple-footnote title="A PostgreSQL BIGINT exactly maps to int64 in Go."&gt;2&lt;/a&gt;&lt;/sup&gt;? A
+&lt;code&gt;string&lt;/code&gt; in Go would be pretty worthless for actual use beyond just telling
+the database to do &lt;strong&gt;all&lt;/strong&gt; of the business logic involving intervals. Using a
+&lt;code&gt;BIGINT&lt;/code&gt; in PostgreSQL similarly limits hinders the database. For example, an
+&lt;code&gt;INTERVAL&lt;/code&gt; allows sweeping for stale sessions in a PostgreSQL native way:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- CREATE TABLE web_sessions (&lt;/span&gt;
+&lt;span class=c1&gt;--   id UUID NOT NULL,&lt;/span&gt;
+&lt;span class=c1&gt;--   email TEXT NOT NULL,&lt;/span&gt;
+&lt;span class=c1&gt;--   created_at TIMESTAMP WITH TIME ZONE NOT NULL,&lt;/span&gt;
+&lt;span class=c1&gt;--   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,&lt;/span&gt;
+&lt;span class=c1&gt;--   max_age INTERVAL&lt;/span&gt;
+&lt;span class=c1&gt;-- )&lt;/span&gt;
+&lt;span class=k&gt;SELECT&lt;/span&gt;
+  &lt;span class=n&gt;id&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;email&lt;/span&gt;
+&lt;span class=k&gt;FROM&lt;/span&gt;
+  &lt;span class=n&gt;web_sessions&lt;/span&gt;
+&lt;span class=k&gt;WHERE&lt;/span&gt;
+  &lt;span class=n&gt;updated_at&lt;/span&gt; &lt;span class=o&gt;&amp;lt;&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;NOW&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt; &lt;span class=n&gt;max_age&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Conversion from &lt;code&gt;BIGINT&lt;/code&gt; &lt;strong&gt;to&lt;/strong&gt; &lt;code&gt;INTERVAL&lt;/code&gt; can be done on the fly but this
+breaks down for certain inputs:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=n&gt;go_duration&lt;/span&gt;&lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;SELECT&lt;/span&gt; &lt;span class=k&gt;EXTRACT&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;epoch&lt;/span&gt; &lt;span class=k&gt;from&lt;/span&gt; &lt;span class=s1&gt;'3 days 04:05:06'&lt;/span&gt;&lt;span class=p&gt;::&lt;/span&gt;&lt;span class=nb&gt;INTERVAL&lt;/span&gt;&lt;span class=p&gt;);&lt;/span&gt;
+ &lt;span class=n&gt;date_part&lt;/span&gt;
+&lt;span class=c1&gt;-----------&lt;/span&gt;
+    &lt;span class=mi&gt;273906&lt;/span&gt;
+&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;row&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+
+&lt;span class=n&gt;go_duration&lt;/span&gt;&lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;SELECT&lt;/span&gt; &lt;span class=n&gt;make_interval&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;secs&lt;/span&gt; &lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=mi&gt;273906&lt;/span&gt;&lt;span class=p&gt;);&lt;/span&gt;
+ &lt;span class=n&gt;make_interval&lt;/span&gt;
+&lt;span class=c1&gt;---------------&lt;/span&gt;
+ &lt;span class=mi&gt;76&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;&lt;span class=mi&gt;05&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;&lt;span class=mi&gt;06&lt;/span&gt;
+&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;row&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+
+&lt;span class=n&gt;go_duration&lt;/span&gt;&lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;SELECT&lt;/span&gt;
+&lt;span class=n&gt;go_duration&lt;/span&gt;&lt;span class=o&gt;-&amp;gt;&lt;/span&gt;   &lt;span class=n&gt;make_interval&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;days&lt;/span&gt; &lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=mi&gt;3&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;hours&lt;/span&gt; &lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=mi&gt;4&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;mins&lt;/span&gt; &lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=mi&gt;5&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;secs&lt;/span&gt; &lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=mi&gt;6&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;
+&lt;span class=n&gt;go_duration&lt;/span&gt;&lt;span class=o&gt;-&amp;gt;&lt;/span&gt;   &lt;span class=n&gt;make_interval&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;secs&lt;/span&gt; &lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=mi&gt;273906&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=k&gt;AS&lt;/span&gt; &lt;span class=n&gt;delta&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+      &lt;span class=n&gt;delta&lt;/span&gt;
+&lt;span class=c1&gt;------------------&lt;/span&gt;
+ &lt;span class=mi&gt;3&lt;/span&gt; &lt;span class=n&gt;days&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mi&gt;72&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;&lt;span class=mi&gt;00&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;&lt;span class=mi&gt;00&lt;/span&gt;
+&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;row&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=making-go-do-the-work&gt;Making Go Do the Work&lt;/h3&gt;
+&lt;p&gt;In cases like this — where the database wire representation differs from
+the target value in Go — the Go standard library has our back. The
+&lt;code&gt;sql.Scanner&lt;/code&gt; &lt;a href="https://github.com/golang/go/blob/go1.17.1/src/database/sql/sql.go#L395-L416"&gt;interface&lt;/a&gt; allows custom transformation when reading data
+in and the &lt;code&gt;driver.Valuer&lt;/code&gt; &lt;a href="https://github.com/golang/go/blob/go1.17.1/src/database/sql/driver/types.go#L35-L43"&gt;interface&lt;/a&gt; allows custom transformation when
+writing data out.&lt;/p&gt;
+&lt;p&gt;For example, assuming the active PostgreSQL session has &lt;code&gt;IntervalStyle&lt;/code&gt; set
+to &lt;code&gt;postgres&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;type&lt;/span&gt; &lt;span class=nx&gt;DurationWrapped&lt;/span&gt; &lt;span class=kd&gt;struct&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Duration&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;dw&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;DurationWrapped&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=nx&gt;Scan&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;src&lt;/span&gt; &lt;span class=kd&gt;interface&lt;/span&gt;&lt;span class=p&gt;{})&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=k&gt;if&lt;/span&gt; &lt;span class=nx&gt;src&lt;/span&gt; &lt;span class=o&gt;==&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=nx&gt;dw&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Duration&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;
+        &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+
+    &lt;span class=nx&gt;srcStr&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;ok&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;src&lt;/span&gt;&lt;span class=p&gt;.(&lt;/span&gt;&lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+  &lt;span class=k&gt;if&lt;/span&gt; &lt;span class=p&gt;!&lt;/span&gt;&lt;span class=nx&gt;ok&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;fmt&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Errorf&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"duration column was not text; type %T"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;src&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+
+    &lt;span class=c1&gt;// See: https://www.postgresql.org/docs/14/datatype-datetime.html&lt;/span&gt;
+    &lt;span class=c1&gt;//      IntervalStyle Output Table&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;unmarshalForIntervalStyle&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;srcStr&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s&gt;"postgres"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;dw&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Duration&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;dw&lt;/span&gt; &lt;span class=nx&gt;DurationWrapped&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=nx&gt;Value&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;driver&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Value&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;marshalForIntervalStyle&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;dw&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Duration&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s&gt;"postgres"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This approach works great in codebases where database calls directly interact
+with &lt;code&gt;database/sql&lt;/code&gt; primitives:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nx&gt;_&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=nx&gt;pool&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ExecContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s&gt;"UPDATE ... max_age = $1"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;dw&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;rows&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;pool&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;QueryContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s&gt;"SELECT ..."&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=nx&gt;rows&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Scan&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;session&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ID&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;session&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Email&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;session&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;UpdatedAt&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;dw&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=nx&gt;session&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;MaxAge&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=nx&gt;dw&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Duration&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;However, it's common for Go codebases to use a higher-level ORM or database
+package that uses reflection to map database columns to fields in a Go struct.
+For such codebases, it may be much more challenging (or even impossible) to
+use a &lt;code&gt;DurationWrapped&lt;/code&gt; value. It would be possible to just use a
+&lt;code&gt;DurationWrapped&lt;/code&gt; as the column type:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;type&lt;/span&gt; &lt;span class=nx&gt;Session&lt;/span&gt; &lt;span class=kd&gt;struct&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;ID&lt;/span&gt;        &lt;span class=nx&gt;uuid&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;UUID&lt;/span&gt;       &lt;span class=s&gt;`db:"id"`&lt;/span&gt;
+    &lt;span class=nx&gt;Email&lt;/span&gt;     &lt;span class=kt&gt;string&lt;/span&gt;          &lt;span class=s&gt;`db:"email"`&lt;/span&gt;
+    &lt;span class=nx&gt;CreatedAt&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Time&lt;/span&gt;       &lt;span class=s&gt;`db:"created_at"`&lt;/span&gt;
+    &lt;span class=nx&gt;UpdatedAt&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Time&lt;/span&gt;       &lt;span class=s&gt;`db:"updated_at"`&lt;/span&gt;
+    &lt;span class=nx&gt;MaxAge&lt;/span&gt;    &lt;span class=nx&gt;DurationWrapped&lt;/span&gt; &lt;span class=s&gt;`db:"max_age"`&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;However, using a &lt;code&gt;DurationWrapped&lt;/code&gt; instead of a &lt;code&gt;time.Duration&lt;/code&gt; &lt;strong&gt;everywhere&lt;/strong&gt;
+the type is used is a large sacrifice. In my opinion, it is the tail wagging
+the dog.&lt;/p&gt;
+&lt;h3 id=making-postgresql-do-the-work&gt;Making PostgreSQL Do the Work&lt;/h3&gt;
+&lt;p&gt;Instead of doing all the work in Go, we could instead invert the approach and
+do all of the extra work in PostgreSQL. It's likely that most of this
+conversion work will be more efficient (and possibly more correct) when done
+in PostgreSQL vs. in our application code.&lt;/p&gt;
+&lt;p&gt;For example, when &lt;strong&gt;reading&lt;/strong&gt;, convert to nanoseconds in the
+database&lt;sup id=sf-go-duration-postgresql-interval-3-back&gt;&lt;a href=#sf-go-duration-postgresql-interval-3 class=simple-footnote title="The ::BIGINT conversion can go poorly for INTERVAL values that produce an epoch value too large to fit in an int64, but we are assuming our application doesn't need such values."&gt;3&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;SELECT&lt;/span&gt;
+  &lt;span class=n&gt;id&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;email&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=k&gt;EXTRACT&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;epoch&lt;/span&gt; &lt;span class=k&gt;FROM&lt;/span&gt; &lt;span class=n&gt;max_age&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt; &lt;span class=mi&gt;1000000000&lt;/span&gt;&lt;span class=p&gt;)::&lt;/span&gt;&lt;span class=nb&gt;BIGINT&lt;/span&gt;
+&lt;span class=k&gt;FROM&lt;/span&gt;
+  &lt;span class=n&gt;web_sessions&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and when &lt;strong&gt;writing&lt;/strong&gt;, make a best effort to convert from nanoseconds to
+an &lt;code&gt;INTERVAL&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- -- NOTE: This is likely too simple.&lt;/span&gt;
+&lt;span class=c1&gt;-- CREATE OR REPLACE FUNCTION interval_from_nanoseconds(ns BIGINT)&lt;/span&gt;
+&lt;span class=c1&gt;-- RETURNS INTERVAL AS $$&lt;/span&gt;
+&lt;span class=c1&gt;-- SELECT make_interval(secs =&amp;gt; ns::NUMERIC / 1000000000);&lt;/span&gt;
+&lt;span class=c1&gt;-- $$ LANGUAGE sql;&lt;/span&gt;
+&lt;span class=k&gt;UPDATE&lt;/span&gt; &lt;span class=n&gt;web_sessions&lt;/span&gt;
+&lt;span class=k&gt;SET&lt;/span&gt;
+  &lt;span class=n&gt;updated_at&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;NOW&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt;
+  &lt;span class=n&gt;max_age&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;interval_from_nanoseconds&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=err&gt;$&lt;/span&gt;&lt;span class=mi&gt;2&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=k&gt;WHERE&lt;/span&gt;
+  &lt;span class=n&gt;id&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=err&gt;$&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=takeaways&gt;Takeaways&lt;/h3&gt;
+&lt;p&gt;Clearly, the above approaches are filled with sharp corners and compromise.
+However, the compromises above are likely acceptable for most applications
+and the have the &lt;strong&gt;huge&lt;/strong&gt; benefit of allowing usage of the Go and PostgreSQL
+types that are "standard" for the task at hand.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;time.Duration&lt;/code&gt; and &lt;code&gt;INTERVAL&lt;/code&gt; types are fundamentally designed for
+different purposes — e.g. &lt;code&gt;'1 year 2 mons'::INTERVAL&lt;/code&gt; always means "add a
+year and a month" independent of the literal number of nanoseconds between the
+two timestamps. In order to benefit from both of them, it's important to ensure
+that usage both in Go and PostgreSQL aligns with the common set of
+functionality shared by both types.&lt;/p&gt;
+&lt;hr style="margin-bottom: 25px; width: 50%;"&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-go-duration-postgresql-interval-1&gt;Since a core
+design goal of Go is composition over inheritance, typical OOP patterns aren't
+that prevalant. As a result, object-relational impedance mismatch doesn't
+really rear its head very often. &lt;a href=#sf-go-duration-postgresql-interval-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-go-duration-postgresql-interval-2&gt;A PostgreSQL &lt;code&gt;BIGINT&lt;/code&gt; exactly maps to &lt;code&gt;int64&lt;/code&gt; in Go. &lt;a href=#sf-go-duration-postgresql-interval-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-go-duration-postgresql-interval-3&gt;The &lt;code&gt;::BIGINT&lt;/code&gt; conversion can go poorly for &lt;code&gt;INTERVAL&lt;/code&gt; values
+that produce an epoch value too large to fit in an &lt;code&gt;int64&lt;/code&gt;, but we are assuming
+our application doesn't need such values. &lt;a href=#sf-go-duration-postgresql-interval-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Go"></category><category term="Golang"></category><category term="PostgreSQL"></category><category term="Time"></category><category term="Duration"></category><category term="Interval"></category></entry><entry><title>Decrypting Vault Ciphertext with a Context</title><link href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html" rel="alternate"></link><published>2021-10-05T00:00:00-07:00</published><updated>2021-10-05T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-05:/2021/10/decrypt-vault-ciphertext-context.html</id><summary type="html">&lt;p&gt;In a previous &lt;a href="/2021/07/vault-import.html"&gt;post&lt;/a&gt;, I described a use case for customer provided keys
 with Vault. One of the implications of this was the need for decryption after a
 bulk data export. In that post, I gave a concrete example of decrypting Vault
 ciphertext &lt;strong&gt;directly&lt;/strong&gt; with a customer provided key. However …&lt;/p&gt;</summary><content type="html">&lt;p&gt;In a previous &lt;a href="/2021/07/vault-import.html"&gt;post&lt;/a&gt;, I described a use case for customer provided keys
@@ -115,7 +299,6 @@ First, create a derived key using the context:&lt;/p&gt;
 &lt;span class="o"&gt;...&lt;/span&gt;     &lt;span class="n"&gt;algorithm&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;algorithm&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;length&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;32&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;context&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;backend&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;backend&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;salt&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;None&lt;/span&gt;
 &lt;span class="o"&gt;...&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;base64&lt;/span&gt;
 &lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;base64&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;b64decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;rph2pwTQCx+TD/lk+7o9igzQw5A7FU3+S+Z24Cf9Duk=&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;derived_key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;hkdf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;derive&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;derived_key&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
@@ -134,7 +317,7 @@ First, create a derived key using the context:&lt;/p&gt;
 &lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;aead_cipher&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;cryptography&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;hazmat&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;primitives&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ciphers&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;aead&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;AESGCM&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;derived_key&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;aead_cipher&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decrypt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;iv_bytes&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ciphertext_bytes&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="sa"&gt;b&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;FOO&amp;#39;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="Hashicorp"></category><category term="Vault"></category><category term="Import"></category><category term="Encryption"></category></entry><entry><title>Atomically Idempotent</title><link href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html" rel="alternate"></link><published>2021-10-04T00:00:00-07:00</published><updated>2021-10-04T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-04:/2021/10/atomically-idempotent.html</id><summary type="html">&lt;p&gt;Recently, I was analyzing some initialization code in Go with a &lt;a href="https://github.com/mat285"&gt;teammate&lt;/a&gt;.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="Hashicorp"></category><category term="Vault"></category><category term="Encryption"></category><category term="Key Derivation"></category></entry><entry><title>Atomically Idempotent</title><link href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html" rel="alternate"></link><published>2021-10-04T00:00:00-07:00</published><updated>2021-10-04T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-04:/2021/10/atomically-idempotent.html</id><summary type="html">&lt;p&gt;Recently, I was analyzing some initialization code in Go with a &lt;a href="https://github.com/mat285"&gt;teammate&lt;/a&gt;.
 The value being initialized was meant to be used in concurrent Go, so
 initialization had some requirement of atomicity. The code essentially boiled
 down to:&lt;/p&gt;
