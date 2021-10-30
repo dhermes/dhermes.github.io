@@ -72,6 +72,57 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-30-database-migrations-milestone.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-10-30T00:00:00-07:00" pubdate>Oct 30, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p><img alt="Database Milestone" src="/images/database_milestone.jpg"></p>
+<h3 id=motivation>Motivation</h3>
+<p>Over time an application becomes a living thing. When operating a running
+service, it's crucial to not only ask the question</p>
+<blockquote>
+<p>Does the code being deployed work?</p>
+</blockquote>
+<p>it's also crucial to ask</p>
+<blockquote>
+<p>Can I safely deploy this change given the currently running version of my
+service?</p>
+</blockquote>
+<p>This second question …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-29-database-migrations-table.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/10/database-migrations-table.html">The Case for a Metadata Table for Database Migrations</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-10-29T00:00:00-07:00" pubdate>Oct 29, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p><img alt="Tracking Migrations" src="/images/Legal_pad_and_pencil.jpg"></p>
+<h3 id="motivation">Motivation</h3>
+<p>As features are added, changed or deleted, the data model used by an
+application usually changes as well. For most database-backed applications,
+this means migrations are needed.</p>
+<p>With this in mind, the fundamental goal of database migrations:</p>
+<blockquote>
+<p>The current database schema should match the currently running code.</p>
+</blockquote>
+<p>However, achieving …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/database-migrations-table.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2021-10-23-elementary-elliptic.template" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/10/elementary-elliptic.html">When Elementary Becomes Elliptic</a>
@@ -125,56 +176,6 @@ ciphertext <strong>directly</strong> with a customer provided key. However …</
     <a rel="full-article" href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-04-atomically-idempotent.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Atomically Idempotent</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-10-04T00:00:00-07:00" pubdate>Oct 04, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><p>Recently, I was analyzing some initialization code in Go with a <a href="https://github.com/mat285">teammate</a>.
-The value being initialized was meant to be used in concurrent Go, so
-initialization had some requirement of atomicity. The code essentially boiled
-down to:</p>
-<div class="highlight"><pre><span></span><code><span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">T</span><span class="p">)</span> <span class="nx">Start</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">.</span><span class="nx">State</span><span class="p">)</span> <span class="o">==</span> <span class="nx">Started</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="c1">// Early Exit …</span></code></pre></div></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-07-09-vault-import.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/07/vault-import.html">Importing External Keys into Vault</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-07-09T00:00:00-07:00" pubdate>Jul 09, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><p><img alt=Vault src="/images/Vault_PrimaryLogo_Black_RGB.png"></p>
-<h3>Contents</h3>
-<ul>
-<li><a href=#motivation>Motivation</a></li>
-<li><a href=#importing-via-restore>"Importing" via Restore</a></li>
-<li><a href=#decrypting-exported-ciphertext>Decrypting Exported Ciphertext</a></li>
-<li><a href=#key-backup-format>Key Backup Format</a></li>
-</ul>
-<h3 id=motivation>Motivation</h3>
-<p>To understand why it's helpful to import external keys into Vault, it's
-important to understand</p>
-<ul>
-<li>How and why encrypted data is stored in databases</li>
-<li>How Vault provides features that aid in encrypting and decrypting data</li>
-<li>Reasons for data …</li></ul></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/07/vault-import.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/2">&larr; Older</a>
 
@@ -189,6 +190,12 @@ important to understand</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-table.html">The Case for a Metadata Table for Database Migrations</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2021/10/elementary-elliptic.html">When Elementary Becomes Elliptic</a>
       </li>
       <li class="post">
@@ -196,12 +203,6 @@ important to understand</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Decrypting Vault Ciphertext with a Context</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Atomically Idempotent</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/07/vault-import.html">Importing External Keys into Vault</a>
       </li>
     </ul>
   </section>

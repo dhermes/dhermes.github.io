@@ -1,5 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Sat, 23 Oct 2021 00:00:00 -0700</lastBuildDate><item><title>When Elementary Becomes Elliptic</title><link>https://blog.bossylobster.com/2021/10/elementary-elliptic.html</link><description>&lt;p&gt;I enjoy watching math videos targeted at advanced high school or undergraduate
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Sat, 30 Oct 2021 00:00:00 -0700</lastBuildDate><item><title>What Is a Milestone Migration and Why Do I Care?</title><link>https://blog.bossylobster.com/2021/10/database-migrations-milestone.html</link><description>&lt;p&gt;&lt;img alt="Database Milestone" src="/images/database_milestone.jpg"&gt;&lt;/p&gt;
+&lt;h3 id=motivation&gt;Motivation&lt;/h3&gt;
+&lt;p&gt;Over time an application becomes a living thing. When operating a running
+service, it's crucial to not only ask the question&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Does the code being deployed work?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;it's also crucial to ask&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Can I safely deploy this change given the currently running version of my
+service?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This second question …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Sat, 30 Oct 2021 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2021-10-30:/2021/10/database-migrations-milestone.html</guid><category>misc</category><category>Databases</category><category>Migrations</category><category>Milestone</category></item><item><title>The Case for a Metadata Table for Database Migrations</title><link>https://blog.bossylobster.com/2021/10/database-migrations-table.html</link><description>&lt;p&gt;&lt;img alt="Tracking Migrations" src="/images/Legal_pad_and_pencil.jpg"&gt;&lt;/p&gt;
+&lt;h3 id="motivation"&gt;Motivation&lt;/h3&gt;
+&lt;p&gt;As features are added, changed or deleted, the data model used by an
+application usually changes as well. For most database-backed applications,
+this means migrations are needed.&lt;/p&gt;
+&lt;p&gt;With this in mind, the fundamental goal of database migrations:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The current database schema should match the currently running code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;However, achieving …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Fri, 29 Oct 2021 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2021-10-29:/2021/10/database-migrations-table.html</guid><category>misc</category><category>Databases</category><category>Migrations</category></item><item><title>When Elementary Becomes Elliptic</title><link>https://blog.bossylobster.com/2021/10/elementary-elliptic.html</link><description>&lt;p&gt;I enjoy watching math videos targeted at advanced high school or undergraduate
 students — even if the topics are far away from research level
 mathematics. I was recently watching a "quick and easy challenge in
 algebra" &lt;a href="https://youtu.be/Wy_uzVX1U_g"&gt;video&lt;/a&gt; from &lt;a href="https://www.youtube.com/c/SyberMath/videos"&gt;SyberMath&lt;/a&gt;&lt;sup id=sf-elementary-elliptic-1-back&gt;&lt;a href=#sf-elementary-elliptic-1 class=simple-footnote title="I also really enjoy Michael Penn videos."&gt;1&lt;/a&gt;&lt;/sup&gt; that used a neat trick to solve the problem.
@@ -101,7 +122,7 @@ implementation.&lt;sup id=sf-golang-and-log-x-1-back&gt;&lt;a href=#sf-golang-an
 &lt;p&gt;Even three years into a PhD in Applied Math (i.e. numerics), I still
 managed to learn something by diving in and trying …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Mon, 06 Feb 2017 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2017-02-06:/2017/02/golang-and-log-x.html</guid><category>misc</category><category>Math</category><category>Programming</category><category>Logarithm</category><category>Approximation</category><category>Remez</category></item><item><title>Newton's (Method's) Failure</title><link>https://blog.bossylobster.com/2016/11/newtons-failure.html</link><description>&lt;p&gt;Finding zeros of any old function is a common task, and using
 &lt;a href="https://en.wikipedia.org/wiki/Newton's_method"&gt;Newton's method&lt;/a&gt; is one of the best tools for carrying
-out this task. I've even &lt;a href="/2012/05/reverse-calculating-interest-rate"&gt;written&lt;/a&gt; an old post that used this
+out this task. I've even &lt;a href="/2012/05/reverse-calculating-interest-rate.html"&gt;written&lt;/a&gt; an old post that used this
 method.&lt;/p&gt;
 &lt;p&gt;However, Newton's method loses some of it's luster around
 repeated roots. Consider the iteration&lt;/p&gt;

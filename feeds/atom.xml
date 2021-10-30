@@ -1,5 +1,400 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-10-23T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>When Elementary Becomes Elliptic</title><link href="https://blog.bossylobster.com/2021/10/elementary-elliptic.html" rel="alternate"></link><published>2021-10-23T00:00:00-07:00</published><updated>2021-10-23T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-23:/2021/10/elementary-elliptic.html</id><summary type="html">&lt;p&gt;I enjoy watching math videos targeted at advanced high school or undergraduate
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-10-30T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>What Is a Milestone Migration and Why Do I Care?</title><link href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html" rel="alternate"></link><published>2021-10-30T00:00:00-07:00</published><updated>2021-10-30T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-30:/2021/10/database-migrations-milestone.html</id><summary type="html">&lt;p&gt;&lt;img alt="Database Milestone" src="/images/database_milestone.jpg"&gt;&lt;/p&gt;
+&lt;h3 id=motivation&gt;Motivation&lt;/h3&gt;
+&lt;p&gt;Over time an application becomes a living thing. When operating a running
+service, it's crucial to not only ask the question&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Does the code being deployed work?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;it's also crucial to ask&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Can I safely deploy this change given the currently running version of my
+service?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This second question …&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;img alt="Database Milestone" src="/images/database_milestone.jpg"&gt;&lt;/p&gt;
+&lt;h3 id=motivation&gt;Motivation&lt;/h3&gt;
+&lt;p&gt;Over time an application becomes a living thing. When operating a running
+service, it's crucial to not only ask the question&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Does the code being deployed work?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;it's also crucial to ask&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Can I safely deploy this change given the currently running version of my
+service?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This second question is even more crucial in deployment environments where
+&lt;strong&gt;rolling update&lt;/strong&gt; deploys ensure the "old code" and the "new code" will need
+to safely run side-by-side during every deploy.&lt;/p&gt;
+&lt;p&gt;Running database migrations is a &lt;strong&gt;large&lt;/strong&gt; part of this equation. For example,
+dropping a database column because the "new code" doesn't rely on it is not
+safe because "old code" still relies on it. In simple situations like that,
+it's crucial for operators to split the change into multiple stages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Remove &lt;strong&gt;code&lt;/strong&gt; that references the column&lt;/li&gt;
+&lt;li&gt;Deploy that code and ensure the deployed version is stable&lt;sup id=sf-database-migrations-milestone-1-back&gt;&lt;a href=#sf-database-migrations-milestone-1 class=simple-footnote title="What do we     mean by letting a deployment stabilize? Two things primarily: (1) the     rolling update has completed so that the old code isn't running and     (2) some form of acceptance testing to ensure the application doesn't need     to rollback to a previous version"&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;Add a migration to drop the column&lt;/li&gt;
+&lt;li&gt;Run the migration and deploy the code again&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=making-safe&gt;Making Migrations Safe for Rolling Updates&lt;/h3&gt;
+&lt;p&gt;With the motivation above, it's clear that &lt;strong&gt;some&lt;/strong&gt; migrations just cannot be
+run if it has been an extended period of time since the application was last
+deployed. In order to provide some color, let's walk through a concrete use
+case that must be done carefully to be safe in a rolling update deploy
+environment.&lt;/p&gt;
+&lt;p&gt;We have a users table and want to add a &lt;strong&gt;required&lt;/strong&gt; (i.e. &lt;code&gt;NOT NULL&lt;/code&gt;) column
+&lt;code&gt;display_name&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=gp&gt;golembic=&amp;gt;&lt;/span&gt; &lt;span class=kp&gt;\d&lt;/span&gt; &lt;span class=ss&gt;users&lt;/span&gt;
+&lt;span class=go&gt;                         Table "public.users"&lt;/span&gt;
+&lt;span class=go&gt;   Column   |          Type          | Collation | Nullable | Default&lt;/span&gt;
+&lt;span class=go&gt;------------+------------------------+-----------+----------+---------&lt;/span&gt;
+&lt;span class=go&gt; id         | integer                |           | not null |&lt;/span&gt;
+&lt;span class=go&gt; email      | character varying(40)  |           |          |&lt;/span&gt;
+&lt;span class=go&gt; first_name | character varying(40)  |           | not null |&lt;/span&gt;
+&lt;span class=go&gt; last_name  | character varying(40)  |           | not null |&lt;/span&gt;
+&lt;span class=go&gt; city       | character varying(100) |           |          |&lt;/span&gt;
+&lt;span class=go&gt;Indexes:&lt;/span&gt;
+&lt;span class=go&gt;    "users_pkey" PRIMARY KEY, btree (id)&lt;/span&gt;
+&lt;span class=go&gt;    "uq_users_email" UNIQUE, btree (email)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If we just add the column&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt;
+  &lt;span class=n&gt;users&lt;/span&gt;
+&lt;span class=k&gt;ADD&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt;
+  &lt;span class=n&gt;display_name&lt;/span&gt; &lt;span class=nb&gt;TEXT&lt;/span&gt; &lt;span class=k&gt;NOT&lt;/span&gt; &lt;span class=k&gt;NULL&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;then the currently running code will fail on any inserts (since by definition
+the code can't be inserting a &lt;code&gt;display_name&lt;/code&gt; it never heard of):&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=gp&gt;golembic=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;INSERT&lt;/span&gt; &lt;span class=k&gt;INTO&lt;/span&gt;
+&lt;span class=gp&gt;golembic-&amp;gt;&lt;/span&gt;   &lt;span class=n&gt;users&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;id&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;email&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;first_name&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;last_name&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=gp&gt;golembic-&amp;gt;&lt;/span&gt; &lt;span class=k&gt;VALUES&lt;/span&gt;
+&lt;span class=gp&gt;golembic-&amp;gt;&lt;/span&gt;   &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mf&gt;702188&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s1&gt;'dhermes@mail.invalid'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s1&gt;'Danny'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s1&gt;'Hermes'&lt;/span&gt;&lt;span class=p&gt;);&lt;/span&gt;
+&lt;span class=gs&gt;ERROR:&lt;/span&gt;&lt;span class=gr&gt;  null value in column "display_name" of relation "users" violates not-null constraint&lt;/span&gt;
+&lt;span class=gs&gt;DETAIL:&lt;/span&gt;&lt;span class=gr&gt;  Failing row contains (702188, dhermes@mail.invalid, Danny, Hermes, null, null).&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;So we need to take a different approach. One way to add a &lt;strong&gt;required&lt;/strong&gt; column
+in a way that is safe for rolling updates would be to split it into two
+migrations:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;--- 986b93c5e494: Add the column, but allow it to be optional&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt;
+  &lt;span class=n&gt;users&lt;/span&gt;
+&lt;span class=k&gt;ADD&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt;
+  &lt;span class=n&gt;display_name&lt;/span&gt; &lt;span class=nb&gt;TEXT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;--- f37715e564e5: Backfill data into the column, then make the column required&lt;/span&gt;
+&lt;span class=k&gt;UPDATE&lt;/span&gt;
+  &lt;span class=n&gt;users&lt;/span&gt;
+&lt;span class=k&gt;SET&lt;/span&gt;
+  &lt;span class=n&gt;display_name&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;first_name&lt;/span&gt; &lt;span class=o&gt;||&lt;/span&gt; &lt;span class=s1&gt;' '&lt;/span&gt; &lt;span class=o&gt;||&lt;/span&gt; &lt;span class=n&gt;last_name&lt;/span&gt;
+&lt;span class=k&gt;WHERE&lt;/span&gt;
+  &lt;span class=n&gt;display_name&lt;/span&gt; &lt;span class=k&gt;IS&lt;/span&gt; &lt;span class=k&gt;NULL&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt;
+  &lt;span class=n&gt;users&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt;
+  &lt;span class=n&gt;display_name&lt;/span&gt;
+&lt;span class=k&gt;SET&lt;/span&gt;
+  &lt;span class=k&gt;NOT&lt;/span&gt; &lt;span class=k&gt;NULL&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The application code can be updated to also write to the (optional)
+&lt;code&gt;display_name&lt;/code&gt; column and can be safely re-deployed after &lt;code&gt;986b93c5e494&lt;/code&gt; runs.
+Once that deploy has stabilized, the application code can be updated to
+start to &lt;strong&gt;read&lt;/strong&gt; and depend on the (required) &lt;code&gt;display_name&lt;/code&gt; column and
+can be safely re-deployed after &lt;code&gt;f37715e564e5&lt;/code&gt; runs.&lt;/p&gt;
+&lt;p&gt;We call &lt;code&gt;986b93c5e494&lt;/code&gt; a &lt;strong&gt;milestone&lt;/strong&gt; migration because it is a special
+inflection point in the revision history of the application. The migration
+and the associated code must be deployed and stable &lt;strong&gt;before&lt;/strong&gt; the next
+migration (&lt;code&gt;f37715e564e5&lt;/code&gt;) can run. In general, if multiple migrations are
+introduced between two deploys, it's safe to apply all of them. However,
+a &lt;strong&gt;milestone&lt;/strong&gt; can only be run if it's the &lt;strong&gt;last&lt;/strong&gt; migration being applied
+in a sequence.&lt;/p&gt;
+&lt;h3 id=caveat&gt;Caveat&lt;/h3&gt;
+&lt;p&gt;A milestone migration is in some sense a compromise. It mixes &lt;strong&gt;purely&lt;/strong&gt;
+database specific changes (migrations) with a proxy for the application
+version. The proxy (is this milestone migration present in the codebase?)
+gives an idication of where in the revision history the &lt;strong&gt;application version&lt;/strong&gt;
+is.&lt;/p&gt;
+&lt;h3 id=migration-tooling&gt;Milestone Migration Tooling&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;golembic&lt;/code&gt; &lt;a href="https://github.com/dhermes/golembic/tree/2021.10.29"&gt;library&lt;/a&gt; directly provides support for marking a migration
+as a milestone. Continuing with the &lt;code&gt;golembic&lt;/code&gt; examples, we can commit
+two separate changes to encode the migrations above:&lt;/p&gt;
+&lt;h4 id=optional-column&gt;Optional Column: &lt;code&gt;986b93c5e494&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;The first migration can specified as a milestone &lt;a href="https://github.com/dhermes/golembic/blob/2021.10.29/examples/migrations.go#L69"&gt;in&lt;/a&gt;
+&lt;code&gt;examples/migrations.go&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=p&gt;[]&lt;/span&gt;&lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;MigrationOption&lt;/span&gt;&lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptPrevious&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"432f690fcbda"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptRevision&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"986b93c5e494"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptMilestone&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=kc&gt;true&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptDescription&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"Add optional `users.display_name` column"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptUpFromSQL&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"ALTER TABLE users ADD COLUMN display_name TEXT"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=p&gt;},&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=backfill-column&gt;Backfill and Require Column: &lt;code&gt;f37715e564e5&lt;/code&gt;&lt;/h4&gt;
+&lt;p&gt;Since the second migration requires (transactionally) running two migrations,
+we introduce a function:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;const&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;
+    &lt;span class=nx&gt;backfillUsersDisplayName&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=s&gt;`&lt;/span&gt;
+&lt;span class=s&gt;UPDATE&lt;/span&gt;
+&lt;span class=s&gt;  users&lt;/span&gt;
+&lt;span class=s&gt;SET&lt;/span&gt;
+&lt;span class=s&gt;  display_name = first_name || ' ' || last_name&lt;/span&gt;
+&lt;span class=s&gt;WHERE&lt;/span&gt;
+&lt;span class=s&gt;  display_name IS NULL&lt;/span&gt;
+&lt;span class=s&gt;`&lt;/span&gt;
+    &lt;span class=nx&gt;requireUsersDisplayName&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=s&gt;`&lt;/span&gt;
+&lt;span class=s&gt;ALTER TABLE&lt;/span&gt;
+&lt;span class=s&gt;  users&lt;/span&gt;
+&lt;span class=s&gt;ALTER COLUMN&lt;/span&gt;
+&lt;span class=s&gt;  display_name&lt;/span&gt;
+&lt;span class=s&gt;SET&lt;/span&gt;
+&lt;span class=s&gt;  NOT NULL&lt;/span&gt;
+&lt;span class=s&gt;`&lt;/span&gt;
+&lt;span class=p&gt;)&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=nx&gt;RequiredDisplayName&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt; &lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Context&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;tx&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;sql&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Tx&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;_&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;tx&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ExecContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;backfillUsersDisplayName&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=k&gt;if&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;!=&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+
+    &lt;span class=nx&gt;_&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=p&gt;=&lt;/span&gt; &lt;span class=nx&gt;tx&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ExecContext&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;requireUsersDisplayName&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and then register this function in the migrations sequence:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=p&gt;[]&lt;/span&gt;&lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;MigrationOption&lt;/span&gt;&lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptPrevious&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"986b93c5e494"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptRevision&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"f37715e564e5"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptDescription&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"Backfill `users.display_name` column and make required"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=nx&gt;golembic&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;OptUp&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;RequiredDisplayName&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+&lt;span class=p&gt;},&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=guard-rails&gt;Guard Rails&lt;/h3&gt;
+&lt;p&gt;If the next deploy targets the code after the second migration was merged,
+the migrations tooling will refuse to run &lt;strong&gt;any&lt;/strong&gt; of the migrations and
+will cause a failure:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ make run-postgres-cmd GOLEMBIC_CMD=describe
+...
+6 | 432f690fcbda | Create movies table
+7 | 986b93c5e494 | Add optional `users.display_name` column [MILESTONE]
+8 | f37715e564e5 | Backfill `users.display_name` column and make required
+$
+$ make run-postgres-cmd
+If a migration sequence contains a milestone, it must be the last migration; revision 986b93c5e494 (1 / 2 migrations)
+exit status 1
+make: *** [run-postgres-cmd] Error 1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This indicates that the service operator should back the truck up and deploy
+an earlier version, i.e. one where only the first migration and the
+associated code changes are present:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ make run-postgres-cmd GOLEMBIC_CMD=describe
+...
+6 | 432f690fcbda | Create movies table
+7 | 986b93c5e494 | Add optional `users.display_name` column [MILESTONE]
+$
+$ make run-postgres-cmd
+Applying 986b93c5e494: Add optional `users.display_name` column [MILESTONE]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After this &lt;strong&gt;milestone&lt;/strong&gt; version stabilizes, the second migration can be run
+and the associated code changes can be deployed:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ make run-postgres-cmd
+Applying f37715e564e5: Backfill `users.display_name` column and make required
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=related&gt;Related&lt;/h3&gt;
+&lt;p&gt;See &lt;a href="/2021/10/database-migrations-table.html"&gt;The Case for a Metadata Table for Database Migrations&lt;/a&gt; for more context
+on how metadata tables for migrations work.&lt;/p&gt;
+&lt;hr style="margin-bottom: 25px; width: 50%;"&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-database-migrations-milestone-1&gt;What do we
+    mean by letting a deployment stabilize? Two things primarily: (1) the
+    rolling update has completed so that the old code isn't running and
+    (2) some form of acceptance testing to ensure the application doesn't need
+    to rollback to a previous version &lt;a href=#sf-database-migrations-milestone-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Databases"></category><category term="Migrations"></category><category term="Milestone"></category></entry><entry><title>The Case for a Metadata Table for Database Migrations</title><link href="https://blog.bossylobster.com/2021/10/database-migrations-table.html" rel="alternate"></link><published>2021-10-29T00:00:00-07:00</published><updated>2021-10-29T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-29:/2021/10/database-migrations-table.html</id><summary type="html">&lt;p&gt;&lt;img alt="Tracking Migrations" src="/images/Legal_pad_and_pencil.jpg"&gt;&lt;/p&gt;
+&lt;h3 id="motivation"&gt;Motivation&lt;/h3&gt;
+&lt;p&gt;As features are added, changed or deleted, the data model used by an
+application usually changes as well. For most database-backed applications,
+this means migrations are needed.&lt;/p&gt;
+&lt;p&gt;With this in mind, the fundamental goal of database migrations:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The current database schema should match the currently running code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;However, achieving …&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;img alt="Tracking Migrations" src="/images/Legal_pad_and_pencil.jpg"&gt;&lt;/p&gt;
+&lt;h3 id="motivation"&gt;Motivation&lt;/h3&gt;
+&lt;p&gt;As features are added, changed or deleted, the data model used by an
+application usually changes as well. For most database-backed applications,
+this means migrations are needed.&lt;/p&gt;
+&lt;p&gt;With this in mind, the fundamental goal of database migrations:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The current database schema should match the currently running code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;However, achieving this goal is not so easy. A typical database migration
+might be adding an index to improve performance of a common query:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt;
+  &lt;span class="n"&gt;idx_books_publish_date&lt;/span&gt;
+&lt;span class="k"&gt;ON&lt;/span&gt;
+  &lt;span class="n"&gt;books&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;publish_date&lt;/span&gt; &lt;span class="k"&gt;DESC&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="k"&gt;ASC&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;or adding a new column to support a new feature set:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt;
+  &lt;span class="n"&gt;books&lt;/span&gt;
+&lt;span class="k"&gt;ADD&lt;/span&gt; &lt;span class="k"&gt;COLUMN&lt;/span&gt;
+  &lt;span class="n"&gt;latest_edition&lt;/span&gt; &lt;span class="k"&gt;TIMESTAMP&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In PostgreSQL, migrations like these are easy to write in an idempotent way&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="k"&gt;IF&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;EXISTS&lt;/span&gt;
+  &lt;span class="n"&gt;idx_books_publish_date&lt;/span&gt;
+&lt;span class="k"&gt;ON&lt;/span&gt;
+  &lt;span class="n"&gt;books&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;publish_date&lt;/span&gt; &lt;span class="k"&gt;DESC&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="k"&gt;ASC&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;---&lt;/span&gt;
+&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt;
+  &lt;span class="n"&gt;books&lt;/span&gt;
+&lt;span class="k"&gt;ADD&lt;/span&gt; &lt;span class="k"&gt;COLUMN&lt;/span&gt; &lt;span class="k"&gt;IF&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;EXISTS&lt;/span&gt;
+  &lt;span class="n"&gt;latest_edition&lt;/span&gt; &lt;span class="k"&gt;TIMESTAMP&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;But not all migrations are so simple. Some migrations involve backfilling
+information:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt;
+  &lt;span class="n"&gt;books&lt;/span&gt;
+&lt;span class="k"&gt;SET&lt;/span&gt;
+  &lt;span class="n"&gt;latest_edition&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;publish_date&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and running a migration like that multiple times would be problematic (e.g.
+if the data has already been backfilled and the new code allows &lt;code&gt;publish_date&lt;/code&gt;
+and &lt;code&gt;latest_edition&lt;/code&gt; to start to diverge).&lt;/p&gt;
+&lt;p&gt;This is where a metadata table for migrations comes in. By keeping a clear
+record of which migrations were run (and when), we can ensure each migration
+will be run &lt;strong&gt;exactly once&lt;/strong&gt; during development and more crucially, in
+production databases.&lt;/p&gt;
+&lt;h3 id="guards"&gt;Guards&lt;/h3&gt;
+&lt;p&gt;One alternative to a migrations table: introduce queries that check if a
+migration was already performed and &lt;strong&gt;guard&lt;/strong&gt; against running it twice.&lt;/p&gt;
+&lt;p&gt;Some arguments against this strategy:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Doing this for &lt;strong&gt;every migration&lt;/strong&gt; introduced in the codebase is a lot of
+    extra work&lt;/li&gt;
+&lt;li&gt;This introduces an opportunity to make mistakes by writing buggy guards;
+    for teams with a mix of experienced and inexperienced database users,
+    writing guards &lt;strong&gt;correctly&lt;/strong&gt; represents a real challenge&lt;/li&gt;
+&lt;li&gt;In order to do "exactly once" checks on some migrations (e.g. the backfill
+    one above), it may be necessary to introduce &lt;strong&gt;phantom&lt;/strong&gt; columns to the
+    database as breadcrumbs indicating the migration occurred&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt;
+  &lt;span class="n"&gt;books&lt;/span&gt;
+&lt;span class="k"&gt;SET&lt;/span&gt;
+  &lt;span class="n"&gt;latest_edition&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;publish_date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+  &lt;span class="n"&gt;latest_edition_backfill&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;TRUE&lt;/span&gt;
+&lt;span class="k"&gt;WHERE&lt;/span&gt;
+  &lt;span class="n"&gt;latest_edition_backfill&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;FALSE&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Application invariants may change over time and invalidate guards that
+    were historically correct&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="in-practice"&gt;In Practice&lt;/h3&gt;
+&lt;p&gt;It's useful to have an example to understand &lt;strong&gt;how&lt;/strong&gt; a migrations table is
+constructed and how it fits into development and deployment. I'll use the
+example migrations from my &lt;code&gt;golembic&lt;/code&gt; &lt;a href="https://github.com/dhermes/golembic/tree/2021.10.29"&gt;tool&lt;/a&gt; as our example.&lt;/p&gt;
+&lt;p&gt;To get started, the development database needs to be running. In this stage,
+there should be no tables yet because no migrations have run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ make start-postgres
+Network dev-network-golembic created.
+Container dev-postgres-golembic started on port 18426.
+...
+$ docker ps
+CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS          PORTS                     NAMES
+480e5fce3e10   postgres:13.1-alpine   &amp;quot;docker-entrypoint.s…&amp;quot;   54 seconds ago   Up 52 seconds   0.0.0.0:18426-&amp;gt;5432/tcp   dev-postgres-golembic
+$
+$ make psql
+Running psql against port 18426
+psql &amp;quot;postgres://golembic_admin:testpassword_admin@127.0.0.1:18426/golembic&amp;quot;
+...
+golembic=&amp;gt; \dt
+Did not find any relations.
+golembic=&amp;gt; \q
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Using &lt;code&gt;golembic&lt;/code&gt;, we can run the migrations in the development database:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ make run-postgres-cmd
+Applying c9b52448285b: Create users table
+Applying f1be62155239: Seed data in users table
+Applying dce8812d7b6f: Add city column to users table
+Applying 0430566018cc: Rename the root user [MILESTONE]
+Applying 0501ccd1d98c: Add index on user emails (concurrently)
+Applying e2d4eecb1841: Create books table
+Applying 432f690fcbda: Create movies table
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;At this point, the migrations will have created the three tables needed by
+the application: &lt;code&gt;books&lt;/code&gt;, &lt;code&gt;movies&lt;/code&gt; and &lt;code&gt;users&lt;/code&gt;. Observe via &lt;code&gt;make psql&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="gp"&gt;golembic=&amp;gt;&lt;/span&gt; &lt;span class="kp"&gt;\dt&lt;/span&gt;
+&lt;span class="go"&gt;                   List of relations&lt;/span&gt;
+&lt;span class="go"&gt; Schema |        Name         | Type  |     Owner&lt;/span&gt;
+&lt;span class="go"&gt;--------+---------------------+-------+----------------&lt;/span&gt;
+&lt;span class="go"&gt; public | books               | table | golembic_admin&lt;/span&gt;
+&lt;span class="go"&gt; public | golembic_migrations | table | golembic_admin&lt;/span&gt;
+&lt;span class="go"&gt; public | movies              | table | golembic_admin&lt;/span&gt;
+&lt;span class="go"&gt; public | users               | table | golembic_admin&lt;/span&gt;
+&lt;span class="go"&gt;(4 rows)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In addition to the application tables from the migrations, there is also a
+new metadata table &lt;code&gt;golembic_migrations&lt;/code&gt;. This contains a record of the
+migrations that have already been run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="gp"&gt;golembic=&amp;gt;&lt;/span&gt; &lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;golembic_migrations&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="go"&gt; serial_id |   revision   |   previous   |          created_at&lt;/span&gt;
+&lt;span class="go"&gt;-----------+--------------+--------------+-------------------------------&lt;/span&gt;
+&lt;span class="go"&gt;         0 | c9b52448285b |              | 2021-10-29 03:57:57.92535+00&lt;/span&gt;
+&lt;span class="go"&gt;         1 | f1be62155239 | c9b52448285b | 2021-10-29 03:57:57.936784+00&lt;/span&gt;
+&lt;span class="go"&gt;         2 | dce8812d7b6f | f1be62155239 | 2021-10-29 03:57:57.945764+00&lt;/span&gt;
+&lt;span class="go"&gt;         3 | 0430566018cc | dce8812d7b6f | 2021-10-29 03:57:57.954536+00&lt;/span&gt;
+&lt;span class="go"&gt;         4 | 0501ccd1d98c | 0430566018cc | 2021-10-29 03:57:57.963776+00&lt;/span&gt;
+&lt;span class="go"&gt;         5 | e2d4eecb1841 | 0501ccd1d98c | 2021-10-29 03:57:57.986174+00&lt;/span&gt;
+&lt;span class="go"&gt;         6 | 432f690fcbda | e2d4eecb1841 | 2021-10-29 03:57:57.9968+00&lt;/span&gt;
+&lt;span class="go"&gt;(7 rows)&lt;/span&gt;
+
+&lt;span class="gp"&gt;golembic=&amp;gt;&lt;/span&gt; &lt;span class="kp"&gt;\q&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Using this record, the &lt;strong&gt;next time&lt;/strong&gt; the migrations command runs, the
+records in &lt;code&gt;golembic_migrations&lt;/code&gt; can be used to determine that no new
+migrations need to run:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ make run-postgres-cmd
+No migrations to run; latest revision: 432f690fcbda
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id="prior-art"&gt;Prior Art&lt;/h3&gt;
+&lt;p&gt;Although it may seem like an advertisment for &lt;code&gt;golembic&lt;/code&gt;, the point of this
+post was to make a case for a migrations table. To see &lt;code&gt;golembic&lt;/code&gt; isn't
+alone, note that &lt;a href="https://github.com/typeorm/typeorm"&gt;TypeORM&lt;/a&gt; takes a similar approach. For example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="gp"&gt;dunder_mifflin=&amp;gt;&lt;/span&gt; &lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;migrations&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="go"&gt; id |   timestamp   |                     name&lt;/span&gt;
+&lt;span class="go"&gt;----+---------------+-----------------------------------------------&lt;/span&gt;
+&lt;span class="go"&gt;  1 | 1568674788742 | initial1568674788742&lt;/span&gt;
+&lt;span class="go"&gt;  2 | 1571783618350 | recipient1571783618350&lt;/span&gt;
+&lt;span class="go"&gt;  3 | 1572313444993 | recipientEnum1572313444993&lt;/span&gt;
+&lt;span class="go"&gt;  4 | 1572479127851 | ticket1572479127851&lt;/span&gt;
+&lt;span class="go"&gt;  5 | 1572990972108 | ticketIndex1572990972108&lt;/span&gt;
+&lt;span class="go"&gt;  6 | 1573594420208 | uniqueConstraint1573594420208&lt;/span&gt;
+&lt;span class="go"&gt;(6 rows)&lt;/span&gt;
+
+&lt;span class="gp"&gt;dunder_mifflin=&amp;gt;&lt;/span&gt; &lt;span class="kp"&gt;\q&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;(There are lots of ORMs and migrations tools other than TypeORM that also take
+the same approach, I just had this example handy.)&lt;/p&gt;</content><category term="misc"></category><category term="Databases"></category><category term="Migrations"></category></entry><entry><title>When Elementary Becomes Elliptic</title><link href="https://blog.bossylobster.com/2021/10/elementary-elliptic.html" rel="alternate"></link><published>2021-10-23T00:00:00-07:00</published><updated>2021-10-23T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-23:/2021/10/elementary-elliptic.html</id><summary type="html">&lt;p&gt;I enjoy watching math videos targeted at advanced high school or undergraduate
 students — even if the topics are far away from research level
 mathematics. I was recently watching a "quick and easy challenge in
 algebra" &lt;a href="https://youtu.be/Wy_uzVX1U_g"&gt;video&lt;/a&gt; from &lt;a href="https://www.youtube.com/c/SyberMath/videos"&gt;SyberMath&lt;/a&gt;&lt;sup id=sf-elementary-elliptic-1-back&gt;&lt;a href=#sf-elementary-elliptic-1 class=simple-footnote title="I also really enjoy Michael Penn videos."&gt;1&lt;/a&gt;&lt;/sup&gt; that used a neat trick to solve the problem.
@@ -4387,14 +4782,14 @@ trying to explain to a student that a computer would compute
 this with minimal error when I realized I didn't know &lt;strong&gt;how&lt;/strong&gt;. &lt;a href=#sf-golang-and-log-x-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-golang-and-log-x-2&gt;This series is typically learned and forgotten by
 those who have made it through "Calc II". &lt;a href=#sf-golang-and-log-x-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Math"></category><category term="Programming"></category><category term="Logarithm"></category><category term="Approximation"></category><category term="Remez"></category></entry><entry><title>Newton's (Method's) Failure</title><link href="https://blog.bossylobster.com/2016/11/newtons-failure.html" rel="alternate"></link><published>2016-11-24T00:00:00-08:00</published><updated>2016-11-24T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2016-11-24:/2016/11/newtons-failure.html</id><summary type="html">&lt;p&gt;Finding zeros of any old function is a common task, and using
 &lt;a href="https://en.wikipedia.org/wiki/Newton's_method"&gt;Newton's method&lt;/a&gt; is one of the best tools for carrying
-out this task. I've even &lt;a href="/2012/05/reverse-calculating-interest-rate"&gt;written&lt;/a&gt; an old post that used this
+out this task. I've even &lt;a href="/2012/05/reverse-calculating-interest-rate.html"&gt;written&lt;/a&gt; an old post that used this
 method.&lt;/p&gt;
 &lt;p&gt;However, Newton's method loses some of it's luster around
 repeated roots. Consider the iteration&lt;/p&gt;
 &lt;div class="katex-elt"&gt;&lt;blockquote&gt;
 &lt;span class="katex-display"&gt;&lt;span class="katex"&gt;&lt;span class="katex-mathml"&gt;&lt;math xmlns="http://www.w3.org/1998/Math/MathML" display="block"&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;x …&lt;/mi&gt;&lt;/msub&gt;&lt;/mrow&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/blockquote&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;Finding zeros of any old function is a common task, and using
 &lt;a href="https://en.wikipedia.org/wiki/Newton's_method"&gt;Newton's method&lt;/a&gt; is one of the best tools for carrying
-out this task. I've even &lt;a href="/2012/05/reverse-calculating-interest-rate"&gt;written&lt;/a&gt; an old post that used this
+out this task. I've even &lt;a href="/2012/05/reverse-calculating-interest-rate.html"&gt;written&lt;/a&gt; an old post that used this
 method.&lt;/p&gt;
 &lt;p&gt;However, Newton's method loses some of it's luster around
 repeated roots. Consider the iteration&lt;/p&gt;
