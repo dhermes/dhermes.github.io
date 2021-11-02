@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Remodeling the House While Living in It &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Safely Renaming a Column in PostgreSQL" />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Remodeling the House While Living in It</p>" />
+<meta itemprop="description" content="Safely Renaming a Column in PostgreSQL" />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/rename_created_at.jpg" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Remodeling the House While Living in It</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/rename_created_at.jpg" />
+<meta property="og:description" content="Safely Renaming a Column in PostgreSQL" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Remodeling the House While Living in It</p>" />
+<meta name="twitter:description" content="Safely Renaming a Column in PostgreSQL" />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/rename_created_at.jpg" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-11-01-safe-column-renames.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Remodeling the House While Living in It</h1>
+    <p class="meta">
+<time datetime="2021-11-01T00:00:00-07:00" pubdate>Nov 01, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p><img alt="Rename Name Tag" src="/images/rename_created_at.jpg"></p>
+<h3>Minor Mismatch</h3>
+<p>When using a database in an application, there are many ways the idioms from
+the database ecosystem can disagree with the idioms in the programming language
+used to write the application. The object-relational impedance <a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_impedance_mismatch">mismatch</a> is
+one such example of this, but that is mostly about differences between
+relational objects (i.e. rows in tables) and programming language type
+systems.</p>
+<p>Sometimes, the differences are just cosmetic. But this can still cause
+issues with developer ergonomics, opportunities for subtle bugs or even lint
+violations for codebases on the stricter side. Here I want to highlight the
+specific issue when PostgreSQL column naming conventions disagree with field
+naming conventions in JavaScript / TypeScript types.</p>
+<h3>I Made a Mess</h3>
+<p>Consider the following TypeScript type for tracking issues in a ticketing
+system:</p>
+<div class=highlight><pre><span></span><code><span class=k>import</span> <span class=o>*</span> <span class=kr>as</span> <span class=nx>typeorm</span> <span class=k>from</span> <span class=s1>'typeorm'</span><span class=p>;</span>
+
+<span class=kd>@typeorm</span><span class=p>.</span><span class=nx>Entity</span><span class=p>()</span>
+<span class=k>export</span> <span class=kd>class</span> <span class=nx>Ticket</span> <span class=p>{</span>
+  <span class=kd>@typeorm</span><span class=p>.</span><span class=nx>PrimaryColumn</span><span class=p>({</span> <span class=kd>type</span><span class=o>:</span> <span class=s1>'uuid'</span> <span class=p>})</span>
+  <span class=nx>id</span><span class=o>!:</span> <span class=kt>number</span><span class=p>;</span>
+
+  <span class=kd>@typeorm</span><span class=p>.</span><span class=nx>Column</span><span class=p>()</span>
+  <span class=nx>owner</span><span class=o>!:</span> <span class=kt>string</span><span class=p>;</span>
+
+  <span class=kd>@typeorm</span><span class=p>.</span><span class=nx>Column</span><span class=p>()</span>
+  <span class=nx>description</span><span class=o>!:</span> <span class=kt>string</span><span class=p>;</span>
+
+  <span class=kd>@typeorm</span><span class=p>.</span><span class=nx>CreateDateColumn</span><span class=p>({</span> <span class=kd>type</span><span class=o>:</span> <span class=s1>'timestamp with time zone'</span> <span class=p>})</span>
+  <span class=nx>createdAt</span><span class=o>!:</span> <span class=nb>Date</span><span class=p>;</span>
+
+  <span class=kd>@typeorm</span><span class=p>.</span><span class=nx>UpdateDateColumn</span><span class=p>({</span> <span class=kd>type</span><span class=o>:</span> <span class=s1>'timestamp with time zone'</span> <span class=p>})</span>
+  <span class=nx>updatedAt</span><span class=o>!:</span> <span class=nb>Date</span><span class=p>;</span>
+
+  <span class=kd>@typeorm</span><span class=p>.</span><span class=nx>Column</span><span class=p>({</span> <span class=kd>type</span><span class=o>:</span> <span class=s1>'timestamp with time zone'</span><span class=p>,</span> <span class=nx>nullable</span>: <span class=kt>true</span> <span class=p>})</span>
+  <span class=nx>resolvedAt?</span>: <span class=kt>Date</span><span class=p>;</span>
+<span class=p>}</span>
+</code></pre></div>
+
+<!--
+CREATE TABLE "ticket" (
+  "id" uuid NOT NULL,
+  "owner" character varying NOT NULL,
+  "description" character varying NOT NULL,
+  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  "resolvedAt" TIMESTAMP WITH TIME ZONE,
+
+  CONSTRAINT "PK_d9a0835407701eb86f874474b7c" PRIMARY KEY ("id")
+);
+
+CREATE INDEX
+  "IDX_4fd0fa28cf982e5252b358caa9"
+ON
+  "ticket" ("owner", "updatedAt");
+
+INSERT INTO
+  ticket (id, "owner", "description", "createdAt", "updatedAt", "resolvedAt")
+VALUES
+  ('9ca76412-6248-4928-bbf8-e4c32ccec193', 'bob@mail.invalid',  'Deprecate GET-form of DELETE',   '2021-10-22 13:31:48.467759+00', '2021-10-26 01:50:11.762684+00', NULL),
+  ('3076d8bc-81b9-4f8e-af44-0b62493e1ff6', 'bev@mail.invalid',  'Implement protobuf parsing',     '2021-10-23 18:41:59.909022+00', '2021-10-23 18:41:59.909022+00', NULL),
+  ('2a7eacd6-f758-4f9b-ab26-1c47cb2c009a', 'barb@mail.invalid', 'Compare DB purge strategies',    '2021-10-23 12:13:07.682559+00', '2021-10-27 07:45:13.110361+00', '2021-10-27 07:45:13.110361+00'),
+  ('80c47584-0716-4952-8937-dd6af18d516b', 'bob@mail.invalid',  'Explicitly require API version', '2021-10-25 19:22:13.919551+00', '2021-10-25 19:22:13.919551+00', NULL);
+-->
+
+<p>Using TypeORM with the defaults, a developer would end with a table of the
+form:</p>
+<div class=highlight><pre><span></span><code><span class=n>tracker</span><span class=o>=&gt;</span> \<span class=n>d</span> <span class=n>ticket</span>
+                         <span class=n>Table</span> <span class=s2>"tracker.ticket"</span>
+   <span class=n>Column</span>    <span class=o>|</span>           <span class=n>Type</span>           <span class=o>|</span> <span class=n>Collation</span> <span class=o>|</span> <span class=n>Nullable</span> <span class=o>|</span> <span class=n>Default</span>
+<span class=o>-------------+--------------------------+-----------+----------+---------</span>
+ <span class=n>id</span>          <span class=o>|</span> <span class=n>uuid</span>                     <span class=o>|</span>           <span class=o>|</span> <span class=ow>not</span> <span class="nb nb-Type">null</span> <span class=o>|</span>
+ <span class=n>owner</span>       <span class=o>|</span> <span class=n>character</span> <span class=n>varying</span>        <span class=o>|</span>           <span class=o>|</span> <span class=ow>not</span> <span class="nb nb-Type">null</span> <span class=o>|</span>
+ <span class=n>description</span> <span class=o>|</span> <span class=n>character</span> <span class=n>varying</span>        <span class=o>|</span>           <span class=o>|</span> <span class=ow>not</span> <span class="nb nb-Type">null</span> <span class=o>|</span>
+ <span class=n>createdAt</span>   <span class=o>|</span> <span class=n>timestamp</span> <span class=n>with</span> <span class=n>time</span> <span class=n>zone</span> <span class=o>|</span>           <span class=o>|</span> <span class=ow>not</span> <span class="nb nb-Type">null</span> <span class=o>|</span> <span class=n>now</span><span class=p>()</span>
+ <span class=n>updatedAt</span>   <span class=o>|</span> <span class=n>timestamp</span> <span class=n>with</span> <span class=n>time</span> <span class=n>zone</span> <span class=o>|</span>           <span class=o>|</span> <span class=ow>not</span> <span class="nb nb-Type">null</span> <span class=o>|</span> <span class=n>now</span><span class=p>()</span>
+ <span class=n>resolvedAt</span>  <span class=o>|</span> <span class=n>timestamp</span> <span class=n>with</span> <span class=n>time</span> <span class=n>zone</span> <span class=o>|</span>           <span class=o>|</span>          <span class=o>|</span>
+<span class=n>Indexes</span><span class=p>:</span>
+    <span class=s2>"PK_d9a0835407701eb86f874474b7c"</span> <span class=n>PRIMARY</span> <span class=n>KEY</span><span class=p>,</span> <span class=n>btree</span> <span class=p>(</span><span class=n>id</span><span class=p>)</span>
+    <span class=s2>"IDX_4fd0fa28cf982e5252b358caa9"</span> <span class=n>btree</span> <span class=p>(</span><span class=n>owner</span><span class=p>,</span> <span class=s2>"updatedAt"</span><span class=p>)</span>
+</code></pre></div>
+
+<p>Note the idiomatic JavaScript field names (<code>camelCase</code>) being directly ported
+as column names. This causes problems when using them naively in PostgreSQL:</p>
+<div class=highlight><pre><span></span><code><span class=gp>tracker=&gt;</span> <span class=k>SELECT</span> <span class=k>owner</span><span class=p>,</span> <span class=n>description</span><span class=p>,</span> <span class=n>createdAt</span> <span class=k>FROM</span> <span class=n>ticket</span> <span class=k>WHERE</span> <span class=n>createdAt</span> <span class=o>=</span> <span class=n>updatedAt</span><span class=p>;</span>
+<span class=gs>ERROR:</span><span class=gr>  column "createdat" does not exist</span>
+<span class=gs>LINE 1:</span><span class=gr> SELECT owner, description, createdAt FROM ticket WHERE creat...</span>
+<span class=gr>                                   ^</span>
+<span class=gs>HINT:</span><span class=gr>  Perhaps you meant to reference the column "ticket.createdAt".</span>
+</code></pre></div>
+
+<p>A somewhat reasonable response to this may be "but TypeORM writes all my
+queries". However, poking around in the database console (<code>psql</code> here)
+<strong>should</strong> happen all the time, both during development and when evaluating
+migrations, feature usage and performing other other one-off tasks. In order
+to actually use the console, the columns need to be quoted to preserve the
+casing:</p>
+<div class=highlight><pre><span></span><code><span class=gp>tracker=&gt;</span> <span class=k>SELECT</span> <span class=k>owner</span><span class=p>,</span> <span class=n>description</span><span class=p>,</span> <span class="s s-Name">"createdAt"</span> <span class=k>FROM</span> <span class=n>ticket</span> <span class=k>WHERE</span> <span class="s s-Name">"createdAt"</span> <span class=o>=</span> <span class="s s-Name">"updatedAt"</span><span class=p>;</span>
+<span class=go>      owner       |          description           |           createdAt</span>
+<span class=go>------------------+--------------------------------+-------------------------------</span>
+<span class=go> bev@mail.invalid | Implement protobuf parsing     | 2021-10-23 18:41:59.909022+00</span>
+<span class=go> bob@mail.invalid | Explicitly require API version | 2021-10-25 19:22:13.919551+00</span>
+<span class=go>(2 rows)</span>
+</code></pre></div>
+
+<p>This is not great. Due to PostgreSQL <a href="https://www.postgresql.org/docs/14/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS">handling</a> of identifiers, having
+column names be all lowercase is the common convention. In order to
+differentiate word boundaries, <code>snake_case</code> is a natural choice. For example
+here we'd use <code>created_at</code> instead of <code>createdAt</code>.</p>
+<h3>How Do I Get out of the Mess?</h3>
+<p>In TypeORM, a column rename is as simple as</p>
+<div class=highlight><pre><span></span><code>  <span class=kd>@typeorm</span><span class=p>.</span><span class=nx>CreateDateColumn</span><span class=p>({</span> <span class=kd>type</span><span class=o>:</span> <span class=s1>'timestamp with time zone'</span><span class=p>,</span> <span class=nx>name</span><span class=o>:</span> <span class=s1>'created_at'</span> <span class=p>})</span>
+  <span class=nx>createdAt</span><span class=o>!:</span> <span class=nb>Date</span><span class=p>;</span>
+</code></pre></div>
+
+<p>so we can just commit this and run the auto-generated migration? Right?
+RIGHT? Maybe. But probably not. The generated migration is harmless enough:</p>
+<div class=highlight><pre><span></span><code><span class=k>await</span> <span class=nx>queryRunner</span><span class=p>.</span><span class=nx>query</span><span class=p>(</span><span class=sb>`ALTER TABLE "ticket" RENAME COLUMN "createdAt" TO "created_at"`</span><span class=p>);</span>
+</code></pre></div>
+
+<p>However, there is almost always a need for migrations to be compatible with
+both the "old code" and the "new code". The most common reason for this is to
+enable fast rollbacks if the new code contains a defect. However, it's also
+common for applications to be deployed with <strong>rolling updates</strong> or with
+<strong>blue green deploys</strong>. In either case, the "old code" and the "new code" can
+both be running at literally the same time. So whether it's rollback safety or
+deployment strategy, it's easy to construct a strong argument that database
+migrations can be applied with the currently running version of the code.</p>
+<p>How does this come into play here? Renaming to <code>created_at</code> means that any
+query in the currently running version of the code that references <code>createdAt</code>
+would just break. At this point, we might just throw up our hands and regret
+the fact that our columns have <code>camelCase</code> names. However,
+<a href="https://julien.danjou.info/why-you-should-care-that-your-sql-ddl-is-transactional/">transactional DDL</a> and PostgreSQL <a href="https://www.postgresql.org/docs/14/sql-createview.html">views</a> can save us here!</p>
+<h3>The First Migration</h3>
+<p>We can create a view that <strong>pretends</strong> to be the <code>ticket</code> table while
+maintaining the presented column names. Simultaneously, the underlying table
+can rename the columns. (In order to make a view named <code>ticket</code>, we first
+need to rename the table.) Doing any of these changes <strong>alone</strong> would represent
+a broken state for the database, however PostgreSQL allows us to wrap all of
+these DDL operations into a transaction!</p>
+<p>The aforementioned changes require five statements:</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- Start a transaction</span>
+<span class=k>BEGIN</span><span class=p>;</span>
+<span class=c1>-- Rename all the COLUMNs using `camelCase`</span>
+<span class=k>ALTER</span> <span class=k>TABLE</span>
+  <span class=n>ticket</span>
+<span class=k>RENAME</span> <span class=k>COLUMN</span>
+  <span class=ss>"createdAt"</span> <span class=k>TO</span> <span class=n>created_at</span><span class=p>;</span>
+<span class=k>ALTER</span> <span class=k>TABLE</span>
+  <span class=n>ticket</span>
+<span class=k>RENAME</span> <span class=k>COLUMN</span>
+  <span class=ss>"updatedAt"</span> <span class=k>TO</span> <span class=n>updated_at</span><span class=p>;</span>
+<span class=k>ALTER</span> <span class=k>TABLE</span>
+  <span class=n>ticket</span>
+<span class=k>RENAME</span> <span class=k>COLUMN</span>
+  <span class=ss>"resolvedAt"</span> <span class=k>TO</span> <span class=n>resolved_at</span><span class=p>;</span>
+<span class=c1>-- Rename the TABLE so that the VIEW can take its name</span>
+<span class=k>ALTER</span> <span class=k>TABLE</span>
+  <span class=n>ticket</span>
+<span class=k>RENAME</span> <span class=k>TO</span>
+  <span class=n>ticket_actual</span><span class=p>;</span>
+<span class=c1>-- Create a VIEW to present the newly renamed column names, but also</span>
+<span class=c1>-- present the new names</span>
+<span class=k>CREATE</span> <span class=k>VIEW</span>
+  <span class=n>ticket</span> <span class=k>AS</span>
+<span class=k>SELECT</span>
+  <span class=n>id</span><span class=p>,</span>
+  <span class=ss>"owner"</span><span class=p>,</span>
+  <span class=ss>"description"</span><span class=p>,</span>
+  <span class=n>created_at</span> <span class=k>AS</span> <span class=ss>"createdAt"</span><span class=p>,</span>
+  <span class=n>updated_at</span> <span class=k>AS</span> <span class=ss>"updatedAt"</span><span class=p>,</span>
+  <span class=n>resolved_at</span> <span class=k>AS</span> <span class=ss>"resolvedAt"</span><span class=p>,</span>
+  <span class=n>created_at</span><span class=p>,</span>
+  <span class=n>updated_at</span><span class=p>,</span>
+  <span class=n>resolved_at</span>
+<span class=k>FROM</span>
+  <span class=n>ticket_actual</span><span class=p>;</span>
+<span class=c1>-- Commit the transaction</span>
+<span class=k>COMMIT</span><span class=p>;</span>
+</code></pre></div>
+
+<p>To sanity check, notice that even after changing <code>ticket</code> to a view, reads
+and writes continue to work:</p>
+<div class=highlight><pre><span></span><code><span class=gp>tracker=&gt;</span> <span class=kp>\d+</span> <span class=ss>ticket</span>
+<span class=go>                                     View "tracker.ticket"</span>
+<span class=go>   Column    |            Type             | Collation | Nullable | Default | Storage  | Description</span>
+<span class=go>-------------+-----------------------------+-----------+----------+---------+----------+-------------</span>
+<span class=go> id          | uuid                        |           |          |         | plain    |</span>
+<span class=go>...</span>
+<span class=go>View definition:</span>
+<span class=go> SELECT ticket_actual.id,</span>
+<span class=go>    ticket_actual.owner,</span>
+<span class=go>...</span>
+<span class=go>   FROM ticket_actual;</span>
+
+<span class=gp>tracker=&gt;</span> <span class=k>INSERT</span> <span class=k>INTO</span>
+<span class=gp>tracker-&gt;</span>   <span class=n>ticket</span> <span class=p>(</span><span class=n>id</span><span class=p>,</span> <span class="s s-Name">"owner"</span><span class=p>,</span> <span class="s s-Name">"description"</span><span class=p>,</span> <span class="s s-Name">"createdAt"</span><span class=p>,</span> <span class="s s-Name">"updatedAt"</span><span class=p>)</span>
+<span class=gp>tracker-&gt;</span> <span class=k>VALUES</span>
+<span class=gp>tracker-&gt;</span>   <span class=p>(</span>
+<span class=gp>tracker(&gt;</span>     <span class=s1>'9ce77e1f-1390-4a9e-8142-dd5eb257b554'</span><span class=p>,</span>
+<span class=gp>tracker(&gt;</span>     <span class=s1>'bev@mail.invalid'</span><span class=p>,</span>
+<span class=gp>tracker(&gt;</span>     <span class=s1>'Vendor in 3rd party protobuf schema'</span><span class=p>,</span>
+<span class=gp>tracker(&gt;</span>     <span class=s1>'2021-10-24 12:14:15.000173+00'</span><span class=p>,</span>
+<span class=gp>tracker(&gt;</span>     <span class=s1>'2021-10-24 06:37:11.130880+00'</span>
+<span class=gp>tracker(&gt;</span>   <span class=p>);</span>
+<span class=go>INSERT 0 1</span>
+<span class=gp>tracker=&gt;</span> <span class=k>SELECT</span> <span class="s s-Name">"owner"</span><span class=p>,</span> <span class="s s-Name">"description"</span><span class=p>,</span> <span class="s s-Name">"createdAt"</span> <span class=k>FROM</span> <span class=n>ticket</span><span class=p>;</span>
+<span class=go>       owner       |             description             |           createdAt</span>
+<span class=go>-------------------+-------------------------------------+-------------------------------</span>
+<span class=go> bob@mail.invalid  | Deprecate GET-form of DELETE        | 2021-10-22 13:31:48.467759+00</span>
+<span class=go> bev@mail.invalid  | Implement protobuf parsing          | 2021-10-23 18:41:59.909022+00</span>
+<span class=go> barb@mail.invalid | Compare DB purge strategies         | 2021-10-23 12:13:07.682559+00</span>
+<span class=go> bob@mail.invalid  | Explicitly require API version      | 2021-10-25 19:22:13.919551+00</span>
+<span class=go> bev@mail.invalid  | Vendor in 3rd party protobuf schema | 2021-10-24 12:14:15.000173+00</span>
+<span class=go>(5 rows)</span>
+</code></pre></div>
+
+<p>This migration can be coupled with a <strong>code change</strong> that starts to use the
+newly introduced columns in the view: <code>created_at</code>, <code>updated_at</code> and
+<code>resolved_at</code>. During the next deployment (when migrations also run), the
+"old code" will use the old column names (which are now aliases in the view)
+and the "new code" will use the new column names. Due to the way we've
+structured the view, these are both compatible.
+The <code>VIEW</code> and <code>TABLE</code> should be interchangeable to application
+code<sup id=sf-safe-column-renames-1-back><a href=#sf-safe-column-renames-1 class=simple-footnote title="Unless the code uses SELECT *, which may cause breakage due to three new alias columns in the VIEW.">1</a></sup>.</p>
+<h3>The Second Migration</h3>
+<p>Once the previous deploy has stabilized (i.e. we know it won't be rolled back)
+we know the old column names <code>createdAt</code>, <code>updatedAt</code> and <code>resolvedAt</code> no
+longer need to be kept around. As a result, we can remove the view and
+restore the table back with its original name:</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- Start a transaction</span>
+<span class=k>BEGIN</span><span class=p>;</span>
+<span class=c1>-- Remove the VIEW</span>
+<span class=k>DROP</span> <span class=k>VIEW</span> <span class=n>ticket</span><span class=p>;</span>
+<span class=c1>-- Restore the TABLE to the original name</span>
+<span class=k>ALTER</span> <span class=k>TABLE</span>
+  <span class=n>ticket_actual</span>
+<span class=k>RENAME</span> <span class=k>TO</span>
+  <span class=n>ticket</span><span class=p>;</span>
+<span class=c1>-- Commit the transaction</span>
+<span class=k>COMMIT</span><span class=p>;</span>
+</code></pre></div>
+
+<p>All things being equal, application queries going through a <code>TABLE</code> instead
+of a <code>VIEW</code> should be preferred. If a <code>VIEW</code> <strong>can</strong> be removed, it
+should be as soon as possible. Relying on a <code>VIEW</code> in a codebase over a longer
+time span can lead to inefficient queries caused by a mismatch between
+developer assumptions about the exposed columns and the actual columns being
+transformed in the view. The more complex the view is, the more likely this is
+to be true.</p>
+<h3>Conclusion</h3>
+<p>Transactional DDL allows to do things that would otherwise be impossible
+to do without downtime. Combining this with PostgreSQL helpers for
+separating storage from presentation, it's possible to make cosmetic renames
+to tables and columns safely. It's <strong>always</strong> crucial to ensure migrations
+can safely interact with the versions of the codebase immediately before and
+after the migration is intended to run. The above approach shows a generic
+approach that allows for surfacing "before and after" column views at the
+same time. Relying on tools like TypeORM can provide a <strong>lot</strong> of value, but
+they can also cause problems if automated outputs like migrations aren't
+inspected closely.</p>
+<hr style="margin-bottom: 25px; width: 50%;"><ol class=simple-footnotes><li id=sf-safe-column-renames-1>Unless the code uses <code>SELECT *</code>, which may cause breakage due
+to three new alias columns in the <code>VIEW</code>. <a href=#sf-safe-column-renames-1-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2021-11-01T00:00:00-07:00" pubdate>Nov 01, 2021</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/databases.html">Databases</a>,    <a class="category" href="https://blog.bossylobster.com/tag/migrations.html">Migrations</a>,    <a class="category" href="https://blog.bossylobster.com/tag/rolling-update.html">Rolling Update</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2021/11/safe-column-renames.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2021/11/safe-column-renames.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-table.html">The Case for a Metadata Table for Database Migrations</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/elementary-elliptic.html">When Elementary Becomes Elliptic</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html">Go Duration, PostgreSQL Interval</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2021  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2021/11/safe-column-renames.html';
+    var disqus_url = 'https://blog.bossylobster.com/2021/11/safe-column-renames.html';
+    var disqus_title = "<p>Remodeling the House While Living in It</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

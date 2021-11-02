@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Sat, 30 Oct 2021 00:00:00 -0700</lastBuildDate><item><title>What Is a Milestone Migration and Why Do I Care?</title><link>https://blog.bossylobster.com/2021/10/database-migrations-milestone.html</link><description>&lt;p&gt;&lt;img alt="Database Milestone" src="/images/database_milestone.jpg"&gt;&lt;/p&gt;
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Mon, 01 Nov 2021 00:00:00 -0700</lastBuildDate><item><title>Remodeling the House While Living in It</title><link>https://blog.bossylobster.com/2021/11/safe-column-renames.html</link><description>&lt;p&gt;&lt;img alt="Rename Name Tag" src="/images/rename_created_at.jpg"&gt;&lt;/p&gt;
+&lt;h3&gt;Minor Mismatch&lt;/h3&gt;
+&lt;p&gt;When using a database in an application, there are many ways the idioms from
+the database ecosystem can disagree with the idioms in the programming language
+used to write the application. The object-relational impedance &lt;a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_impedance_mismatch"&gt;mismatch&lt;/a&gt; is
+one such example of this, but that is mostly about differences between …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Mon, 01 Nov 2021 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2021-11-01:/2021/11/safe-column-renames.html</guid><category>misc</category><category>Databases</category><category>Migrations</category><category>Rolling Update</category></item><item><title>What Is a Milestone Migration and Why Do I Care?</title><link>https://blog.bossylobster.com/2021/10/database-migrations-milestone.html</link><description>&lt;p&gt;&lt;img alt="Database Milestone" src="/images/database_milestone.jpg"&gt;&lt;/p&gt;
 &lt;h3 id=motivation&gt;Motivation&lt;/h3&gt;
 &lt;p&gt;Over time an application becomes a living thing. When operating a running
 service, it's crucial to not only ask the question&lt;/p&gt;

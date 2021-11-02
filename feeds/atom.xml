@@ -1,5 +1,273 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-10-30T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>What Is a Milestone Migration and Why Do I Care?</title><link href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html" rel="alternate"></link><published>2021-10-30T00:00:00-07:00</published><updated>2021-10-30T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-30:/2021/10/database-migrations-milestone.html</id><summary type="html">&lt;p&gt;&lt;img alt="Database Milestone" src="/images/database_milestone.jpg"&gt;&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-11-01T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Remodeling the House While Living in It</title><link href="https://blog.bossylobster.com/2021/11/safe-column-renames.html" rel="alternate"></link><published>2021-11-01T00:00:00-07:00</published><updated>2021-11-01T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-11-01:/2021/11/safe-column-renames.html</id><summary type="html">&lt;p&gt;&lt;img alt="Rename Name Tag" src="/images/rename_created_at.jpg"&gt;&lt;/p&gt;
+&lt;h3&gt;Minor Mismatch&lt;/h3&gt;
+&lt;p&gt;When using a database in an application, there are many ways the idioms from
+the database ecosystem can disagree with the idioms in the programming language
+used to write the application. The object-relational impedance &lt;a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_impedance_mismatch"&gt;mismatch&lt;/a&gt; is
+one such example of this, but that is mostly about differences between …&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;img alt="Rename Name Tag" src="/images/rename_created_at.jpg"&gt;&lt;/p&gt;
+&lt;h3&gt;Minor Mismatch&lt;/h3&gt;
+&lt;p&gt;When using a database in an application, there are many ways the idioms from
+the database ecosystem can disagree with the idioms in the programming language
+used to write the application. The object-relational impedance &lt;a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_impedance_mismatch"&gt;mismatch&lt;/a&gt; is
+one such example of this, but that is mostly about differences between
+relational objects (i.e. rows in tables) and programming language type
+systems.&lt;/p&gt;
+&lt;p&gt;Sometimes, the differences are just cosmetic. But this can still cause
+issues with developer ergonomics, opportunities for subtle bugs or even lint
+violations for codebases on the stricter side. Here I want to highlight the
+specific issue when PostgreSQL column naming conventions disagree with field
+naming conventions in JavaScript / TypeScript types.&lt;/p&gt;
+&lt;h3&gt;I Made a Mess&lt;/h3&gt;
+&lt;p&gt;Consider the following TypeScript type for tracking issues in a ticketing
+system:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;import&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt; &lt;span class=kr&gt;as&lt;/span&gt; &lt;span class=nx&gt;typeorm&lt;/span&gt; &lt;span class=k&gt;from&lt;/span&gt; &lt;span class=s1&gt;'typeorm'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=kd&gt;@typeorm&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Entity&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=k&gt;export&lt;/span&gt; &lt;span class=kd&gt;class&lt;/span&gt; &lt;span class=nx&gt;Ticket&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+  &lt;span class=kd&gt;@typeorm&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;PrimaryColumn&lt;/span&gt;&lt;span class=p&gt;({&lt;/span&gt; &lt;span class=kd&gt;type&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=s1&gt;'uuid'&lt;/span&gt; &lt;span class=p&gt;})&lt;/span&gt;
+  &lt;span class=nx&gt;id&lt;/span&gt;&lt;span class=o&gt;!:&lt;/span&gt; &lt;span class=kt&gt;number&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+  &lt;span class=kd&gt;@typeorm&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Column&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+  &lt;span class=nx&gt;owner&lt;/span&gt;&lt;span class=o&gt;!:&lt;/span&gt; &lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+  &lt;span class=kd&gt;@typeorm&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Column&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+  &lt;span class=nx&gt;description&lt;/span&gt;&lt;span class=o&gt;!:&lt;/span&gt; &lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+  &lt;span class=kd&gt;@typeorm&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;CreateDateColumn&lt;/span&gt;&lt;span class=p&gt;({&lt;/span&gt; &lt;span class=kd&gt;type&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=s1&gt;'timestamp with time zone'&lt;/span&gt; &lt;span class=p&gt;})&lt;/span&gt;
+  &lt;span class=nx&gt;createdAt&lt;/span&gt;&lt;span class=o&gt;!:&lt;/span&gt; &lt;span class=nb&gt;Date&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+  &lt;span class=kd&gt;@typeorm&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;UpdateDateColumn&lt;/span&gt;&lt;span class=p&gt;({&lt;/span&gt; &lt;span class=kd&gt;type&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=s1&gt;'timestamp with time zone'&lt;/span&gt; &lt;span class=p&gt;})&lt;/span&gt;
+  &lt;span class=nx&gt;updatedAt&lt;/span&gt;&lt;span class=o&gt;!:&lt;/span&gt; &lt;span class=nb&gt;Date&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+  &lt;span class=kd&gt;@typeorm&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Column&lt;/span&gt;&lt;span class=p&gt;({&lt;/span&gt; &lt;span class=kd&gt;type&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=s1&gt;'timestamp with time zone'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;nullable&lt;/span&gt;: &lt;span class=kt&gt;true&lt;/span&gt; &lt;span class=p&gt;})&lt;/span&gt;
+  &lt;span class=nx&gt;resolvedAt?&lt;/span&gt;: &lt;span class=kt&gt;Date&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;!--
+CREATE TABLE "ticket" (
+  "id" uuid NOT NULL,
+  "owner" character varying NOT NULL,
+  "description" character varying NOT NULL,
+  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  "resolvedAt" TIMESTAMP WITH TIME ZONE,
+
+  CONSTRAINT "PK_d9a0835407701eb86f874474b7c" PRIMARY KEY ("id")
+);
+
+CREATE INDEX
+  "IDX_4fd0fa28cf982e5252b358caa9"
+ON
+  "ticket" ("owner", "updatedAt");
+
+INSERT INTO
+  ticket (id, "owner", "description", "createdAt", "updatedAt", "resolvedAt")
+VALUES
+  ('9ca76412-6248-4928-bbf8-e4c32ccec193', 'bob@mail.invalid',  'Deprecate GET-form of DELETE',   '2021-10-22 13:31:48.467759+00', '2021-10-26 01:50:11.762684+00', NULL),
+  ('3076d8bc-81b9-4f8e-af44-0b62493e1ff6', 'bev@mail.invalid',  'Implement protobuf parsing',     '2021-10-23 18:41:59.909022+00', '2021-10-23 18:41:59.909022+00', NULL),
+  ('2a7eacd6-f758-4f9b-ab26-1c47cb2c009a', 'barb@mail.invalid', 'Compare DB purge strategies',    '2021-10-23 12:13:07.682559+00', '2021-10-27 07:45:13.110361+00', '2021-10-27 07:45:13.110361+00'),
+  ('80c47584-0716-4952-8937-dd6af18d516b', 'bob@mail.invalid',  'Explicitly require API version', '2021-10-25 19:22:13.919551+00', '2021-10-25 19:22:13.919551+00', NULL);
+--&gt;
+
+&lt;p&gt;Using TypeORM with the defaults, a developer would end with a table of the
+form:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=n&gt;tracker&lt;/span&gt;&lt;span class=o&gt;=&amp;gt;&lt;/span&gt; \&lt;span class=n&gt;d&lt;/span&gt; &lt;span class=n&gt;ticket&lt;/span&gt;
+                         &lt;span class=n&gt;Table&lt;/span&gt; &lt;span class=s2&gt;"tracker.ticket"&lt;/span&gt;
+   &lt;span class=n&gt;Column&lt;/span&gt;    &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=n&gt;Type&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;Collation&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;Nullable&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;Default&lt;/span&gt;
+&lt;span class=o&gt;-------------+--------------------------+-----------+----------+---------&lt;/span&gt;
+ &lt;span class=n&gt;id&lt;/span&gt;          &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;uuid&lt;/span&gt;                     &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=ow&gt;not&lt;/span&gt; &lt;span class="nb nb-Type"&gt;null&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;
+ &lt;span class=n&gt;owner&lt;/span&gt;       &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;character&lt;/span&gt; &lt;span class=n&gt;varying&lt;/span&gt;        &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=ow&gt;not&lt;/span&gt; &lt;span class="nb nb-Type"&gt;null&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;
+ &lt;span class=n&gt;description&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;character&lt;/span&gt; &lt;span class=n&gt;varying&lt;/span&gt;        &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=ow&gt;not&lt;/span&gt; &lt;span class="nb nb-Type"&gt;null&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;
+ &lt;span class=n&gt;createdAt&lt;/span&gt;   &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;timestamp&lt;/span&gt; &lt;span class=n&gt;with&lt;/span&gt; &lt;span class=n&gt;time&lt;/span&gt; &lt;span class=n&gt;zone&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=ow&gt;not&lt;/span&gt; &lt;span class="nb nb-Type"&gt;null&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;now&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+ &lt;span class=n&gt;updatedAt&lt;/span&gt;   &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;timestamp&lt;/span&gt; &lt;span class=n&gt;with&lt;/span&gt; &lt;span class=n&gt;time&lt;/span&gt; &lt;span class=n&gt;zone&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=ow&gt;not&lt;/span&gt; &lt;span class="nb nb-Type"&gt;null&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;now&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+ &lt;span class=n&gt;resolvedAt&lt;/span&gt;  &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;timestamp&lt;/span&gt; &lt;span class=n&gt;with&lt;/span&gt; &lt;span class=n&gt;time&lt;/span&gt; &lt;span class=n&gt;zone&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt;          &lt;span class=o&gt;|&lt;/span&gt;
+&lt;span class=n&gt;Indexes&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+    &lt;span class=s2&gt;"PK_d9a0835407701eb86f874474b7c"&lt;/span&gt; &lt;span class=n&gt;PRIMARY&lt;/span&gt; &lt;span class=n&gt;KEY&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;btree&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;id&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=s2&gt;"IDX_4fd0fa28cf982e5252b358caa9"&lt;/span&gt; &lt;span class=n&gt;btree&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;owner&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=s2&gt;"updatedAt"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Note the idiomatic JavaScript field names (&lt;code&gt;camelCase&lt;/code&gt;) being directly ported
+as column names. This causes problems when using them naively in PostgreSQL:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=gp&gt;tracker=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;SELECT&lt;/span&gt; &lt;span class=k&gt;owner&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;description&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;createdAt&lt;/span&gt; &lt;span class=k&gt;FROM&lt;/span&gt; &lt;span class=n&gt;ticket&lt;/span&gt; &lt;span class=k&gt;WHERE&lt;/span&gt; &lt;span class=n&gt;createdAt&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;updatedAt&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=gs&gt;ERROR:&lt;/span&gt;&lt;span class=gr&gt;  column "createdat" does not exist&lt;/span&gt;
+&lt;span class=gs&gt;LINE 1:&lt;/span&gt;&lt;span class=gr&gt; SELECT owner, description, createdAt FROM ticket WHERE creat...&lt;/span&gt;
+&lt;span class=gr&gt;                                   ^&lt;/span&gt;
+&lt;span class=gs&gt;HINT:&lt;/span&gt;&lt;span class=gr&gt;  Perhaps you meant to reference the column "ticket.createdAt".&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;A somewhat reasonable response to this may be "but TypeORM writes all my
+queries". However, poking around in the database console (&lt;code&gt;psql&lt;/code&gt; here)
+&lt;strong&gt;should&lt;/strong&gt; happen all the time, both during development and when evaluating
+migrations, feature usage and performing other other one-off tasks. In order
+to actually use the console, the columns need to be quoted to preserve the
+casing:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=gp&gt;tracker=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;SELECT&lt;/span&gt; &lt;span class=k&gt;owner&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;description&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class="s s-Name"&gt;"createdAt"&lt;/span&gt; &lt;span class=k&gt;FROM&lt;/span&gt; &lt;span class=n&gt;ticket&lt;/span&gt; &lt;span class=k&gt;WHERE&lt;/span&gt; &lt;span class="s s-Name"&gt;"createdAt"&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class="s s-Name"&gt;"updatedAt"&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=go&gt;      owner       |          description           |           createdAt&lt;/span&gt;
+&lt;span class=go&gt;------------------+--------------------------------+-------------------------------&lt;/span&gt;
+&lt;span class=go&gt; bev@mail.invalid | Implement protobuf parsing     | 2021-10-23 18:41:59.909022+00&lt;/span&gt;
+&lt;span class=go&gt; bob@mail.invalid | Explicitly require API version | 2021-10-25 19:22:13.919551+00&lt;/span&gt;
+&lt;span class=go&gt;(2 rows)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This is not great. Due to PostgreSQL &lt;a href="https://www.postgresql.org/docs/14/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS"&gt;handling&lt;/a&gt; of identifiers, having
+column names be all lowercase is the common convention. In order to
+differentiate word boundaries, &lt;code&gt;snake_case&lt;/code&gt; is a natural choice. For example
+here we'd use &lt;code&gt;created_at&lt;/code&gt; instead of &lt;code&gt;createdAt&lt;/code&gt;.&lt;/p&gt;
+&lt;h3&gt;How Do I Get out of the Mess?&lt;/h3&gt;
+&lt;p&gt;In TypeORM, a column rename is as simple as&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;  &lt;span class=kd&gt;@typeorm&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;CreateDateColumn&lt;/span&gt;&lt;span class=p&gt;({&lt;/span&gt; &lt;span class=kd&gt;type&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=s1&gt;'timestamp with time zone'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;name&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=s1&gt;'created_at'&lt;/span&gt; &lt;span class=p&gt;})&lt;/span&gt;
+  &lt;span class=nx&gt;createdAt&lt;/span&gt;&lt;span class=o&gt;!:&lt;/span&gt; &lt;span class=nb&gt;Date&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;so we can just commit this and run the auto-generated migration? Right?
+RIGHT? Maybe. But probably not. The generated migration is harmless enough:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;await&lt;/span&gt; &lt;span class=nx&gt;queryRunner&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;query&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=sb&gt;`ALTER TABLE "ticket" RENAME COLUMN "createdAt" TO "created_at"`&lt;/span&gt;&lt;span class=p&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;However, there is almost always a need for migrations to be compatible with
+both the "old code" and the "new code". The most common reason for this is to
+enable fast rollbacks if the new code contains a defect. However, it's also
+common for applications to be deployed with &lt;strong&gt;rolling updates&lt;/strong&gt; or with
+&lt;strong&gt;blue green deploys&lt;/strong&gt;. In either case, the "old code" and the "new code" can
+both be running at literally the same time. So whether it's rollback safety or
+deployment strategy, it's easy to construct a strong argument that database
+migrations can be applied with the currently running version of the code.&lt;/p&gt;
+&lt;p&gt;How does this come into play here? Renaming to &lt;code&gt;created_at&lt;/code&gt; means that any
+query in the currently running version of the code that references &lt;code&gt;createdAt&lt;/code&gt;
+would just break. At this point, we might just throw up our hands and regret
+the fact that our columns have &lt;code&gt;camelCase&lt;/code&gt; names. However,
+&lt;a href="https://julien.danjou.info/why-you-should-care-that-your-sql-ddl-is-transactional/"&gt;transactional DDL&lt;/a&gt; and PostgreSQL &lt;a href="https://www.postgresql.org/docs/14/sql-createview.html"&gt;views&lt;/a&gt; can save us here!&lt;/p&gt;
+&lt;h3&gt;The First Migration&lt;/h3&gt;
+&lt;p&gt;We can create a view that &lt;strong&gt;pretends&lt;/strong&gt; to be the &lt;code&gt;ticket&lt;/code&gt; table while
+maintaining the presented column names. Simultaneously, the underlying table
+can rename the columns. (In order to make a view named &lt;code&gt;ticket&lt;/code&gt;, we first
+need to rename the table.) Doing any of these changes &lt;strong&gt;alone&lt;/strong&gt; would represent
+a broken state for the database, however PostgreSQL allows us to wrap all of
+these DDL operations into a transaction!&lt;/p&gt;
+&lt;p&gt;The aforementioned changes require five statements:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- Start a transaction&lt;/span&gt;
+&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Rename all the COLUMNs using `camelCase`&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt;
+  &lt;span class=n&gt;ticket&lt;/span&gt;
+&lt;span class=k&gt;RENAME&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt;
+  &lt;span class=ss&gt;"createdAt"&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt; &lt;span class=n&gt;created_at&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt;
+  &lt;span class=n&gt;ticket&lt;/span&gt;
+&lt;span class=k&gt;RENAME&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt;
+  &lt;span class=ss&gt;"updatedAt"&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt; &lt;span class=n&gt;updated_at&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt;
+  &lt;span class=n&gt;ticket&lt;/span&gt;
+&lt;span class=k&gt;RENAME&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt;
+  &lt;span class=ss&gt;"resolvedAt"&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt; &lt;span class=n&gt;resolved_at&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Rename the TABLE so that the VIEW can take its name&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt;
+  &lt;span class=n&gt;ticket&lt;/span&gt;
+&lt;span class=k&gt;RENAME&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt;
+  &lt;span class=n&gt;ticket_actual&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Create a VIEW to present the newly renamed column names, but also&lt;/span&gt;
+&lt;span class=c1&gt;-- present the new names&lt;/span&gt;
+&lt;span class=k&gt;CREATE&lt;/span&gt; &lt;span class=k&gt;VIEW&lt;/span&gt;
+  &lt;span class=n&gt;ticket&lt;/span&gt; &lt;span class=k&gt;AS&lt;/span&gt;
+&lt;span class=k&gt;SELECT&lt;/span&gt;
+  &lt;span class=n&gt;id&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=ss&gt;"owner"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=ss&gt;"description"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=n&gt;created_at&lt;/span&gt; &lt;span class=k&gt;AS&lt;/span&gt; &lt;span class=ss&gt;"createdAt"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=n&gt;updated_at&lt;/span&gt; &lt;span class=k&gt;AS&lt;/span&gt; &lt;span class=ss&gt;"updatedAt"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=n&gt;resolved_at&lt;/span&gt; &lt;span class=k&gt;AS&lt;/span&gt; &lt;span class=ss&gt;"resolvedAt"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=n&gt;created_at&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=n&gt;updated_at&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+  &lt;span class=n&gt;resolved_at&lt;/span&gt;
+&lt;span class=k&gt;FROM&lt;/span&gt;
+  &lt;span class=n&gt;ticket_actual&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Commit the transaction&lt;/span&gt;
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;To sanity check, notice that even after changing &lt;code&gt;ticket&lt;/code&gt; to a view, reads
+and writes continue to work:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=gp&gt;tracker=&amp;gt;&lt;/span&gt; &lt;span class=kp&gt;\d+&lt;/span&gt; &lt;span class=ss&gt;ticket&lt;/span&gt;
+&lt;span class=go&gt;                                     View "tracker.ticket"&lt;/span&gt;
+&lt;span class=go&gt;   Column    |            Type             | Collation | Nullable | Default | Storage  | Description&lt;/span&gt;
+&lt;span class=go&gt;-------------+-----------------------------+-----------+----------+---------+----------+-------------&lt;/span&gt;
+&lt;span class=go&gt; id          | uuid                        |           |          |         | plain    |&lt;/span&gt;
+&lt;span class=go&gt;...&lt;/span&gt;
+&lt;span class=go&gt;View definition:&lt;/span&gt;
+&lt;span class=go&gt; SELECT ticket_actual.id,&lt;/span&gt;
+&lt;span class=go&gt;    ticket_actual.owner,&lt;/span&gt;
+&lt;span class=go&gt;...&lt;/span&gt;
+&lt;span class=go&gt;   FROM ticket_actual;&lt;/span&gt;
+
+&lt;span class=gp&gt;tracker=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;INSERT&lt;/span&gt; &lt;span class=k&gt;INTO&lt;/span&gt;
+&lt;span class=gp&gt;tracker-&amp;gt;&lt;/span&gt;   &lt;span class=n&gt;ticket&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;id&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class="s s-Name"&gt;"owner"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class="s s-Name"&gt;"description"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class="s s-Name"&gt;"createdAt"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class="s s-Name"&gt;"updatedAt"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=gp&gt;tracker-&amp;gt;&lt;/span&gt; &lt;span class=k&gt;VALUES&lt;/span&gt;
+&lt;span class=gp&gt;tracker-&amp;gt;&lt;/span&gt;   &lt;span class=p&gt;(&lt;/span&gt;
+&lt;span class=gp&gt;tracker(&amp;gt;&lt;/span&gt;     &lt;span class=s1&gt;'9ce77e1f-1390-4a9e-8142-dd5eb257b554'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+&lt;span class=gp&gt;tracker(&amp;gt;&lt;/span&gt;     &lt;span class=s1&gt;'bev@mail.invalid'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+&lt;span class=gp&gt;tracker(&amp;gt;&lt;/span&gt;     &lt;span class=s1&gt;'Vendor in 3rd party protobuf schema'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+&lt;span class=gp&gt;tracker(&amp;gt;&lt;/span&gt;     &lt;span class=s1&gt;'2021-10-24 12:14:15.000173+00'&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+&lt;span class=gp&gt;tracker(&amp;gt;&lt;/span&gt;     &lt;span class=s1&gt;'2021-10-24 06:37:11.130880+00'&lt;/span&gt;
+&lt;span class=gp&gt;tracker(&amp;gt;&lt;/span&gt;   &lt;span class=p&gt;);&lt;/span&gt;
+&lt;span class=go&gt;INSERT 0 1&lt;/span&gt;
+&lt;span class=gp&gt;tracker=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;SELECT&lt;/span&gt; &lt;span class="s s-Name"&gt;"owner"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class="s s-Name"&gt;"description"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class="s s-Name"&gt;"createdAt"&lt;/span&gt; &lt;span class=k&gt;FROM&lt;/span&gt; &lt;span class=n&gt;ticket&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=go&gt;       owner       |             description             |           createdAt&lt;/span&gt;
+&lt;span class=go&gt;-------------------+-------------------------------------+-------------------------------&lt;/span&gt;
+&lt;span class=go&gt; bob@mail.invalid  | Deprecate GET-form of DELETE        | 2021-10-22 13:31:48.467759+00&lt;/span&gt;
+&lt;span class=go&gt; bev@mail.invalid  | Implement protobuf parsing          | 2021-10-23 18:41:59.909022+00&lt;/span&gt;
+&lt;span class=go&gt; barb@mail.invalid | Compare DB purge strategies         | 2021-10-23 12:13:07.682559+00&lt;/span&gt;
+&lt;span class=go&gt; bob@mail.invalid  | Explicitly require API version      | 2021-10-25 19:22:13.919551+00&lt;/span&gt;
+&lt;span class=go&gt; bev@mail.invalid  | Vendor in 3rd party protobuf schema | 2021-10-24 12:14:15.000173+00&lt;/span&gt;
+&lt;span class=go&gt;(5 rows)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This migration can be coupled with a &lt;strong&gt;code change&lt;/strong&gt; that starts to use the
+newly introduced columns in the view: &lt;code&gt;created_at&lt;/code&gt;, &lt;code&gt;updated_at&lt;/code&gt; and
+&lt;code&gt;resolved_at&lt;/code&gt;. During the next deployment (when migrations also run), the
+"old code" will use the old column names (which are now aliases in the view)
+and the "new code" will use the new column names. Due to the way we've
+structured the view, these are both compatible.
+The &lt;code&gt;VIEW&lt;/code&gt; and &lt;code&gt;TABLE&lt;/code&gt; should be interchangeable to application
+code&lt;sup id=sf-safe-column-renames-1-back&gt;&lt;a href=#sf-safe-column-renames-1 class=simple-footnote title="Unless the code uses SELECT *, which may cause breakage due to three new alias columns in the VIEW."&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;h3&gt;The Second Migration&lt;/h3&gt;
+&lt;p&gt;Once the previous deploy has stabilized (i.e. we know it won't be rolled back)
+we know the old column names &lt;code&gt;createdAt&lt;/code&gt;, &lt;code&gt;updatedAt&lt;/code&gt; and &lt;code&gt;resolvedAt&lt;/code&gt; no
+longer need to be kept around. As a result, we can remove the view and
+restore the table back with its original name:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- Start a transaction&lt;/span&gt;
+&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Remove the VIEW&lt;/span&gt;
+&lt;span class=k&gt;DROP&lt;/span&gt; &lt;span class=k&gt;VIEW&lt;/span&gt; &lt;span class=n&gt;ticket&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Restore the TABLE to the original name&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt;
+  &lt;span class=n&gt;ticket_actual&lt;/span&gt;
+&lt;span class=k&gt;RENAME&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt;
+  &lt;span class=n&gt;ticket&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- Commit the transaction&lt;/span&gt;
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;All things being equal, application queries going through a &lt;code&gt;TABLE&lt;/code&gt; instead
+of a &lt;code&gt;VIEW&lt;/code&gt; should be preferred. If a &lt;code&gt;VIEW&lt;/code&gt; &lt;strong&gt;can&lt;/strong&gt; be removed, it
+should be as soon as possible. Relying on a &lt;code&gt;VIEW&lt;/code&gt; in a codebase over a longer
+time span can lead to inefficient queries caused by a mismatch between
+developer assumptions about the exposed columns and the actual columns being
+transformed in the view. The more complex the view is, the more likely this is
+to be true.&lt;/p&gt;
+&lt;h3&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;Transactional DDL allows to do things that would otherwise be impossible
+to do without downtime. Combining this with PostgreSQL helpers for
+separating storage from presentation, it's possible to make cosmetic renames
+to tables and columns safely. It's &lt;strong&gt;always&lt;/strong&gt; crucial to ensure migrations
+can safely interact with the versions of the codebase immediately before and
+after the migration is intended to run. The above approach shows a generic
+approach that allows for surfacing "before and after" column views at the
+same time. Relying on tools like TypeORM can provide a &lt;strong&gt;lot&lt;/strong&gt; of value, but
+they can also cause problems if automated outputs like migrations aren't
+inspected closely.&lt;/p&gt;
+&lt;hr style="margin-bottom: 25px; width: 50%;"&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-safe-column-renames-1&gt;Unless the code uses &lt;code&gt;SELECT *&lt;/code&gt;, which may cause breakage due
+to three new alias columns in the &lt;code&gt;VIEW&lt;/code&gt;. &lt;a href=#sf-safe-column-renames-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Databases"></category><category term="Migrations"></category><category term="Rolling Update"></category></entry><entry><title>What Is a Milestone Migration and Why Do I Care?</title><link href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html" rel="alternate"></link><published>2021-10-30T00:00:00-07:00</published><updated>2021-10-30T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-10-30:/2021/10/database-migrations-milestone.html</id><summary type="html">&lt;p&gt;&lt;img alt="Database Milestone" src="/images/database_milestone.jpg"&gt;&lt;/p&gt;
 &lt;h3 id=motivation&gt;Motivation&lt;/h3&gt;
 &lt;p&gt;Over time an application becomes a living thing. When operating a running
 service, it's crucial to not only ask the question&lt;/p&gt;
