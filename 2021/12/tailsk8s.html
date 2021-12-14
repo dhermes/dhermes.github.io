@@ -2,10 +2,11 @@
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<head itemscope itemtype="http://schema.org/Article">
   <meta charset="utf-8">
-  <title><p>Testimonials</p> &mdash; Bossy Lobster</title>
+  <title>Bare Metal Kubernetes with Tailscale &mdash; Bossy Lobster</title>
   <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Using Tailscale as a Very Lightweight CNI" />
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
         title="Bossy Lobster Atom Feed" />
@@ -16,6 +17,24 @@
 <link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
 
 
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Bare Metal Kubernetes with Tailscale</p>" />
+<meta itemprop="description" content="Using Tailscale as a Very Lightweight CNI" />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/tailsk8s-logos.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Bare Metal Kubernetes with Tailscale</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/tailsk8s-logos.png" />
+<meta property="og:description" content="Using Tailscale as a Very Lightweight CNI" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Bare Metal Kubernetes with Tailscale</p>" />
+<meta name="twitter:description" content="Using Tailscale as a Very Lightweight CNI" />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/tailsk8s-logos.png" />
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -70,30 +89,50 @@ document.getElementById('site-search').onsubmit = site_search_submit;
   <div id="main">
     <div id="content">
 <div>
-  <article role="article">
-    <header>
-        <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/pages/testimonials.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title"><p>Testimonials</p></h1>
-    </header>
-    <ul>
-<li>Danny manages to be relaxed, funny, and watchable AND very knowledgeable
-  about the material AND a stickler about teaching it AND good at explaining it
-  clearly and quickly. This is a combination of strengths so rare around here
-  that I thought it was mythical.
-  (<strong>Student, UC Berkeley Math 128A, Fall 2017</strong>)</li>
-<li>Danny is highly prepared, available, and helpful. His jokes kept the class
-  entertained, while his coding kept the class engaged. Moreover, his anecdotes
-  about numerical analysis showed the class that he had genuine interest in
-  the subject. (<strong>Student, UC Berkeley Math 128A, Spring 2017</strong>)</li>
-<li>He's prepared, willing to answer questions, frank (a good kind of frank), and
-  knowledgeable. I particularly enjoy the way he incorporates practical
-  examples and presents interpretations of the concepts, most of lecture was
-  derivations, so Danny's practical examples helped ground things, and his
-  interpretations were a boon to understand the often boring and complex
-  derivations that we were presented during class.
-  (<strong>Student, UC Berkeley Math 128A, Fall 2016</strong>)</li>
-</ul>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-12-14-tailsk8s.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Bare Metal Kubernetes with Tailscale</h1>
+    <p class="meta">
+<time datetime="2021-12-14T00:00:00-08:00" pubdate>Dec 14, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p>For my most recent side project <code>tailsk8s</code>, I've been <a href="https://github.com/dhermes/tailsk8s/tree/v1.20211214.1">hacking</a> on a
+bare metal Kubernetes cluster that uses <a href="https://tailscale.com/">Tailscale</a> for networking.
+I had a lot of fun and learned a lot, but the TL;DR is that each Kubernetes
+node is a Tailscale <a href="https://tailscale.com/kb/1019/subnets/">subnet router</a> and uses the <code>kubenet</code> <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#kubenet">CNI</a> to
+indicate the relevant subnet to the rest of the cluster.</p>
+<p>To demonstrate the process of bringing up the cluster and to see the
+networking in action I recorded two videos. The first one involves only
+the four<sup id=sf-tailsk8s-1-back><a href=#sf-tailsk8s-1 class=simple-footnote title="The four node cluster also has two control plane nodes because I don't have enough machines. Luckily I don't mind if they can't form a quorum.">1</a></sup> bare metal nodes that I literally have in my house. The second
+video turns it into a hybrid cluster by adding an AWS EC2 VM and a GCP GCE
+instance.</p>
+<h3>Bare Metal</h3>
+<iframe width=560 height=315 src="https://www.youtube.com/embed/ws3mlpRUc8E" title="YouTube video player" frameborder=0 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+
+<h3>Adding Public Cloud VMs</h3>
+<iframe width=560 height=315 src="https://www.youtube.com/embed/6oSY0CP9o7o" title="YouTube video player" frameborder=0 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe><ol class=simple-footnotes><li id=sf-tailsk8s-1>The four node cluster also has two control plane nodes because
+I don't have enough machines. Luckily I don't mind if they can't form a
+quorum. <a href=#sf-tailsk8s-1-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2021-12-14T00:00:00-08:00" pubdate>Dec 14, 2021</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/kubernetes.html">Kubernetes</a>,    <a class="category" href="https://blog.bossylobster.com/tag/cni.html">CNI</a>,    <a class="category" href="https://blog.bossylobster.com/tag/tailscale.html">Tailscale</a>,    <a class="category" href="https://blog.bossylobster.com/tag/vpn.html">VPN</a>,    <a class="category" href="https://blog.bossylobster.com/tag/mesh-vpn.html">Mesh VPN</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2021/12/tailsk8s.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2021/12/tailsk8s.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
   </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
 </div>
 <aside class="sidebar">
   <section class="sidebar-img">
@@ -169,6 +208,9 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 </script>
   <script type="text/javascript">
     var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2021/12/tailsk8s.html';
+    var disqus_url = 'https://blog.bossylobster.com/2021/12/tailsk8s.html';
+    var disqus_title = "<p>Bare Metal Kubernetes with Tailscale</p>";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';

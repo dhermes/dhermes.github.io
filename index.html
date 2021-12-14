@@ -72,6 +72,24 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-12-14-tailsk8s.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-12-14T00:00:00-08:00" pubdate>Dec 14, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p>For my most recent side project <code>tailsk8s</code>, I've been <a href="https://github.com/dhermes/tailsk8s/tree/v1.20211214.1">hacking</a> on a
+bare metal Kubernetes cluster that uses <a href="https://tailscale.com/">Tailscale</a> for networking.
+I had a lot of fun and learned a lot, but the TL;DR is that each Kubernetes
+node is a Tailscale <a href="https://tailscale.com/kb/1019/subnets/">subnet router</a> and uses the <code>kubenet</code> <a href="https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#kubenet">CNI …</a></p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-11-01-safe-column-renames.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
@@ -160,24 +178,6 @@ As the …</p></div>
     <a rel="full-article" href="https://blog.bossylobster.com/2021/10/elementary-elliptic.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-06-go-duration-postgresql-interval.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html">Go Duration, PostgreSQL Interval</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-10-06T00:00:00-07:00" pubdate>Oct 06, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><p>Building a web application in Go and using PostgreSQL as the database is a real
-joy. Both of these tools are produced by incredibly vibrant open source
-projects. These projects represent some of the best attributes of the open
-source movement. When used in combination, occasionally idioms from Go don't …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/2">&larr; Older</a>
 
@@ -192,6 +192,9 @@ source movement. When used in combination, occasionally idioms from Go don't …
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
       </li>
       <li class="post">
@@ -202,9 +205,6 @@ source movement. When used in combination, occasionally idioms from Go don't …
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2021/10/elementary-elliptic.html">When Elementary Becomes Elliptic</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html">Go Duration, PostgreSQL Interval</a>
       </li>
     </ul>
   </section>
