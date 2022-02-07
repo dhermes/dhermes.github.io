@@ -1,5 +1,343 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2021-12-14T00:00:00-08:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Bare Metal Kubernetes with Tailscale</title><link href="https://blog.bossylobster.com/2021/12/tailsk8s.html" rel="alternate"></link><published>2021-12-14T00:00:00-08:00</published><updated>2021-12-14T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-12-14:/2021/12/tailsk8s.html</id><summary type="html">&lt;p&gt;For my most recent side project &lt;code&gt;tailsk8s&lt;/code&gt;, I've been &lt;a href="https://github.com/dhermes/tailsk8s/tree/v1.20211214.1"&gt;hacking&lt;/a&gt; on a
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2022-02-07T00:00:00-08:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>How to Write GitHub Actions in Go</title><link href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html" rel="alternate"></link><published>2022-02-07T00:00:00-08:00</published><updated>2022-02-07T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2022-02-07:/2022/02/how-to-write-github-actions-in-go.html</id><summary type="html">&lt;p&gt;&lt;img alt="Go with GitHub Actions" src="/images/go-with-github-actions.png"&gt;&lt;/p&gt;
+&lt;p&gt;I recently&lt;sup id=sf-how-to-write-github-actions-in-go-1-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-1 class=simple-footnote title="It was recent when I wrote this on February 7, 2022."&gt;1&lt;/a&gt;&lt;/sup&gt; had
+the privilege of co-authoring a blog post on the Blend &lt;a href="https://full-stack.blend.com/"&gt;engineering blog&lt;/a&gt;
+with my esteemed colleague &lt;a href="https://github.com/thomasnotfound"&gt;Thomas Taylor&lt;/a&gt;. I copied this content over
+mostly as-is from the &lt;a href="https://full-stack.blend.com/how-we-write-github-actions-in-go.html"&gt;original post&lt;/a&gt; but wanted to preserve it here as
+well.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#introduction&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#authoring-an-action&gt;Authoring an Action: Today's Landscape&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#how-we-release&gt;How We …&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;</summary><content type="html">&lt;p&gt;&lt;img alt="Go with GitHub Actions" src="/images/go-with-github-actions.png"&gt;&lt;/p&gt;
+&lt;p&gt;I recently&lt;sup id=sf-how-to-write-github-actions-in-go-1-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-1 class=simple-footnote title="It was recent when I wrote this on February 7, 2022."&gt;1&lt;/a&gt;&lt;/sup&gt; had
+the privilege of co-authoring a blog post on the Blend &lt;a href="https://full-stack.blend.com/"&gt;engineering blog&lt;/a&gt;
+with my esteemed colleague &lt;a href="https://github.com/thomasnotfound"&gt;Thomas Taylor&lt;/a&gt;. I copied this content over
+mostly as-is from the &lt;a href="https://full-stack.blend.com/how-we-write-github-actions-in-go.html"&gt;original post&lt;/a&gt; but wanted to preserve it here as
+well.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#introduction&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#authoring-an-action&gt;Authoring an Action: Today's Landscape&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#how-we-release&gt;How We Release Actions in Go&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#how-we-write&gt;How We Write Actions in Go&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#why-not-docker&gt;Why Not Docker?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#conclusion&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=introduction&gt;Introduction&lt;/h3&gt;
+&lt;p&gt;Since the &lt;a href="https://github.blog/2019-08-08-github-actions-now-supports-ci-cd/"&gt;release&lt;/a&gt; of GitHub Actions in 2019, GitHub has been heavily
+investing in improvements to the CI / CD experience. As part of this
+investment, repeatable tasks can be provided as &lt;a href="https://docs.github.com/en/actions/creating-actions/about-custom-actions"&gt;custom actions&lt;/a&gt; and
+shared externally with the community or internally within a GitHub Enterprise
+instance.&lt;/p&gt;
+&lt;p&gt;At Blend, we've benefited from adopting GitHub Actions. We have built
+tooling that enables writing an action in Go and automates the release
+process for actions within our GitHub Enterprise instance. Below, we'll share
+the set of unique challenges for running and releasing actions written in Go
+and outline our strategies for solving these problems.&lt;/p&gt;
+&lt;h3 id=authoring-an-action&gt;Authoring an Action: Today's Landscape&lt;/h3&gt;
+&lt;p&gt;GitHub has published lots of tutorials and many fundamental
+actions&lt;sup id=sf-how-to-write-github-actions-in-go-2-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-2 class=simple-footnote title="For example, using actions/checkout to checkout code and actions/cache to cache dependencies to speed up CI runs."&gt;2&lt;/a&gt;&lt;/sup&gt; as
+examples. In order to let the community use the same tools, they have released
+the &lt;code&gt;@actions/core&lt;/code&gt; &lt;a href="https://www.npmjs.com/package/@actions/core"&gt;package&lt;/a&gt; on &lt;code&gt;npm&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;An action is a GitHub repository with a root
+&lt;code&gt;action.yml&lt;/code&gt; file and supporting files. For authors of an action,
+the most common choice is to write it &lt;a href="https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action"&gt;in JavaScript&lt;/a&gt; and run the code
+natively on the actions runner during the workflow. If that isn't an
+option&lt;sup id=sf-how-to-write-github-actions-in-go-3-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-3 class=simple-footnote title="E.g. for teams that prefer something other than JavaScript."&gt;3&lt;/a&gt;&lt;/sup&gt;, a
+&lt;a href="https://docs.github.com/en/actions/creating-actions/creating-a-docker-container-action"&gt;Docker container action&lt;/a&gt; allows running a Docker image; the image can
+either be built directly from a Dockerfile or pulled from a public Docker
+registry.&lt;/p&gt;
+&lt;p&gt;The third option, a &lt;a href="https://docs.github.com/en/actions/creating-actions/creating-a-composite-action"&gt;composite&lt;/a&gt; action, allows
+creating an action as a series of steps (very similar to how jobs work in
+a GitHub Actions workflow). This makes it possible to write lightweight
+actions—e.g. with shell scripts. A composite action can even
+&lt;a href="https://github.blog/changelog/2021-08-25-github-actions-reduce-duplication-with-action-composition/"&gt;reference&lt;/a&gt; other actions in those steps.&lt;/p&gt;
+&lt;h3 id=how-we-release&gt;How We Release Actions in Go&lt;/h3&gt;
+&lt;p&gt;To distribute our actions written in Go, we build static binaries from
+the source code and check them into the GitHub repository for the
+action.&lt;/p&gt;
+&lt;h4&gt;Example&lt;/h4&gt;
+&lt;p&gt;For an action that needs to run on both 64-bit x86 and ARM
+machines running Linux or Windows, it would be enough to use six files:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ tree
+.
+├── action.yml
+├── invoke-binary.js
+├── main-linux-amd64-e9d351bd367300ec85b9ba777812c42be2570a64
+├── main-linux-arm64-e9d351bd367300ec85b9ba777812c42be2570a64
+├── main-windows-amd64-e9d351bd367300ec85b9ba777812c42be2570a64
+└── main-windows-arm64-e9d351bd367300ec85b9ba777812c42be2570a64
+
+0 directories, 6 files
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In order to invoke the &lt;strong&gt;correct&lt;/strong&gt; static binary, we use a tiny JavaScript
+&lt;a href="/code/invoke-binary.js"&gt;shim&lt;/a&gt; to determine the current operating system (&lt;code&gt;GOOS&lt;/code&gt;) and
+platform / architecture (&lt;code&gt;GOARCH&lt;/code&gt;). The shim dispatches the correct static
+binary as follows:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;function&lt;/span&gt; &lt;span class=nx&gt;chooseBinary&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=c1&gt;// ...&lt;/span&gt;
+    &lt;span class=k&gt;if&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;platform&lt;/span&gt; &lt;span class=o&gt;===&lt;/span&gt; &lt;span class=s1&gt;'linux'&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=nx&gt;arch&lt;/span&gt; &lt;span class=o&gt;===&lt;/span&gt; &lt;span class=s1&gt;'x64'&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=sb&gt;`main-linux-amd64-&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;VERSION&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+    &lt;span class=c1&gt;// ...&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+
+&lt;span class=kd&gt;const&lt;/span&gt; &lt;span class=nx&gt;binary&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nx&gt;chooseBinary&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=kd&gt;const&lt;/span&gt; &lt;span class=nx&gt;mainScript&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=sb&gt;`&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;__dirname&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;/&lt;/span&gt;&lt;span class=si&gt;${&lt;/span&gt;&lt;span class=nx&gt;binary&lt;/span&gt;&lt;span class=si&gt;}&lt;/span&gt;&lt;span class=sb&gt;`&lt;/span&gt;
+&lt;span class=kd&gt;const&lt;/span&gt; &lt;span class=nx&gt;spawnSyncReturns&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nx&gt;childProcess&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;spawnSync&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;mainScript&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt; &lt;span class=nx&gt;stdio&lt;/span&gt;&lt;span class=o&gt;:&lt;/span&gt; &lt;span class=s1&gt;'inherit'&lt;/span&gt; &lt;span class=p&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and in the &lt;code&gt;action.yml&lt;/code&gt; we just "pretend to be JavaScript" to call out to
+our shim:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nt&gt;runs&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+  &lt;span class=nt&gt;using&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;node16&lt;/span&gt;
+  &lt;span class=nt&gt;main&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;invoke-binary.js&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4&gt;Releasing&lt;/h4&gt;
+&lt;p&gt;At Blend, we maintain all Go actions in our internal Go monorepo. We publish
+them into the &lt;code&gt;actions&lt;/code&gt; organization within our GitHub Enterprise
+instance. When a Go action is updated, a post-merge step builds static binaries
+for the subset of architectures we need to support and pushes a commit directly
+to the respective &lt;code&gt;actions/${ACTION}&lt;/code&gt; repository. For example, changes in the
+Go monorepo to code in &lt;code&gt;project/github-actions/{cmd,pkg}/build-docker-image/&lt;/code&gt;
+will result in a commit to the &lt;code&gt;actions/build-docker-image&lt;/code&gt; repository.&lt;/p&gt;
+&lt;h4&gt;Benefits&lt;/h4&gt;
+&lt;p&gt;Using this approach, an action written in Go runs &lt;strong&gt;immediately&lt;/strong&gt;
+in the same way an action written in JavaScript does. We eliminate the
+need for &lt;strong&gt;any&lt;/strong&gt; Go dependencies on the actions runner: GitHub only grabs our
+&lt;code&gt;invoke-binary.js&lt;/code&gt; and static binaries. To make the retrieval fast, we go out
+of our way to &lt;a href="https://words.filippo.io/shrink-your-go-binaries-with-this-one-weird-trick/"&gt;shrink&lt;/a&gt; the static binaries and make a special "release"
+branch that contains a minimal set of files to run the
+action&lt;sup id=sf-how-to-write-github-actions-in-go-4-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-4 class=simple-footnote title="This means we don't need to include any Go source code (or go.mod, etc.) in our &amp;quot;release&amp;quot; branch. By the same token, we wouldn't want to check in compiled static binaries to our &amp;quot;development&amp;quot; branch."&gt;4&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;Our approach of using prebuilt binaries is the same idea in spirit as the
+recommended approach for JavaScript actions. For JavaScript actions, it
+is recommended to use the &lt;code&gt;ncc&lt;/code&gt; &lt;a href="https://github.com/vercel/ncc"&gt;compiler&lt;/a&gt; to create a single &lt;code&gt;index.js&lt;/code&gt;
+file. With this &lt;strong&gt;single file&lt;/strong&gt; entrypoint, the action just executes
+that file without any other setup necessary. Since Go is a compiled language,
+there is no direct equivalent of the "I have some source code and an
+interpreter" Node.js approach, hence the need for including prebuilt binaries.
+Interestingly enough, the &lt;code&gt;ncc&lt;/code&gt; project lists the Go compiler as one of its
+motivations, so there must be something there!&lt;/p&gt;
+&lt;h4&gt;Just Go?&lt;/h4&gt;
+&lt;p&gt;This approach can absolutely be used by programming language ecosystems other
+than Go. For example, with the Nuitka &lt;a href="https://nuitka.net/"&gt;compiler&lt;/a&gt; for Python, standalone
+executables can be produced in the same way. For compiled languages like C++ or
+Rust, creating prebuilt binaries can be straightforward.&lt;/p&gt;
+&lt;p&gt;One unique advantage Go has in this arena is the default mode of creating
+&lt;a href="https://www.arp242.net/static-go.html"&gt;statically linked&lt;/a&gt; binaries. This makes it much easier to &lt;strong&gt;just run&lt;/strong&gt; on
+a new machine without needing&lt;sup id=sf-how-to-write-github-actions-in-go-5-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-5 class=simple-footnote title="It's worth mentioning: cgo is not Go. Generating a static binary when using cgo is possible but much more challenging. Cross-compiling a static binary is even more challenging."&gt;5&lt;/a&gt;&lt;/sup&gt;
+to install or locate dependencies. Additionally, the Go compiler's ability to
+&lt;a href="https://www.digitalocean.com/community/tutorials/building-go-applications-for-different-operating-systems-and-architectures"&gt;cross-compile&lt;/a&gt; binaries from a single development machine is incredibly
+useful for the distribution strategy we use here:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+  go build \
+  -ldflags="-s -w" \
+  -o main-linux-arm64-e9d351bd367300ec85b9ba777812c42be2570a64 \
+  .
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=how-we-write&gt;How We Write Actions in Go&lt;/h3&gt;
+&lt;h4&gt;Small Entrypoint Scripts&lt;/h4&gt;
+&lt;p&gt;As a rule, we try to make &lt;code&gt;cmd/${ACTION}/main.go&lt;/code&gt; scripts as short as possible
+so we can maximize the amount of code that can be tested&lt;sup id=sf-how-to-write-github-actions-in-go-6-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-6 class=simple-footnote title="Though it is possible to test code in package main, it is not common. This is particularly challenging for code paths that end with os.Exit()."&gt;6&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;// FILE: cmd/hypothetical/main.go&lt;/span&gt;
+
+&lt;span class=kn&gt;package&lt;/span&gt; &lt;span class=nx&gt;main&lt;/span&gt;
+
+&lt;span class=kn&gt;import&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;
+    &lt;span class=s&gt;"context"&lt;/span&gt;
+
+    &lt;span class=nx&gt;githubactions&lt;/span&gt; &lt;span class=s&gt;"github.com/sethvargo/go-githubactions"&lt;/span&gt;
+
+    &lt;span class=s&gt;"github.com/blend/hypothetical-action/pkg/hypothetical"&lt;/span&gt;
+&lt;span class=p&gt;)&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=nx&gt;run&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;ctx&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;context&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Background&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+    &lt;span class=nx&gt;action&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;githubactions&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;New&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+
+    &lt;span class=nx&gt;cfg&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;NewFromInputs&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;action&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=k&gt;if&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;!=&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;hypothetical&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Run&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;ctx&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;cfg&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=nx&gt;main&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;run&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+    &lt;span class=k&gt;if&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;!=&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=nx&gt;action&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Fatalf&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"%v"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4&gt;Separate Configuration Parsing&lt;/h4&gt;
+&lt;p&gt;By loading &lt;strong&gt;all&lt;/strong&gt; inputs and configuration at the outset, an action
+can be much easier to reason about: once parsed, a single configuration
+struct can be passed to the code implementing the business logic. For example:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;// FILE: pkg/hypothetical/config.go&lt;/span&gt;
+
+&lt;span class=kd&gt;type&lt;/span&gt; &lt;span class=nx&gt;Config&lt;/span&gt; &lt;span class=kd&gt;struct&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;Role&lt;/span&gt;          &lt;span class=kt&gt;string&lt;/span&gt;
+    &lt;span class=nx&gt;LeaseDuration&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Duration&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+
+&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=nx&gt;NewFromInputs&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;action&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;githubactions&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Action&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;Config&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kt&gt;error&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=nx&gt;lease&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;action&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;GetInput&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"lease-duration"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=nx&gt;d&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;ParseDuration&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;lease&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=k&gt;if&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt; &lt;span class=o&gt;!=&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;err&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+
+    &lt;span class=nx&gt;c&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;Config&lt;/span&gt;&lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=nx&gt;Role&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;          &lt;span class=nx&gt;action&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;GetInput&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"role"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+        &lt;span class=nx&gt;LeaseDuration&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=nx&gt;d&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+    &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=o&gt;&amp;amp;&lt;/span&gt;&lt;span class=nx&gt;c&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=kc&gt;nil&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4&gt;No Globals&lt;/h4&gt;
+&lt;p&gt;The &lt;a href="https://github.com/sethvargo/go-githubactions"&gt;sethvargo/go-githubactions&lt;/a&gt; project provides an idiomatic
+Go package that is roughly equivalent to the &lt;code&gt;@actions/core&lt;/code&gt; JavaScript
+&lt;a href="https://www.npmjs.com/package/@actions/core"&gt;package&lt;/a&gt;. We utilize it wherever we can, but try to follow some larger
+principles to write testable code.&lt;/p&gt;
+&lt;p&gt;When writing code that uses the &lt;code&gt;githubactions&lt;/code&gt; package, a pointer
+&lt;code&gt;action *githubactions.Action&lt;/code&gt; should be used rather than the global wrappers
+around the package &lt;code&gt;defaultAction&lt;/code&gt; &lt;a href="https://github.com/sethvargo/go-githubactions/blob/v0.5.1/actions_root.go#L20"&gt;struct&lt;/a&gt;. For example:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nx&gt;role&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;action&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;GetInput&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"role"&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=c1&gt;// // Don't do this:&lt;/span&gt;
+&lt;span class=c1&gt;// role := githubactions.GetInput("role")&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In order to test code involving GitHub Actions, it's critical to be able to
+both control environment variables (these are inputs) and to monitor writes to
+STDOUT. In order to do this in tests, both the STDOUT writer and the
+&lt;code&gt;Getenv()&lt;/code&gt; provider can be replaced:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=kd&gt;func&lt;/span&gt; &lt;span class=nx&gt;TestNewFromInputs&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;t&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt;&lt;span class=nx&gt;testing&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;T&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+    &lt;span class=c1&gt;// ...&lt;/span&gt;
+    &lt;span class=nx&gt;actionLog&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;bytes&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;NewBuffer&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=kc&gt;nil&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=nx&gt;envMap&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=kd&gt;map&lt;/span&gt;&lt;span class=p&gt;[&lt;/span&gt;&lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;]&lt;/span&gt;&lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=s&gt;"INPUT_ROLE"&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;           &lt;span class=s&gt;"user"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=s&gt;"INPUT_LEASE-DURATION"&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=s&gt;"1h"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+    &lt;span class=nx&gt;getenv&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=kd&gt;func&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;key&lt;/span&gt; &lt;span class=kt&gt;string&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=kt&gt;string&lt;/span&gt; &lt;span class=p&gt;{&lt;/span&gt;
+        &lt;span class=k&gt;return&lt;/span&gt; &lt;span class=nx&gt;envMap&lt;/span&gt;&lt;span class=p&gt;[&lt;/span&gt;&lt;span class=nx&gt;key&lt;/span&gt;&lt;span class=p&gt;]&lt;/span&gt;
+    &lt;span class=p&gt;}&lt;/span&gt;
+    &lt;span class=nx&gt;action&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;githubactions&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;New&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;
+        &lt;span class=nx&gt;githubactions&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;WithWriter&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;actionLog&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+        &lt;span class=nx&gt;githubactions&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;WithGetenv&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;getenv&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=c1&gt;// ...&lt;/span&gt;
+    &lt;span class=nx&gt;it&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Equal&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s&gt;"..."&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;actionLog&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;String&lt;/span&gt;&lt;span class=p&gt;())&lt;/span&gt;
+&lt;span class=p&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4&gt;Invoking Actions Locally&lt;/h4&gt;
+&lt;p&gt;To sanity check an implementation, it can be quite useful to run an
+action &lt;strong&gt;locally&lt;/strong&gt; instead of doing a pre-release and waiting on a fully
+triggered GitHub Actions workflow. To run an action locally, it's enough to run
+the Go script with the correct environment variables.&lt;/p&gt;
+&lt;p&gt;There are two types of environment variables needed. The first type are
+&lt;code&gt;GITHUB_*&lt;/code&gt; environment variables that come with the
+workflow. The other type are inputs that are provided
+in &lt;code&gt;inputs:&lt;/code&gt; to the action (i.e. the inputs from &lt;code&gt;action.yml&lt;/code&gt;), which get
+transformed into &lt;code&gt;INPUT_*&lt;/code&gt; environment variables by GitHub.&lt;/p&gt;
+&lt;p&gt;For example&lt;sup id=sf-how-to-write-github-actions-in-go-7-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-7 class=simple-footnote title="For action inputs in kebab-case, the corresponding environment variable will have a hyphen, e.g. INPUT_LEASE-DURATION. Using environment variable names with a hyphen requires a little bit of extra care in most shells, hence the usage of env INPUT_LEASE-DURATION=.... "&gt;7&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;env \
+  'GITHUB_API_URL=https://api.github.com' \
+  'GITHUB_REPOSITORY=blend/repo-that-uses-an-action' \
+  'INPUT_ROLE=user' \
+  'INPUT_LEASE-DURATION=1h' \
+  go run ./cmd/hypothetical/main.go
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=why-not-docker&gt;Why Not Docker?&lt;/h3&gt;
+&lt;p&gt;Using prebuilt static binaries is not the only choice for writing an
+action. We explicitly considered using a Docker container action or a
+composite action but elected not to use either.&lt;/p&gt;
+&lt;h4&gt;Using a Docker Action&lt;/h4&gt;
+&lt;p&gt;The first obvious choice here would be to write a Dockerfile for the Go
+code and use a Docker container action. For example, the GitHub Actions
+&lt;a href="https://github.com/the-gophers/go-action"&gt;tutorial&lt;/a&gt; at GopherCon 2021 recommended this approach as do the
+&lt;a href="https://github.com/sethvargo/go-githubactions/tree/v0.5.2#publishing"&gt;publishing&lt;/a&gt; instructions for the &lt;code&gt;githubactions&lt;/code&gt; package. However, this
+experience is not as smooth as the JavaScript one.&lt;/p&gt;
+&lt;p&gt;With a Docker container action, the image reference can either be a Dockerfile
+or an image in a container registry. Referencing a Dockerfile directly
+incurs a large cost: every&lt;sup id=sf-how-to-write-github-actions-in-go-8-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-8 class=simple-footnote title="It's certainly possible to use actions/cache to reuse a Docker build context across workflow runs, but it is not easy to get right. This puts an unnecessary burden on users of an action. "&gt;8&lt;/a&gt;&lt;/sup&gt; invocation of the action requires the image to be built. Pulling
+an image from a public container registry emulates the snappy "run it now"
+behavior of JavaScript actions. For images stored in a &lt;strong&gt;private&lt;/strong&gt; container
+registry, this creates a new challenge. To use an action referencing a private
+image, users would need to first authenticate to a registry to pull an image
+that they didn't even know they were using:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nt&gt;steps&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+&lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class=nt&gt;name&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;Login to ECR&lt;/span&gt;
+  &lt;span class=nt&gt;uses&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;docker/login-action@v1&lt;/span&gt;
+  &lt;span class=nt&gt;with&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+    &lt;span class=nt&gt;registry&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ env.AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com&lt;/span&gt;
+    &lt;span class=nt&gt;username&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.AWS_ACCESS_KEY_ID }}&lt;/span&gt;
+    &lt;span class=nt&gt;password&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.AWS_SECRET_ACCESS_KEY }}&lt;/span&gt;
+
+&lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class=nt&gt;name&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;Invoke Hypothetical&lt;/span&gt;
+  &lt;span class=nt&gt;uses&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;blend/hypothetical-action@main&lt;/span&gt;
+  &lt;span class=nt&gt;with&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+    &lt;span class=nt&gt;role&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;user&lt;/span&gt;
+    &lt;span class=nt&gt;lease-duration&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;1h&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For internal actions used within an engineering organization
+(e.g. within a GitHub Enterprise instance) it's very likely that most images
+will be in a private container registry.&lt;/p&gt;
+&lt;h4&gt;Using a Composite Action&lt;/h4&gt;
+&lt;p&gt;It is possible to avoid the overhead of Docker build and authentication by
+using a composite action. Starting from Go source code&lt;sup id=sf-how-to-write-github-actions-in-go-9-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-9 class=simple-footnote title='"Starting from Go source code" as opposed to the other approach, i.e. just distributing prebuilt binaries. '&gt;9&lt;/a&gt;&lt;/sup&gt;, the only option is to compile and run that code. This means a
+composite action needs to ensure Go is installed on the actions runner. For
+example:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nt&gt;runs&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+  &lt;span class=nt&gt;using&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;composite&lt;/span&gt;
+  &lt;span class=nt&gt;steps&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class=nt&gt;uses&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;actions/setup-go@v2&lt;/span&gt;
+    &lt;span class=nt&gt;with&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+      &lt;span class=nt&gt;go-version&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=s&gt;'1.17.6'&lt;/span&gt;
+
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class=nt&gt;run&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;go run ./main.go&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;However, this has the same problem as the approach of building a Dockerfile
+before running it: the default usage (no caching) involves a significant
+cost waiting for build before the action actually runs. What's more,
+running &lt;a href="https://github.com/actions/setup-go"&gt;actions/setup-go&lt;/a&gt; on the actions runner may overwrite an existing
+version of Go installed by the workflow job actually invoking this action,
+causing invisible breakage in workflows using this action.&lt;/p&gt;
+&lt;h3 id=conclusion&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;Using a tiny JavaScript shim, actions written in Go can be on equal
+footing with native JavaScript actions. As we discussed above, there are many
+benefits that come from this first-class native support—chiefly speed of
+invocation and simplicity of setup. Best of all, this allows us to bring all
+the benefits of Go when writing an action. For internal
+actions within an engineering organization, this allows us to reuse existing
+Go libraries within our actions. With GitHub Actions and Go, we &lt;strong&gt;can&lt;/strong&gt;
+have our cake and eat it too.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="Go; now with Cake!" src="/images/gopher-cake-art.png"&gt;&lt;/p&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-how-to-write-github-actions-in-go-1&gt;It was recent when I wrote this on February 7, 2022. &lt;a href=#sf-how-to-write-github-actions-in-go-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-how-to-write-github-actions-in-go-2&gt;For example, using &lt;a href="https://github.com/actions/checkout"&gt;actions/checkout&lt;/a&gt; to checkout code and
+&lt;a href="https://github.com/actions/cache"&gt;actions/cache&lt;/a&gt; to cache dependencies to speed up CI runs. &lt;a href=#sf-how-to-write-github-actions-in-go-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-how-to-write-github-actions-in-go-3&gt;E.g. for teams that prefer something other than JavaScript. &lt;a href=#sf-how-to-write-github-actions-in-go-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-how-to-write-github-actions-in-go-4&gt;This means we don't need to include any Go source code (or &lt;code&gt;go.mod&lt;/code&gt;,
+etc.) in our "release" branch. By the same token, we wouldn't want to check in
+compiled static binaries to our "development" branch. &lt;a href=#sf-how-to-write-github-actions-in-go-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-how-to-write-github-actions-in-go-5&gt;It's worth &lt;a href="https://dave.cheney.net/2016/01/18/cgo-is-not-go"&gt;mentioning&lt;/a&gt;: cgo is not Go.
+Generating a static binary when using cgo is possible but much more
+challenging. Cross-compiling a static binary is even more challenging. &lt;a href=#sf-how-to-write-github-actions-in-go-5-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-how-to-write-github-actions-in-go-6&gt;Though it is
+possible to test code in &lt;code&gt;package main&lt;/code&gt;, it is not common. This is particularly
+challenging for code paths that end with &lt;code&gt;os.Exit()&lt;/code&gt;. &lt;a href=#sf-how-to-write-github-actions-in-go-6-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-how-to-write-github-actions-in-go-7&gt;For action inputs in &lt;code&gt;kebab-case&lt;/code&gt;, the corresponding
+environment variable will have a hyphen, e.g. &lt;code&gt;INPUT_LEASE-DURATION&lt;/code&gt;. Using
+environment variable names with a hyphen requires a little bit of extra care
+in most shells, hence the usage of &lt;code&gt;env INPUT_LEASE-DURATION=...&lt;/code&gt;.  &lt;a href=#sf-how-to-write-github-actions-in-go-7-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-how-to-write-github-actions-in-go-8&gt;It's certainly possible to &lt;a href="https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows"&gt;use&lt;/a&gt;
+&lt;a href="https://github.com/actions/cache"&gt;actions/cache&lt;/a&gt; to reuse a Docker build context across workflow runs, but
+it is not easy to get right. This puts an unnecessary burden on users of an
+action.  &lt;a href=#sf-how-to-write-github-actions-in-go-8-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-how-to-write-github-actions-in-go-9&gt;"Starting from Go
+source code" as opposed to the other approach, i.e. just distributing prebuilt
+binaries.  &lt;a href=#sf-how-to-write-github-actions-in-go-9-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Go"></category><category term="GitHub Actions"></category><category term="Continuous Integration"></category><category term="Golang"></category></entry><entry><title>Bare Metal Kubernetes with Tailscale</title><link href="https://blog.bossylobster.com/2021/12/tailsk8s.html" rel="alternate"></link><published>2021-12-14T00:00:00-08:00</published><updated>2021-12-14T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2021-12-14:/2021/12/tailsk8s.html</id><summary type="html">&lt;p&gt;For my most recent side project &lt;code&gt;tailsk8s&lt;/code&gt;, I've been &lt;a href="https://github.com/dhermes/tailsk8s/tree/v1.20211214.1"&gt;hacking&lt;/a&gt; on a
 bare metal Kubernetes cluster that uses &lt;a href="https://tailscale.com/"&gt;Tailscale&lt;/a&gt; for networking.
 I had a lot of fun and learned a lot, but the TL;DR is that each Kubernetes
 node is a Tailscale &lt;a href="https://tailscale.com/kb/1019/subnets/"&gt;subnet router&lt;/a&gt; and uses the &lt;code&gt;kubenet&lt;/code&gt; &lt;a href="https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#kubenet"&gt;CNI …&lt;/a&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;For my most recent side project &lt;code&gt;tailsk8s&lt;/code&gt;, I've been &lt;a href="https://github.com/dhermes/tailsk8s/tree/v1.20211214.1"&gt;hacking&lt;/a&gt; on a

@@ -72,6 +72,28 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-01-go-pq-prevent-deadlock.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-09-01T00:00:00-07:00" pubdate>Sep 01, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p><img alt="All About Locks" src="/images/Lock-Up-The-Forest.jpg"></p>
+<p>I've been writing a library for running PostgreSQL migrations in Go. One
+of the primary pieces of advice I <a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/">keep</a> coming <a href="https://benchling.engineering/move-fast-and-migrate-things-how-we-automated-migrations-in-postgres-d60aba0fc3d4">across</a> is</p>
+<blockquote>
+<p>Beware of lock queues, use lock timeouts</p>
+</blockquote>
+<p>In other words, each migration stage should happen <strong>instantaneously</strong> (or
+almost instantaneously). For real-time applications, if a migration runs "for …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-27-life-of-request.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
@@ -146,24 +168,6 @@ as a <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#u
     <a rel="full-article" href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-05-27-ruby-stack-traces.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Attack of Ruby Stack Traces</a>
-      </h1>
-    <p class="meta">
-<time datetime="2019-05-27T00:00:00-07:00" pubdate>May 27, 2019</time>    </p>
-</header>
-
-  <div class="entry-content"><p>First, let me say I'm not posting this to shame any company or language
-community. Getting to the scale Twitter reached in a short amount of time
-can quickly make past engineering decisions look foolish in hindsight. But
-almost always they are decisions made in good faith with the current …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/5">&larr; Older</a>
 
@@ -179,6 +183,9 @@ almost always they are decisions made in good faith with the current …</p></di
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
       </li>
       <li class="post">
@@ -189,9 +196,6 @@ almost always they are decisions made in good faith with the current …</p></di
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2021/10/database-migrations-table.html">The Case for a Metadata Table for Database Migrations</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/10/elementary-elliptic.html">When Elementary Becomes Elliptic</a>
       </li>
     </ul>
   </section>
@@ -218,7 +222,7 @@ almost always they are decisions made in good faith with the current …</p></di
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2021  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>

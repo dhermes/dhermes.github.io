@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>How to Write GitHub Actions in Go &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>How to Write GitHub Actions in Go</p>" />
+<meta itemprop="description" content="" />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/go-with-github-actions.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>How to Write GitHub Actions in Go</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/go-with-github-actions.png" />
+<meta property="og:description" content="" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>How to Write GitHub Actions in Go</p>" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/go-with-github-actions.png" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2022-02-07-how-to-write-github-actions-in-go.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">How to Write GitHub Actions in Go</h1>
+    <p class="meta">
+<time datetime="2022-02-07T00:00:00-08:00" pubdate>Feb 07, 2022</time>    </p>
+</header>
+
+  <div class="entry-content"><p><img alt="Go with GitHub Actions" src="/images/go-with-github-actions.png"></p>
+<p>I recently<sup id=sf-how-to-write-github-actions-in-go-1-back><a href=#sf-how-to-write-github-actions-in-go-1 class=simple-footnote title="It was recent when I wrote this on February 7, 2022.">1</a></sup> had
+the privilege of co-authoring a blog post on the Blend <a href="https://full-stack.blend.com/">engineering blog</a>
+with my esteemed colleague <a href="https://github.com/thomasnotfound">Thomas Taylor</a>. I copied this content over
+mostly as-is from the <a href="https://full-stack.blend.com/how-we-write-github-actions-in-go.html">original post</a> but wanted to preserve it here as
+well.</p>
+<h3>Contents</h3>
+<ul>
+<li><a href=#introduction>Introduction</a></li>
+<li><a href=#authoring-an-action>Authoring an Action: Today's Landscape</a></li>
+<li><a href=#how-we-release>How We Release Actions in Go</a></li>
+<li><a href=#how-we-write>How We Write Actions in Go</a></li>
+<li><a href=#why-not-docker>Why Not Docker?</a></li>
+<li><a href=#conclusion>Conclusion</a></li>
+</ul>
+<h3 id=introduction>Introduction</h3>
+<p>Since the <a href="https://github.blog/2019-08-08-github-actions-now-supports-ci-cd/">release</a> of GitHub Actions in 2019, GitHub has been heavily
+investing in improvements to the CI / CD experience. As part of this
+investment, repeatable tasks can be provided as <a href="https://docs.github.com/en/actions/creating-actions/about-custom-actions">custom actions</a> and
+shared externally with the community or internally within a GitHub Enterprise
+instance.</p>
+<p>At Blend, we've benefited from adopting GitHub Actions. We have built
+tooling that enables writing an action in Go and automates the release
+process for actions within our GitHub Enterprise instance. Below, we'll share
+the set of unique challenges for running and releasing actions written in Go
+and outline our strategies for solving these problems.</p>
+<h3 id=authoring-an-action>Authoring an Action: Today's Landscape</h3>
+<p>GitHub has published lots of tutorials and many fundamental
+actions<sup id=sf-how-to-write-github-actions-in-go-2-back><a href=#sf-how-to-write-github-actions-in-go-2 class=simple-footnote title="For example, using actions/checkout to checkout code and actions/cache to cache dependencies to speed up CI runs.">2</a></sup> as
+examples. In order to let the community use the same tools, they have released
+the <code>@actions/core</code> <a href="https://www.npmjs.com/package/@actions/core">package</a> on <code>npm</code>.</p>
+<p>An action is a GitHub repository with a root
+<code>action.yml</code> file and supporting files. For authors of an action,
+the most common choice is to write it <a href="https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action">in JavaScript</a> and run the code
+natively on the actions runner during the workflow. If that isn't an
+option<sup id=sf-how-to-write-github-actions-in-go-3-back><a href=#sf-how-to-write-github-actions-in-go-3 class=simple-footnote title="E.g. for teams that prefer something other than JavaScript.">3</a></sup>, a
+<a href="https://docs.github.com/en/actions/creating-actions/creating-a-docker-container-action">Docker container action</a> allows running a Docker image; the image can
+either be built directly from a Dockerfile or pulled from a public Docker
+registry.</p>
+<p>The third option, a <a href="https://docs.github.com/en/actions/creating-actions/creating-a-composite-action">composite</a> action, allows
+creating an action as a series of steps (very similar to how jobs work in
+a GitHub Actions workflow). This makes it possible to write lightweight
+actions—e.g. with shell scripts. A composite action can even
+<a href="https://github.blog/changelog/2021-08-25-github-actions-reduce-duplication-with-action-composition/">reference</a> other actions in those steps.</p>
+<h3 id=how-we-release>How We Release Actions in Go</h3>
+<p>To distribute our actions written in Go, we build static binaries from
+the source code and check them into the GitHub repository for the
+action.</p>
+<h4>Example</h4>
+<p>For an action that needs to run on both 64-bit x86 and ARM
+machines running Linux or Windows, it would be enough to use six files:</p>
+<div class=highlight><pre><span></span><code>$ tree
+.
+├── action.yml
+├── invoke-binary.js
+├── main-linux-amd64-e9d351bd367300ec85b9ba777812c42be2570a64
+├── main-linux-arm64-e9d351bd367300ec85b9ba777812c42be2570a64
+├── main-windows-amd64-e9d351bd367300ec85b9ba777812c42be2570a64
+└── main-windows-arm64-e9d351bd367300ec85b9ba777812c42be2570a64
+
+0 directories, 6 files
+</code></pre></div>
+
+<p>In order to invoke the <strong>correct</strong> static binary, we use a tiny JavaScript
+<a href="/code/invoke-binary.js">shim</a> to determine the current operating system (<code>GOOS</code>) and
+platform / architecture (<code>GOARCH</code>). The shim dispatches the correct static
+binary as follows:</p>
+<div class=highlight><pre><span></span><code><span class=kd>function</span> <span class=nx>chooseBinary</span><span class=p>()</span> <span class=p>{</span>
+    <span class=c1>// ...</span>
+    <span class=k>if</span> <span class=p>(</span><span class=nx>platform</span> <span class=o>===</span> <span class=s1>'linux'</span> <span class=o>&amp;&amp;</span> <span class=nx>arch</span> <span class=o>===</span> <span class=s1>'x64'</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=sb>`main-linux-amd64-</span><span class=si>${</span><span class=nx>VERSION</span><span class=si>}</span><span class=sb>`</span>
+    <span class=p>}</span>
+    <span class=c1>// ...</span>
+<span class=p>}</span>
+
+<span class=kd>const</span> <span class=nx>binary</span> <span class=o>=</span> <span class=nx>chooseBinary</span><span class=p>()</span>
+<span class=kd>const</span> <span class=nx>mainScript</span> <span class=o>=</span> <span class=sb>`</span><span class=si>${</span><span class=nx>__dirname</span><span class=si>}</span><span class=sb>/</span><span class=si>${</span><span class=nx>binary</span><span class=si>}</span><span class=sb>`</span>
+<span class=kd>const</span> <span class=nx>spawnSyncReturns</span> <span class=o>=</span> <span class=nx>childProcess</span><span class=p>.</span><span class=nx>spawnSync</span><span class=p>(</span><span class=nx>mainScript</span><span class=p>,</span> <span class=p>{</span> <span class=nx>stdio</span><span class=o>:</span> <span class=s1>'inherit'</span> <span class=p>})</span>
+</code></pre></div>
+
+<p>and in the <code>action.yml</code> we just "pretend to be JavaScript" to call out to
+our shim:</p>
+<div class=highlight><pre><span></span><code><span class=nt>runs</span><span class=p>:</span>
+  <span class=nt>using</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">node16</span>
+  <span class=nt>main</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">invoke-binary.js</span>
+</code></pre></div>
+
+<h4>Releasing</h4>
+<p>At Blend, we maintain all Go actions in our internal Go monorepo. We publish
+them into the <code>actions</code> organization within our GitHub Enterprise
+instance. When a Go action is updated, a post-merge step builds static binaries
+for the subset of architectures we need to support and pushes a commit directly
+to the respective <code>actions/${ACTION}</code> repository. For example, changes in the
+Go monorepo to code in <code>project/github-actions/{cmd,pkg}/build-docker-image/</code>
+will result in a commit to the <code>actions/build-docker-image</code> repository.</p>
+<h4>Benefits</h4>
+<p>Using this approach, an action written in Go runs <strong>immediately</strong>
+in the same way an action written in JavaScript does. We eliminate the
+need for <strong>any</strong> Go dependencies on the actions runner: GitHub only grabs our
+<code>invoke-binary.js</code> and static binaries. To make the retrieval fast, we go out
+of our way to <a href="https://words.filippo.io/shrink-your-go-binaries-with-this-one-weird-trick/">shrink</a> the static binaries and make a special "release"
+branch that contains a minimal set of files to run the
+action<sup id=sf-how-to-write-github-actions-in-go-4-back><a href=#sf-how-to-write-github-actions-in-go-4 class=simple-footnote title="This means we don't need to include any Go source code (or go.mod, etc.) in our &quot;release&quot; branch. By the same token, we wouldn't want to check in compiled static binaries to our &quot;development&quot; branch.">4</a></sup>.</p>
+<p>Our approach of using prebuilt binaries is the same idea in spirit as the
+recommended approach for JavaScript actions. For JavaScript actions, it
+is recommended to use the <code>ncc</code> <a href="https://github.com/vercel/ncc">compiler</a> to create a single <code>index.js</code>
+file. With this <strong>single file</strong> entrypoint, the action just executes
+that file without any other setup necessary. Since Go is a compiled language,
+there is no direct equivalent of the "I have some source code and an
+interpreter" Node.js approach, hence the need for including prebuilt binaries.
+Interestingly enough, the <code>ncc</code> project lists the Go compiler as one of its
+motivations, so there must be something there!</p>
+<h4>Just Go?</h4>
+<p>This approach can absolutely be used by programming language ecosystems other
+than Go. For example, with the Nuitka <a href="https://nuitka.net/">compiler</a> for Python, standalone
+executables can be produced in the same way. For compiled languages like C++ or
+Rust, creating prebuilt binaries can be straightforward.</p>
+<p>One unique advantage Go has in this arena is the default mode of creating
+<a href="https://www.arp242.net/static-go.html">statically linked</a> binaries. This makes it much easier to <strong>just run</strong> on
+a new machine without needing<sup id=sf-how-to-write-github-actions-in-go-5-back><a href=#sf-how-to-write-github-actions-in-go-5 class=simple-footnote title="It's worth mentioning: cgo is not Go. Generating a static binary when using cgo is possible but much more challenging. Cross-compiling a static binary is even more challenging.">5</a></sup>
+to install or locate dependencies. Additionally, the Go compiler's ability to
+<a href="https://www.digitalocean.com/community/tutorials/building-go-applications-for-different-operating-systems-and-architectures">cross-compile</a> binaries from a single development machine is incredibly
+useful for the distribution strategy we use here:</p>
+<div class=highlight><pre><span></span><code>CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+  go build \
+  -ldflags="-s -w" \
+  -o main-linux-arm64-e9d351bd367300ec85b9ba777812c42be2570a64 \
+  .
+</code></pre></div>
+
+<h3 id=how-we-write>How We Write Actions in Go</h3>
+<h4>Small Entrypoint Scripts</h4>
+<p>As a rule, we try to make <code>cmd/${ACTION}/main.go</code> scripts as short as possible
+so we can maximize the amount of code that can be tested<sup id=sf-how-to-write-github-actions-in-go-6-back><a href=#sf-how-to-write-github-actions-in-go-6 class=simple-footnote title="Though it is possible to test code in package main, it is not common. This is particularly challenging for code paths that end with os.Exit().">6</a></sup>:</p>
+<div class=highlight><pre><span></span><code><span class=c1>// FILE: cmd/hypothetical/main.go</span>
+
+<span class=kn>package</span> <span class=nx>main</span>
+
+<span class=kn>import</span> <span class=p>(</span>
+    <span class=s>"context"</span>
+
+    <span class=nx>githubactions</span> <span class=s>"github.com/sethvargo/go-githubactions"</span>
+
+    <span class=s>"github.com/blend/hypothetical-action/pkg/hypothetical"</span>
+<span class=p>)</span>
+
+<span class=kd>func</span> <span class=nx>run</span><span class=p>()</span> <span class=kt>error</span> <span class=p>{</span>
+    <span class=nx>ctx</span> <span class=o>:=</span> <span class=nx>context</span><span class=p>.</span><span class=nx>Background</span><span class=p>()</span>
+    <span class=nx>action</span> <span class=o>:=</span> <span class=nx>githubactions</span><span class=p>.</span><span class=nx>New</span><span class=p>()</span>
+
+    <span class=nx>cfg</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>NewFromInputs</span><span class=p>(</span><span class=nx>action</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=nx>hypothetical</span><span class=p>.</span><span class=nx>Run</span><span class=p>(</span><span class=nx>ctx</span><span class=p>,</span> <span class=nx>cfg</span><span class=p>)</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=nx>main</span><span class=p>()</span> <span class=p>{</span>
+    <span class=nx>err</span> <span class=o>:=</span> <span class=nx>run</span><span class=p>()</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=nx>action</span><span class=p>.</span><span class=nx>Fatalf</span><span class=p>(</span><span class=s>"%v"</span><span class=p>,</span> <span class=nx>err</span><span class=p>)</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+</code></pre></div>
+
+<h4>Separate Configuration Parsing</h4>
+<p>By loading <strong>all</strong> inputs and configuration at the outset, an action
+can be much easier to reason about: once parsed, a single configuration
+struct can be passed to the code implementing the business logic. For example:</p>
+<div class=highlight><pre><span></span><code><span class=c1>// FILE: pkg/hypothetical/config.go</span>
+
+<span class=kd>type</span> <span class=nx>Config</span> <span class=kd>struct</span> <span class=p>{</span>
+    <span class=nx>Role</span>          <span class=kt>string</span>
+    <span class=nx>LeaseDuration</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Duration</span>
+<span class=p>}</span>
+
+<span class=kd>func</span> <span class=nx>NewFromInputs</span><span class=p>(</span><span class=nx>action</span> <span class=o>*</span><span class=nx>githubactions</span><span class=p>.</span><span class=nx>Action</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>Config</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+    <span class=nx>lease</span> <span class=o>:=</span> <span class=nx>action</span><span class=p>.</span><span class=nx>GetInput</span><span class=p>(</span><span class=s>"lease-duration"</span><span class=p>)</span>
+    <span class=nx>d</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>time</span><span class=p>.</span><span class=nx>ParseDuration</span><span class=p>(</span><span class=nx>lease</span><span class=p>)</span>
+    <span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+    <span class=p>}</span>
+
+    <span class=nx>c</span> <span class=o>:=</span> <span class=nx>Config</span><span class=p>{</span>
+        <span class=nx>Role</span><span class=p>:</span>          <span class=nx>action</span><span class=p>.</span><span class=nx>GetInput</span><span class=p>(</span><span class=s>"role"</span><span class=p>),</span>
+        <span class=nx>LeaseDuration</span><span class=p>:</span> <span class=nx>d</span><span class=p>,</span>
+    <span class=p>}</span>
+    <span class=k>return</span> <span class=o>&amp;</span><span class=nx>c</span><span class=p>,</span> <span class=kc>nil</span>
+<span class=p>}</span>
+</code></pre></div>
+
+<h4>No Globals</h4>
+<p>The <a href="https://github.com/sethvargo/go-githubactions">sethvargo/go-githubactions</a> project provides an idiomatic
+Go package that is roughly equivalent to the <code>@actions/core</code> JavaScript
+<a href="https://www.npmjs.com/package/@actions/core">package</a>. We utilize it wherever we can, but try to follow some larger
+principles to write testable code.</p>
+<p>When writing code that uses the <code>githubactions</code> package, a pointer
+<code>action *githubactions.Action</code> should be used rather than the global wrappers
+around the package <code>defaultAction</code> <a href="https://github.com/sethvargo/go-githubactions/blob/v0.5.1/actions_root.go#L20">struct</a>. For example:</p>
+<div class=highlight><pre><span></span><code><span class=nx>role</span> <span class=o>:=</span> <span class=nx>action</span><span class=p>.</span><span class=nx>GetInput</span><span class=p>(</span><span class=s>"role"</span><span class=p>)</span>
+<span class=c1>// // Don't do this:</span>
+<span class=c1>// role := githubactions.GetInput("role")</span>
+</code></pre></div>
+
+<p>In order to test code involving GitHub Actions, it's critical to be able to
+both control environment variables (these are inputs) and to monitor writes to
+STDOUT. In order to do this in tests, both the STDOUT writer and the
+<code>Getenv()</code> provider can be replaced:</p>
+<div class=highlight><pre><span></span><code><span class=kd>func</span> <span class=nx>TestNewFromInputs</span><span class=p>(</span><span class=nx>t</span> <span class=o>*</span><span class=nx>testing</span><span class=p>.</span><span class=nx>T</span><span class=p>)</span> <span class=p>{</span>
+    <span class=c1>// ...</span>
+    <span class=nx>actionLog</span> <span class=o>:=</span> <span class=nx>bytes</span><span class=p>.</span><span class=nx>NewBuffer</span><span class=p>(</span><span class=kc>nil</span><span class=p>)</span>
+    <span class=nx>envMap</span> <span class=o>:=</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>string</span><span class=p>{</span>
+        <span class=s>"INPUT_ROLE"</span><span class=p>:</span>           <span class=s>"user"</span><span class=p>,</span>
+        <span class=s>"INPUT_LEASE-DURATION"</span><span class=p>:</span> <span class=s>"1h"</span><span class=p>,</span>
+    <span class=p>}</span>
+    <span class=nx>getenv</span> <span class=o>:=</span> <span class=kd>func</span><span class=p>(</span><span class=nx>key</span> <span class=kt>string</span><span class=p>)</span> <span class=kt>string</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=nx>envMap</span><span class=p>[</span><span class=nx>key</span><span class=p>]</span>
+    <span class=p>}</span>
+    <span class=nx>action</span> <span class=o>:=</span> <span class=nx>githubactions</span><span class=p>.</span><span class=nx>New</span><span class=p>(</span>
+        <span class=nx>githubactions</span><span class=p>.</span><span class=nx>WithWriter</span><span class=p>(</span><span class=nx>actionLog</span><span class=p>),</span>
+        <span class=nx>githubactions</span><span class=p>.</span><span class=nx>WithGetenv</span><span class=p>(</span><span class=nx>getenv</span><span class=p>),</span>
+    <span class=p>)</span>
+    <span class=c1>// ...</span>
+    <span class=nx>it</span><span class=p>.</span><span class=nx>Equal</span><span class=p>(</span><span class=s>"..."</span><span class=p>,</span> <span class=nx>actionLog</span><span class=p>.</span><span class=nx>String</span><span class=p>())</span>
+<span class=p>}</span>
+</code></pre></div>
+
+<h4>Invoking Actions Locally</h4>
+<p>To sanity check an implementation, it can be quite useful to run an
+action <strong>locally</strong> instead of doing a pre-release and waiting on a fully
+triggered GitHub Actions workflow. To run an action locally, it's enough to run
+the Go script with the correct environment variables.</p>
+<p>There are two types of environment variables needed. The first type are
+<code>GITHUB_*</code> environment variables that come with the
+workflow. The other type are inputs that are provided
+in <code>inputs:</code> to the action (i.e. the inputs from <code>action.yml</code>), which get
+transformed into <code>INPUT_*</code> environment variables by GitHub.</p>
+<p>For example<sup id=sf-how-to-write-github-actions-in-go-7-back><a href=#sf-how-to-write-github-actions-in-go-7 class=simple-footnote title="For action inputs in kebab-case, the corresponding environment variable will have a hyphen, e.g. INPUT_LEASE-DURATION. Using environment variable names with a hyphen requires a little bit of extra care in most shells, hence the usage of env INPUT_LEASE-DURATION=.... ">7</a></sup>:</p>
+<div class=highlight><pre><span></span><code>env \
+  'GITHUB_API_URL=https://api.github.com' \
+  'GITHUB_REPOSITORY=blend/repo-that-uses-an-action' \
+  'INPUT_ROLE=user' \
+  'INPUT_LEASE-DURATION=1h' \
+  go run ./cmd/hypothetical/main.go
+</code></pre></div>
+
+<h3 id=why-not-docker>Why Not Docker?</h3>
+<p>Using prebuilt static binaries is not the only choice for writing an
+action. We explicitly considered using a Docker container action or a
+composite action but elected not to use either.</p>
+<h4>Using a Docker Action</h4>
+<p>The first obvious choice here would be to write a Dockerfile for the Go
+code and use a Docker container action. For example, the GitHub Actions
+<a href="https://github.com/the-gophers/go-action">tutorial</a> at GopherCon 2021 recommended this approach as do the
+<a href="https://github.com/sethvargo/go-githubactions/tree/v0.5.2#publishing">publishing</a> instructions for the <code>githubactions</code> package. However, this
+experience is not as smooth as the JavaScript one.</p>
+<p>With a Docker container action, the image reference can either be a Dockerfile
+or an image in a container registry. Referencing a Dockerfile directly
+incurs a large cost: every<sup id=sf-how-to-write-github-actions-in-go-8-back><a href=#sf-how-to-write-github-actions-in-go-8 class=simple-footnote title="It's certainly possible to use actions/cache to reuse a Docker build context across workflow runs, but it is not easy to get right. This puts an unnecessary burden on users of an action. ">8</a></sup> invocation of the action requires the image to be built. Pulling
+an image from a public container registry emulates the snappy "run it now"
+behavior of JavaScript actions. For images stored in a <strong>private</strong> container
+registry, this creates a new challenge. To use an action referencing a private
+image, users would need to first authenticate to a registry to pull an image
+that they didn't even know they were using:</p>
+<div class=highlight><pre><span></span><code><span class=nt>steps</span><span class=p>:</span>
+<span class="p p-Indicator">-</span> <span class=nt>name</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">Login to ECR</span>
+  <span class=nt>uses</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">docker/login-action@v1</span>
+  <span class=nt>with</span><span class=p>:</span>
+    <span class=nt>registry</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">${{ env.AWS_ACCOUNT_NUMBER }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com</span>
+    <span class=nt>username</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">${{ secrets.AWS_ACCESS_KEY_ID }}</span>
+    <span class=nt>password</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">${{ secrets.AWS_SECRET_ACCESS_KEY }}</span>
+
+<span class="p p-Indicator">-</span> <span class=nt>name</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">Invoke Hypothetical</span>
+  <span class=nt>uses</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">blend/hypothetical-action@main</span>
+  <span class=nt>with</span><span class=p>:</span>
+    <span class=nt>role</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">user</span>
+    <span class=nt>lease-duration</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">1h</span>
+</code></pre></div>
+
+<p>For internal actions used within an engineering organization
+(e.g. within a GitHub Enterprise instance) it's very likely that most images
+will be in a private container registry.</p>
+<h4>Using a Composite Action</h4>
+<p>It is possible to avoid the overhead of Docker build and authentication by
+using a composite action. Starting from Go source code<sup id=sf-how-to-write-github-actions-in-go-9-back><a href=#sf-how-to-write-github-actions-in-go-9 class=simple-footnote title='"Starting from Go source code" as opposed to the other approach, i.e. just distributing prebuilt binaries. '>9</a></sup>, the only option is to compile and run that code. This means a
+composite action needs to ensure Go is installed on the actions runner. For
+example:</p>
+<div class=highlight><pre><span></span><code><span class=nt>runs</span><span class=p>:</span>
+  <span class=nt>using</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">composite</span>
+  <span class=nt>steps</span><span class=p>:</span>
+  <span class="p p-Indicator">-</span> <span class=nt>uses</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">actions/setup-go@v2</span>
+    <span class=nt>with</span><span class=p>:</span>
+      <span class=nt>go-version</span><span class=p>:</span> <span class=s>'1.17.6'</span>
+
+  <span class="p p-Indicator">-</span> <span class=nt>run</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">go run ./main.go</span>
+</code></pre></div>
+
+<p>However, this has the same problem as the approach of building a Dockerfile
+before running it: the default usage (no caching) involves a significant
+cost waiting for build before the action actually runs. What's more,
+running <a href="https://github.com/actions/setup-go">actions/setup-go</a> on the actions runner may overwrite an existing
+version of Go installed by the workflow job actually invoking this action,
+causing invisible breakage in workflows using this action.</p>
+<h3 id=conclusion>Conclusion</h3>
+<p>Using a tiny JavaScript shim, actions written in Go can be on equal
+footing with native JavaScript actions. As we discussed above, there are many
+benefits that come from this first-class native support—chiefly speed of
+invocation and simplicity of setup. Best of all, this allows us to bring all
+the benefits of Go when writing an action. For internal
+actions within an engineering organization, this allows us to reuse existing
+Go libraries within our actions. With GitHub Actions and Go, we <strong>can</strong>
+have our cake and eat it too.</p>
+<p><img alt="Go; now with Cake!" src="/images/gopher-cake-art.png"></p><ol class=simple-footnotes><li id=sf-how-to-write-github-actions-in-go-1>It was recent when I wrote this on February 7, 2022. <a href=#sf-how-to-write-github-actions-in-go-1-back class=simple-footnote-back>↩</a></li><li id=sf-how-to-write-github-actions-in-go-2>For example, using <a href="https://github.com/actions/checkout">actions/checkout</a> to checkout code and
+<a href="https://github.com/actions/cache">actions/cache</a> to cache dependencies to speed up CI runs. <a href=#sf-how-to-write-github-actions-in-go-2-back class=simple-footnote-back>↩</a></li><li id=sf-how-to-write-github-actions-in-go-3>E.g. for teams that prefer something other than JavaScript. <a href=#sf-how-to-write-github-actions-in-go-3-back class=simple-footnote-back>↩</a></li><li id=sf-how-to-write-github-actions-in-go-4>This means we don't need to include any Go source code (or <code>go.mod</code>,
+etc.) in our "release" branch. By the same token, we wouldn't want to check in
+compiled static binaries to our "development" branch. <a href=#sf-how-to-write-github-actions-in-go-4-back class=simple-footnote-back>↩</a></li><li id=sf-how-to-write-github-actions-in-go-5>It's worth <a href="https://dave.cheney.net/2016/01/18/cgo-is-not-go">mentioning</a>: cgo is not Go.
+Generating a static binary when using cgo is possible but much more
+challenging. Cross-compiling a static binary is even more challenging. <a href=#sf-how-to-write-github-actions-in-go-5-back class=simple-footnote-back>↩</a></li><li id=sf-how-to-write-github-actions-in-go-6>Though it is
+possible to test code in <code>package main</code>, it is not common. This is particularly
+challenging for code paths that end with <code>os.Exit()</code>. <a href=#sf-how-to-write-github-actions-in-go-6-back class=simple-footnote-back>↩</a></li><li id=sf-how-to-write-github-actions-in-go-7>For action inputs in <code>kebab-case</code>, the corresponding
+environment variable will have a hyphen, e.g. <code>INPUT_LEASE-DURATION</code>. Using
+environment variable names with a hyphen requires a little bit of extra care
+in most shells, hence the usage of <code>env INPUT_LEASE-DURATION=...</code>.  <a href=#sf-how-to-write-github-actions-in-go-7-back class=simple-footnote-back>↩</a></li><li id=sf-how-to-write-github-actions-in-go-8>It's certainly possible to <a href="https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows">use</a>
+<a href="https://github.com/actions/cache">actions/cache</a> to reuse a Docker build context across workflow runs, but
+it is not easy to get right. This puts an unnecessary burden on users of an
+action.  <a href=#sf-how-to-write-github-actions-in-go-8-back class=simple-footnote-back>↩</a></li><li id=sf-how-to-write-github-actions-in-go-9>"Starting from Go
+source code" as opposed to the other approach, i.e. just distributing prebuilt
+binaries.  <a href=#sf-how-to-write-github-actions-in-go-9-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2022-02-07T00:00:00-08:00" pubdate>Feb 07, 2022</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/go.html">Go</a>,    <a class="category" href="https://blog.bossylobster.com/tag/github-actions.html">GitHub Actions</a>,    <a class="category" href="https://blog.bossylobster.com/tag/continuous-integration.html">Continuous Integration</a>,    <a class="category" href="https://blog.bossylobster.com/tag/golang.html">Golang</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-table.html">The Case for a Metadata Table for Database Migrations</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2022/02/how-to-write-github-actions-in-go.html';
+    var disqus_url = 'https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html';
+    var disqus_title = "<p>How to Write GitHub Actions in Go</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>
