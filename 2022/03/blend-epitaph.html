@@ -2,10 +2,11 @@
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<head itemscope itemtype="http://schema.org/Article">
   <meta charset="utf-8">
-  <title>Silly Pranks on your Friends &mdash; Bossy Lobster</title>
+  <title>Epitaph: Blend &mdash; Bossy Lobster</title>
   <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Saying Goodbye to a Transformative Role" />
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
         title="Bossy Lobster Atom Feed" />
@@ -16,8 +17,24 @@
 <link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
 
 
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Epitaph: Blend</p>" />
+<meta itemprop="description" content="Saying Goodbye to a Transformative Role" />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/so-long-farewell.jpg" />
 
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Epitaph: Blend</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/so-long-farewell.jpg" />
+<meta property="og:description" content="Saying Goodbye to a Transformative Role" />
 
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Epitaph: Blend</p>" />
+<meta name="twitter:description" content="Saying Goodbye to a Transformative Role" />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/so-long-farewell.jpg" />
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -74,72 +91,50 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div>
   <article class="hentry" role="article">
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2012-04-07-silly-pranks-on-your-friends.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">Silly Pranks on your Friends</h1>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2022-03-04-blend-epitaph.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Epitaph: Blend</h1>
     <p class="meta">
-<time datetime="2012-04-07T00:00:00-07:00" pubdate>Apr 07, 2012</time>    </p>
+<time datetime="2022-03-04T00:00:00-08:00" pubdate>Mar 04, 2022</time>    </p>
 </header>
 
-  <div class="entry-content"><h2>Disclaimer: These are silly little pranks, but I don't encourage messing with someone's computing environment without letting them know you have done so.</h2>
-<h3>First Prank:</h3>
-<p>I have a friend who really likes to read
-<a href="http://people.com/">people.com</a>, so I figured I would "enrich" her life
-a bit with another source of daily news :)</p>
-<p>I decided to play around with her
-<a href="http://en.wikipedia.org/wiki/Hosts_(file)#Purpose">hosts file</a>, so that when
-she visited <a href="http://people.com/">people.com</a>, she really got the
-<a href="http://nytimes.com/">New York Times</a> (the realest news I could think of at
-that time, though there are plenty of fine candidates).</p>
-<p>To quote the Wikipedia article on <code>hosts</code> files:</p>
-<blockquote>
-<p>The hosts file...assists in addressing network nodes in a computer
-network. It is a common part of an operating system's Internet
-Protocol (IP) implementation, and serves the function of translating
-human-friendly hostnames into numeric protocol addresses, called IP
-addresses, that identify and locate a host in an IP network.</p>
-</blockquote>
-<p>More <a href="http://www.justincarmony.com/blog/2011/07/27/mac-os-x-lion-etc-hosts-bugs-and-dns-resolution/">importantly</a>:</p>
-<blockquote>
-<p>the <code>/etc/hosts</code> file...allows you to add entries that traditionally
-your computer will look up first before trying your server DNS.</p>
-</blockquote>
-<p>This means that even though the
-<a href="http://en.wikipedia.org/wiki/Domain_Name_System">DNS Lookup</a> provided by her
-<a href="http://en.wikipedia.org/wiki/Internet_service_provider">ISP</a> could
-resolve <code>people.com</code>, her browser would get an
-<a href="http://en.wikipedia.org/wiki/IP_address">IP address</a> from the hosts file
-first and hence will render the New York Times page for
-<a href="http://people.com/">people.com</a>.</p>
-<p>The first step to do this was to find the IP address for the replacement
-site:</p>
-<div class="highlight"><pre><span></span><code>$ ping www.nytimes.com
-PING www.nytimes.com <span class="o">(</span><span class="m">199</span>.239.136.200<span class="o">)</span>: <span class="m">56</span> data bytes
-<span class="m">64</span> bytes from <span class="m">199</span>.239.136.200: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">0</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.062 ms
-<span class="m">64</span> bytes from <span class="m">199</span>.239.136.200: <span class="nv">icmp_seq</span><span class="o">=</span><span class="m">1</span> <span class="nv">ttl</span><span class="o">=</span><span class="m">64</span> <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.054 ms
-...
-</code></pre></div>
-
-<p>For the second (and final) step, I just needed to add an entry to the
-<code>hosts</code> file. After
-<a href="http://en.wikipedia.org/wiki/Hosts_(file)#Location_in_the_file_system">locating</a>
-the file on her Macbook in <code>/etc/hosts</code>, I updated the contents:</p>
-<div class="highlight"><pre><span></span><code>##
-# <span class="nv">Host</span> <span class="nv">Database</span>
-#
-# <span class="nv">localhost</span> <span class="nv">is</span> <span class="nv">used</span> <span class="nv">to</span> <span class="nv">configure</span> <span class="nv">the</span> <span class="nv">loopback</span> <span class="nv">interface</span>
-# <span class="nv">when</span> <span class="nv">the</span> <span class="nv">system</span> <span class="nv">is</span> <span class="nv">booting</span>.  <span class="k">Do</span> <span class="nv">not</span> <span class="nv">change</span> <span class="nv">this</span> <span class="nv">entry</span>.
-##
-<span class="mi">127</span>.<span class="mi">0</span>.<span class="mi">0</span>.<span class="mi">1</span>       <span class="nv">localhost</span>
-<span class="mi">255</span>.<span class="mi">255</span>.<span class="mi">255</span>.<span class="mi">255</span> <span class="nv">broadcasthost</span>
-::<span class="mi">1</span>             <span class="nv">localhost</span>
-<span class="nv">fe80</span>::<span class="mi">1</span><span class="o">%</span><span class="nv">lo0</span>     <span class="nv">localhost</span>
-<span class="mi">199</span>.<span class="mi">239</span>.<span class="mi">136</span>.<span class="mi">200</span> <span class="nv">people</span>.<span class="nv">com</span>  # <span class="nv">New</span> <span class="nv">entry</span>
-</code></pre></div>
-
-<p>Voil&#0224;! With that, the prank was complete and the next time she visited
-<a href="http://people.com/">people.com</a>, the got the contents of
-<a href="http://nytimes.com/">nytimes.com</a> in her browser.</p>
-<h3>Second Prank coming soon.</h3></div>
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="Auf Wiedersehen" src="/images/so-long-farewell.jpg"></p>
+</div>
+<h3>Goodbye</h3>
+<p>I recently made the <strong>very hard</strong> decision to leave <a href="https://blend.com/">Blend</a>. Today
+(March 4, 2022) is my last day. I am overwhelmed with emotion thinking about
+all of the amazing people I worked with and projects I worked on at Blend.
+I want to thank you all from the bottom of my heart, it has meant the world
+to me.</p>
+<p>After finishing my PhD I had a standing job offer to return to Google, but
+decided to take a leap at Blend and learn something new. Boy did I ever! I
+spent just over three years at Blend but I feel like by moving at startup speed
+I gained ten years of indispensable experience.</p>
+<p>I've seen the incredible impact that comes from meeting a customer need. In
+my early time here on a product team, we saw a quarter's worth of effort turn
+into huge increases in utilization for our target customers.</p>
+<p>I've directly witnessed the growing pains that come with hockey stick growth
+and the heroic efforts to scale systems, databases and people. Hearing
+motivational speeches from our leaders is one thing, but watching the scale of
+our compute grow as our product continued to gain traction was the most
+motivating thing of all for me<sup id=sf-blend-epitaph-1-back><a href=#sf-blend-epitaph-1 class=simple-footnote title="Especially when followed by talks from finance showing revenue growth that tracked the growth in compute.">1</a></sup>!</p>
+<p>Though it is already a publicly traded, multibillion dollar company, Blend
+is still a very young company. That means everyone still gets the chance to
+influence the culture at Blend and set the standards in Blend engineering for
+the future. This was and is incredibly compelling to me<sup id=sf-blend-epitaph-2-back><a href=#sf-blend-epitaph-2 class=simple-footnote title="Each of the teammates that I've helped hire can attest that I make this pitch during the interview process.">2</a></sup>!</p>
+<h3>What's Next?</h3>
+<p>I am not running away from Blend, I am running towards a new opportunity. I
+am starting a company with two close friends. I have been fascinated with
+company building since early in my career and am excited to begin the journey
+of growing my very own startup.</p>
+<h3>So Long, and Thanks for All the Fish</h3>
+<div style="text-align: center;">
+<p><img alt="Thanks for All the Fish" src="/images/so-long.gif"></p>
+</div>
+<hr style="margin-bottom: 25px; width: 50%;"><ol class=simple-footnotes><li id=sf-blend-epitaph-1>Especially when followed by talks from
+finance showing revenue growth that tracked the growth in compute. <a href=#sf-blend-epitaph-1-back class=simple-footnote-back>↩</a></li><li id=sf-blend-epitaph-2>Each of
+the teammates that I've helped hire can attest that I make this pitch during
+the interview process. <a href=#sf-blend-epitaph-2-back class=simple-footnote-back>↩</a></li></ol></div>
     <footer>
 <p class="meta">
   <span class="byline author vcard">
@@ -147,10 +142,10 @@ the file on her Macbook in <code>/etc/hosts</code>, I updated the contents:</p>
         Danny Hermes (dhermes@bossylobster.com)
     </span>
   </span>
-<time datetime="2012-04-07T00:00:00-07:00" pubdate>Apr 07, 2012</time>  <span class="categories">
-    <a class="category" href="https://blog.bossylobster.com/tag/dns.html">DNS</a>,    <a class="category" href="https://blog.bossylobster.com/tag/dns-lookup.html">DNS Lookup</a>,    <a class="category" href="https://blog.bossylobster.com/tag/domain-name-system.html">Domain Name System</a>,    <a class="category" href="https://blog.bossylobster.com/tag/hosts-file.html">Hosts file</a>,    <a class="category" href="https://blog.bossylobster.com/tag/internet-protocol.html">Internet Protocol</a>,    <a class="category" href="https://blog.bossylobster.com/tag/internet-service-provider.html">Internet Service Provider</a>,    <a class="category" href="https://blog.bossylobster.com/tag/ip-address.html">IP Address</a>,    <a class="category" href="https://blog.bossylobster.com/tag/isp.html">ISP</a>,    <a class="category" href="https://blog.bossylobster.com/tag/macbook.html">Macbook</a>,    <a class="category" href="https://blog.bossylobster.com/tag/nytimescom.html">nytimes.com</a>,    <a class="category" href="https://blog.bossylobster.com/tag/peoplecom.html">people.com</a>,    <a class="category" href="https://blog.bossylobster.com/tag/practical-joke.html">Practical Joke</a>,    <a class="category" href="https://blog.bossylobster.com/tag/prank.html">Prank</a>,    <a class="category" href="https://blog.bossylobster.com/tag/unix.html">UNIX</a>  </span>
+<time datetime="2022-03-04T00:00:00-08:00" pubdate>Mar 04, 2022</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/blend.html">Blend</a>,    <a class="category" href="https://blog.bossylobster.com/tag/goodbyes.html">Goodbyes</a>,    <a class="category" href="https://blog.bossylobster.com/tag/epitaph.html">Epitaph</a>  </span>
 </p><div class="sharing">
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2012/04/silly-pranks-on-your-friends.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2012/04/silly-pranks-on-your-friends.html" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2022/03/blend-epitaph.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2022/03/blend-epitaph.html" >Tweet</a>
   <div class="g-plusone" data-size="medium"></div>
 </div>    </footer>
   </article>
@@ -234,9 +229,9 @@ the file on her Macbook in <code>/etc/hosts</code>, I updated the contents:</p>
 </script>
   <script type="text/javascript">
     var disqus_shortname = 'bossylobster';
-    var disqus_identifier = '/2012/04/silly-pranks-on-your-friends.html';
-    var disqus_url = 'https://blog.bossylobster.com/2012/04/silly-pranks-on-your-friends.html';
-    var disqus_title = "<p>Silly Pranks on your Friends</p>";
+    var disqus_identifier = '/2022/03/blend-epitaph.html';
+    var disqus_url = 'https://blog.bossylobster.com/2022/03/blend-epitaph.html';
+    var disqus_title = "<p>Epitaph: Blend</p>";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
