@@ -2,9 +2,9 @@
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<head itemscope itemtype="http://schema.org/Article">
   <meta charset="utf-8">
-  <title>Bossy Lobster</title>
+  <title>Difference Between localhost and 0.0.0.0 &mdash; Bossy Lobster</title>
   <meta name="author" content="Danny Hermes">
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
@@ -16,6 +16,21 @@
 <link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
 
 
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Difference Between <code>localhost</code> and <code>0.0.0.0</code></p>" />
+<meta itemprop="description" content="" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Difference Between <code>localhost</code> and <code>0.0.0.0</code></p>" />
+<meta property="og:description" content="" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Difference Between <code>localhost</code> and <code>0.0.0.0</code></p>" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:creator" content="@bossylobster" />
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -69,92 +84,11 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 </ul></nav>
   <div id="main">
     <div id="content">
-<div class="blog-index">
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-04-istio-workload-secrets.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-09-04T00:00:00-07:00" pubdate>Sep 04, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>Adopting a service mesh like Istio is a <strong>huge</strong> undertaking. (Let's set aside
-for this discussion whether it's a <a href="https://twitter.com/rakyll/status/1173663473357574144">good idea</a> to undertake.) A fairly
-common issue when getting a mesh up and running is misconfiguration. When
-trying to debug and determine where and how things are misconfigured, the
-network …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-01-go-pq-prevent-deadlock.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-09-01T00:00:00-07:00" pubdate>Sep 01, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p><img alt="All About Locks" src="/images/Lock-Up-The-Forest.jpg"></p>
-<p>I've been writing a library for running PostgreSQL migrations in Go. One
-of the primary pieces of advice I <a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/">keep</a> coming <a href="https://benchling.engineering/move-fast-and-migrate-things-how-we-automated-migrations-in-postgres-d60aba0fc3d4">across</a> is</p>
-<blockquote>
-<p>Beware of lock queues, use lock timeouts</p>
-</blockquote>
-<p>In other words, each migration stage should happen <strong>instantaneously</strong> (or
-almost instantaneously). For real-time applications, if a migration runs "for …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-29-go-slices-gain-capacity.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">How Do Slices Gain Capacity in Go?</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-29T00:00:00-07:00" pubdate>Jul 29, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><h3>Looking Inside a Slice</h3>
-<p>The first thing to realize is that a <code>slice</code> in Go is really just a struct
-that wraps "header" information about (1) a pointer to the "real" underlying
-data, (2) the length and (3) the capacity without directly exposing those
-fields. We can use a <code>struct …</code></p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-27-life-of-request.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-27T00:00:00-07:00" pubdate>Jul 27, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>I recently<sup id=sf-life-of-request-1-back><a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020.">1</a></sup> had the
-privilege of co-authoring a blog post on the Blend <a href="https://full-stack.blend.com/">engineering blog</a> with
-my esteemed colleague <a href="https://github.com/hapoore">Austin Poore</a>. Our engineering organization is
-growing like crazy right now and it's a lot of fun so if any of this post is
-interesting to you, check out our …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/life-of-request.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
+<div>
+  <article class="hentry" role="article">
 <header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-17-loopback-vs-any-ip.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Difference Between localhost and 0.0.0.0</a>
-      </h1>
+      <h1 class="entry-title">Difference Between localhost and 0.0.0.0</h1>
     <p class="meta">
 <time datetime="2020-07-17T00:00:00-07:00" pubdate>Jul 17, 2020</time>    </p>
 </header>
@@ -166,17 +100,69 @@ IP<sup id=sf-loopback-vs-any-ip-1-back><a href=#sf-loopback-vs-any-ip-1 class=si
 Binding a server to <code>localhost</code> / the loopback IP<sup id=sf-loopback-vs-any-ip-2-back><a href=#sf-loopback-vs-any-ip-2 class=simple-footnote title="The loopback IP is 127.0.0.1 for IPv4 and ::1 for IPv6.">2</a></sup> will mean the server is
 only reachable within the container / pod.</p>
 </blockquote>
-<p>Consider the following Express …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Read On &crarr;</a>
-  </footer>
-      </article>
-<div class="pagination">
-    <a class="prev" href="https://blog.bossylobster.com/page/6">&larr; Older</a>
+<p>Consider the following Express application which binds to the default IP for
+port 3000, explicitly binds to <code>127.0.0.1</code> for port 4000 and explicitly binds
+to <code>0.0.0.0</code> for port 5000:</p>
+<div class=highlight><pre><span></span><code><span class=c1>// index.js</span>
+<span class=kd>const</span> <span class=nx>express</span> <span class=o>=</span> <span class=nx>require</span><span class=p>(</span><span class=s2>"express"</span><span class=p>);</span>
+<span class=kd>const</span> <span class=nx>app</span> <span class=o>=</span> <span class=nx>express</span><span class=p>();</span>
+<span class=nx>app</span><span class=p>.</span><span class=nx>get</span><span class=p>(</span><span class=s2>"/"</span><span class=p>,</span> <span class=p>(</span><span class=nx>req</span><span class=p>,</span> <span class=nx>res</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=nx>res</span><span class=p>.</span><span class=nx>send</span><span class=p>(</span><span class=s2>"Hello World!\n"</span><span class=p>));</span>
+<span class=nx>app</span><span class=p>.</span><span class=nx>listen</span><span class=p>(</span><span class=mf>3000</span><span class=p>,</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>"Listening on port 3000"</span><span class=p>));</span>
+<span class=nx>app</span><span class=p>.</span><span class=nx>listen</span><span class=p>(</span><span class=mf>4000</span><span class=p>,</span> <span class=s2>"127.0.0.1"</span><span class=p>,</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>"Listening on port 4000"</span><span class=p>));</span>
+<span class=nx>app</span><span class=p>.</span><span class=nx>listen</span><span class=p>(</span><span class=mf>5000</span><span class=p>,</span> <span class=s2>"0.0.0.0"</span><span class=p>,</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>"Listening on port 5000"</span><span class=p>));</span>
+</code></pre></div>
 
-    <a class="next" href="https://blog.bossylobster.com/page/4">Newer &rarr;</a>
-  <br />
-</div></div>
+<p>We'll install <code>express</code> and run this application in a Docker container</p>
+<div class=highlight><pre><span></span><code><span class=go>docker run \</span>
+<span class=go>  --name loopback_unreachable \</span>
+<span class=go>  --rm --detach \</span>
+<span class=go>  --publish 3001:3000 \</span>
+<span class=go>  --publish 4001:4000 \</span>
+<span class=go>  --publish 5001:5000 \</span>
+<span class=go>  --workdir /var/code \</span>
+<span class=go>  --volume $(pwd)/index.js:/var/code/index.js \</span>
+<span class=go>  node:12.18.1-alpine3.12 \</span>
+<span class=go>  /bin/sh -c 'npm install express@4.17.1 &amp;&amp; node /var/code/index.js'</span>
+</code></pre></div>
+
+<p>From the <code>--publish</code> flags we can see the server ports from the container
+have been exposed by adding one to each port value. Trying to hit these
+ports on the host<sup id=sf-loopback-vs-any-ip-3-back><a href=#sf-loopback-vs-any-ip-3 class=simple-footnote title='To clarify, "on the host" is meant to distinguish from "inside the container".'>3</a></sup>, we can see port <code>4001</code> — the
+one that is bound explicitly to <code>127.0.0.1</code> in the container — is
+unreachable:</p>
+<div class=highlight><pre><span></span><code><span class=gp>$ </span>curl http://localhost:3001
+<span class=go>Hello World!</span>
+<span class=gp>$ </span>curl http://localhost:4001
+<span class=go>curl: (52) Empty reply from server</span>
+<span class=gp>$ </span>curl http://localhost:5001
+<span class=go>Hello World!</span>
+</code></pre></div>
+
+<p>Don't forget to clean up:</p>
+<div class=highlight><pre><span></span><code><span class=go>docker rm --force loopback_unreachable</span>
+</code></pre></div><ol class=simple-footnotes><li id=sf-loopback-vs-any-ip-1>The "any host" IP is <code>0.0.0.0</code> for IPv4 and <code>::</code> for IPv6 <a href=#sf-loopback-vs-any-ip-1-back class=simple-footnote-back>↩</a></li><li id=sf-loopback-vs-any-ip-2>The loopback IP is
+<code>127.0.0.1</code> for IPv4 and <code>::1</code> for IPv6. <a href=#sf-loopback-vs-any-ip-2-back class=simple-footnote-back>↩</a></li><li id=sf-loopback-vs-any-ip-3>To clarify, "on the host" is meant to distinguish from
+"inside the container". <a href=#sf-loopback-vs-any-ip-3-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2020-07-17T00:00:00-07:00" pubdate>Jul 17, 2020</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/localhost.html">Localhost</a>,    <a class="category" href="https://blog.bossylobster.com/tag/nodejs.html">Node.js</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
 <aside class="sidebar">
   <section class="sidebar-img">
     <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
@@ -251,6 +237,9 @@ only reachable within the container / pod.</p>
 </script>
   <script type="text/javascript">
     var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2020/07/loopback-vs-any-ip.html';
+    var disqus_url = 'https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html';
+    var disqus_title = "<p>Difference Between <code>localhost</code> and <code>0.0.0.0</code></p>";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';

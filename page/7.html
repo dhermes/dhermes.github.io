@@ -72,104 +72,96 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2014-12-31-constantly-seek-criticism.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-08-31-http2-note.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2014/12/constantly-seek-criticism.html">Constantly Seek Criticism</a>
+        <a href="https://blog.bossylobster.com/2019/08/http2-note.html">Decoding HTTP/2 and gRPC</a>
       </h1>
     <p class="meta">
-<time datetime="2014-12-31T00:00:00-08:00" pubdate>Dec 31, 2014</time>    </p>
+<time datetime="2019-08-31T00:00:00-07:00" pubdate>Aug 31, 2019</time>    </p>
 </header>
 
-  <div class="entry-content"><p>I was recently catching up on articles and videos I'd been putting off
-and came across a great quote from <a href="https://flic.kr/p/d83K9o">Elon Musk</a>:</p>
-<blockquote>
-<p>A well thought out critique ... is as valuable as gold.
-And you should seek that from everyone you can, but particularly your
-friends ... It doesn't mean your friends …</p></blockquote></div>
+  <div class="entry-content"><p>In order to learn a bit more about how both the TCP and HTTP/2 protocols work,
+I recently created the <code>tcp-h2-describe</code> <a href="https://pypi.org/project/tcp-h2-describe/0.1.0/">reverse proxy</a> in Python. I was
+excited about some of the insights I was able to glean from the process, in
+particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0/EXAMPLE-gRPC.md">example</a> tracing a connection …</p></div>
   <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2014/12/constantly-seek-criticism.html">Read On &crarr;</a>
+    <a rel="full-article" href="https://blog.bossylobster.com/2019/08/http2-note.html">Read On &crarr;</a>
   </footer>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2014-12-04-brand-new-blog.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-06-09-type-guards-for-union-types.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Brand New Blog</a>
+        <a href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html">Type Guards for Union Types in TypeScript</a>
       </h1>
     <p class="meta">
-<time datetime="2014-12-04T00:00:00-08:00" pubdate>Dec 04, 2014</time>    </p>
+<time datetime="2019-06-09T00:00:00-07:00" pubdate>Jun 09, 2019</time>    </p>
 </header>
 
-  <div class="entry-content"><p>After a happy 3-year run with <a href="http://bossylobster.blogspot.com/">Blogger</a>, I've decided to
-revamp my blog with viewers in mind.</p>
-<h2>Why?</h2>
-<p>When I <a href="https://blog.bossylobster.com/2011/04/first.html">started</a> my blog, I was still learning the ropes as a
-programmer. I was happy to have a place to share the things I learned,
-but didn't have much context …</p></div>
+  <div class="entry-content"><p>In my day job at <a href="https://blend.com/careers/">Blend</a>, I write a lot of TypeScript<sup id=sf-type-guards-for-union-types-1-back><a href=#sf-type-guards-for-union-types-1 class=simple-footnote title="This may surprise many of my colleagues from the Python world">1</a></sup>. One great feature of
+TypeScript is the ability to specify an enum with a finite set of values
+as a <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#union-types">union type</a>:</p>
+<div class=highlight><pre><span></span><code><span class=kd>type</span> <span class=nx>Coordinate</span> <span class=o>=</span> <span class=s1>'x'</span> <span class=o>|</span> <span class=s1>'y'</span>
+</code></pre></div>
+
+<p>which then gives compile time checking for values of this type …</p></div>
   <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2014/12/brand-new-blog.html">Read On &crarr;</a>
+    <a rel="full-article" href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html">Read On &crarr;</a>
   </footer>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2014-09-28-quantitative-interview-brain-teaser.template" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-05-27-ruby-stack-traces.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html">Quantitative Interview Brain Teaser: Computer Assistance</a>
+        <a href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Attack of Ruby Stack Traces</a>
       </h1>
     <p class="meta">
-<time datetime="2014-09-28T00:00:00-07:00" pubdate>Sep 28, 2014</time>    </p>
+<time datetime="2019-05-27T00:00:00-07:00" pubdate>May 27, 2019</time>    </p>
 </header>
 
-  <div class="entry-content"><p>In a <a href="/2014/09/quantitative-brain-teaser-brain-only.html">previous post</a>
-I discussed a recent brain teaser I had come across:</p>
-<blockquote>
-<p>Find a <strong>10-digit number</strong>, where each digit represents the
-number of that ordinal number in the whole number. So, the
-<strong>first digit represents the number of 0's</strong> in the whole 10 digits. The
-second digit represents …</p></blockquote></div>
+  <div class="entry-content"><p>First, let me say I'm not posting this to shame any company or language
+community. Getting to the scale Twitter reached in a short amount of time
+can quickly make past engineering decisions look foolish in hindsight. But
+almost always they are decisions made in good faith with the current …</p></div>
   <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2014/09/quantitative-interview-brain-teaser.html">Read On &crarr;</a>
+    <a rel="full-article" href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Read On &crarr;</a>
   </footer>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2014-09-22-quantitative-brain-teaser-brain-only.template" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2018-09-13-learn-you-a-lapack.template" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2014/09/quantitative-brain-teaser-brain-only.html">Quantitative Brain Teaser: Brain Only</a>
+        <a href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html">Learn You a LAPACK for Great Good</a>
       </h1>
     <p class="meta">
-<time datetime="2014-09-22T00:00:00-07:00" pubdate>Sep 22, 2014</time>    </p>
+<time datetime="2018-09-13T00:00:00-07:00" pubdate>Sep 13, 2018</time>    </p>
 </header>
 
-  <div class="entry-content"><p>I've recently been working some atrophied mental muscles and came across
-a brain teaser that was pretty nifty:</p>
-<blockquote>
-<p>Find a <strong>10-digit number</strong>, where each digit represents the
-number of that ordinal number in the whole number. So, the
-<strong>first digit represents the number of 0's</strong> in the whole 10 digits …</p></blockquote></div>
+  <div class="entry-content"><p>Linear Algebra is an incredibly powerful tool. A joke among mathematicians
+is that the only way we can solve a hard problem is to boil it down to
+Linear Algebra<sup id=sf-learn-you-a-lapack-1-back><a href=#sf-learn-you-a-lapack-1 class=simple-footnote title="This actually happened to me. My undergraduate research project (REU) eventually boiled down to showing that a particularly special matrix had a nonzero determinant.">1</a></sup>. Harnessing the <strong>numerical</strong> power of
+Linear Algebra has been done via <a href="https://en.wikipedia.org/wiki/LAPACK">LAPACK</a> for the last 40+ years.</p>
+<p>In my …</p></div>
   <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2014/09/quantitative-brain-teaser-brain-only.html">Read On &crarr;</a>
+    <a rel="full-article" href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html">Read On &crarr;</a>
   </footer>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2014-08-22-math-for-humans-second-attempt.template" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2018-09-07-graduated.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2014/08/math-for-humans-second-attempt.html">Math for Humans, A Second Attempt</a>
+        <a href="https://blog.bossylobster.com/2018/09/graduated.html">Graduated</a>
       </h1>
     <p class="meta">
-<time datetime="2014-08-22T00:00:00-07:00" pubdate>Aug 22, 2014</time>    </p>
+<time datetime="2018-09-07T00:00:00-07:00" pubdate>Sep 07, 2018</time>    </p>
 </header>
 
-  <div class="entry-content"><p>The morning after posting my latest
-<a href="/2014/07/conditional-probabilities-in-thinking.html">blog post</a>,
-I woke up still thinking about how to explain the concept.</p>
-<p>More importantly, I realized that my goal of writing
-<strong>math for humans</strong> failed miserably.</p>
-<p>So here is a second go at it.</p>
-<p>First we're told we're in a world where <strong>85 …</strong></p></div>
+  <div class="entry-content"><p>After five years, I'm excited to say I've finished <a href="https://github.com/dhermes/phd-thesis">my PhD</a>. I certainly
+learned a lot and met a lot of great people along the way.</p>
+<p>One of the biggest lessons I learned was about myself: I need to <strong>say no</strong>
+more often. I continued to say yes, to <a href="https://github.com/GoogleCloudPlatform/google-cloud-python/">side …</a></p></div>
   <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2014/08/math-for-humans-second-attempt.html">Read On &crarr;</a>
+    <a rel="full-article" href="https://blog.bossylobster.com/2018/09/graduated.html">Read On &crarr;</a>
   </footer>
       </article>
 <div class="pagination">

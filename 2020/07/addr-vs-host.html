@@ -2,9 +2,9 @@
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<head itemscope itemtype="http://schema.org/Article">
   <meta charset="utf-8">
-  <title>Bossy Lobster</title>
+  <title>ADDR vs. HOST &mdash; Bossy Lobster</title>
   <meta name="author" content="Danny Hermes">
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
@@ -16,6 +16,21 @@
 <link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
 
 
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p><code>ADDR</code> vs. <code>HOST</code></p>" />
+<meta itemprop="description" content="" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p><code>ADDR</code> vs. <code>HOST</code></p>" />
+<meta property="og:description" content="" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p><code>ADDR</code> vs. <code>HOST</code></p>" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:creator" content="@bossylobster" />
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -69,34 +84,11 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 </ul></nav>
   <div id="main">
     <div id="content">
-<div class="blog-index">
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-16-cordon-pod.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/cordon-pod.html">Isolating (Cordoning) a Misbehaving Pod</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-16T00:00:00-07:00" pubdate>Jul 16, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><blockquote>
-<p><strong>TL;DR</strong>: You can remove a misbehaving pod from a service without deleting
-it. Use <code>kubectl label pod ... cyberdyne-service- ...</code> to remove a
-label / labels. Once the labels are gone it will be removed from the
-Kubernetes service that routes traffic to pods.</p>
-</blockquote>
-<p>When a Kubernetes <strong>node</strong> is misbehaving, it's common …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/cordon-pod.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
+<div>
+  <article class="hentry" role="article">
 <header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-08-addr-vs-host.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/addr-vs-host.html">ADDR vs. HOST</a>
-      </h1>
+      <h1 class="entry-title">ADDR vs. HOST</h1>
     <p class="meta">
 <time datetime="2020-07-08T00:00:00-07:00" pubdate>Jul 08, 2020</time>    </p>
 </header>
@@ -111,81 +103,69 @@ variables</p>
 without any code changes.</p>
 </blockquote>
 <p>We utilize sandbox, staging and other siloed environments to test changes
-before …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/addr-vs-host.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-07-running-vault-locally.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Running vault Locally</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-07T00:00:00-07:00" pubdate>Jul 07, 2020</time>    </p>
-</header>
+before they go to production. As a result, this means application code and
+library code often needs to have hostnames that are configurable based on the
+current environment. For example:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// config.ts</span>
+<span class="k">import</span> <span class="o">*</span> <span class="kr">as</span> <span class="nx">process</span> <span class="k">from</span> <span class="s2">&quot;process&quot;</span><span class="p">;</span>
 
-  <div class="entry-content"><p>In order to run <code>vault</code> locally (I did this because I was on an airplane),
-first start the server with a known root token</p>
-<div class="highlight"><pre><span></span><code><span class="go">export VAULT_TOKEN=root VAULT_ADDR=http://localhost:8200</span>
-<span class="go">vault server -dev -dev-root-token-id=&quot;${VAULT_TOKEN}&quot;</span>
+<span class="k">export</span> <span class="kd">const</span> <span class="nx">VAULT_HOST</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VAULT_HOST</span> <span class="o">||</span> <span class="s2">&quot;vault.sandbox.invalid&quot;</span><span class="p">;</span>
+</code></pre></div>
 
-<span class="go">vault version  # As a baseline, this is the version of `vault` I am using …</span></code></pre></div></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-05-14-trust-proxy.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Express Trust Proxy</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-05-14T00:00:00-07:00" pubdate>May 14, 2020</time>    </p>
-</header>
+<p>Once the hostname is specified, it's common to use it to form a base URL
+or to form fully fledged URLs:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// auth.ts</span>
+<span class="k">import</span> <span class="o">*</span> <span class="kr">as</span> <span class="nx">secrets</span> <span class="k">from</span> <span class="s2">&quot;some-internal-secrets-library&quot;</span><span class="p">;</span>
 
-  <div class="entry-content"><h3>Why?</h3>
-<p>Using <code>app.use('trust proxy', true)</code> is likely too permissive, this post
-explains concretely why.</p>
-<h3>Example Applications</h3>
-<p>Consider two Express applications <code>index-first.js</code> that uses
-<code>app.set("trust proxy", true)</code></p>
-<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>express</span> <span class=o>=</span> <span class=nx>require</span><span class=p>(</span><span class=s2>"express"</span><span class=p>);</span>
-<span class=kd>const</span> <span class=nx>app</span> <span class=o>=</span> <span class=nx>express</span><span class=p>();</span>
-<span class=kd>const</span> <span class=nx>port</span> <span class=o>=</span> <span class=mf>3000</span><span class=p>;</span>
+<span class="k">import</span> <span class="o">*</span> <span class="kr">as</span> <span class="nx">config</span> <span class="k">from</span> <span class="s2">&quot;./config&quot;</span><span class="p">;</span>
 
-<span class=nx>app</span><span class=p>.</span><span class=nx>set</span><span class=p>(</span><span class=s2>"trust proxy"</span><span class=p>,</span> <span class=kc>true</span><span class=p>);</span>
-<span class=nx>app</span><span class=p>.</span><span class=nx>get</span><span class=p>(</span><span class=s2>"/"</span><span class=p>,</span> <span class=p>(</span><span class=nx>req</span><span class=p>,</span> <span class=nx>res …</span></code></pre></div></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-04-22-threadsafe-connection-pool.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-04-22T00:00:00-07:00" pubdate>Apr 22, 2020</time>    </p>
-</header>
+<span class="k">export</span> <span class="kd">const</span> <span class="nx">CLIENT</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">secrets</span><span class="p">.</span><span class="nx">Client</span><span class="p">(</span><span class="sb">`https://</span><span class="si">${</span><span class="nx">config</span><span class="p">.</span><span class="nx">VAULT_HOST</span><span class="si">}</span><span class="sb">:8200`</span><span class="p">);</span>
+</code></pre></div>
 
-  <div class="entry-content"><p>I've been load testing quite a bit recently. So far I've been impressed by the
-<code>wrk</code> <a href="https://github.com/wg/wrk">project's</a> use of sockets to pour on a ridiculously high amount of
-load. When I had stretched the system under load <strong>past</strong> its limits, finding
-the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> was a breath of fresh air …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">Read On &crarr;</a>
-  </footer>
-      </article>
-<div class="pagination">
-    <a class="prev" href="https://blog.bossylobster.com/page/7">&larr; Older</a>
+<p>However, this approach <strong>requires</strong> the full address to use the <code>https</code>
+protocol. In deployed environments, this isn't a problem because we <strong>want</strong>
+to be communicating over TLS / <code>https</code>. However, the <code>*_HOST</code> approach leaves
+no room for swapping out for a locally running version of the given
+dependency: <code>http://localhost:*</code>. (See <a href="/2020/07/running-vault-locally.html">Running <code>vault</code> Locally</a> for
+an explanation of <strong>how</strong> to run such a dependency locally.)</p>
+<p>When doing local development in one application it may be necessary to also run
+a related application locally. (Even if not necessary, it can be quite
+convenient, e.g. if doing development on an airplane or without internet
+access.) To support this, the <code>*_ADDR</code> pattern can be used instead of the
+<code>*_HOST</code> pattern:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// config.ts</span>
+<span class="k">import</span> <span class="o">*</span> <span class="kr">as</span> <span class="nx">process</span> <span class="k">from</span> <span class="s2">&quot;process&quot;</span><span class="p">;</span>
 
-    <a class="next" href="https://blog.bossylobster.com/page/5">Newer &rarr;</a>
-  <br />
-</div></div>
+<span class="k">export</span> <span class="kd">const</span> <span class="nx">VAULT_HOST</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VAULT_HOST</span> <span class="o">||</span> <span class="s2">&quot;vault.sandbox.invalid&quot;</span><span class="p">;</span>
+<span class="k">export</span> <span class="kd">const</span> <span class="nx">VAULT_ADDR</span> <span class="o">=</span>
+  <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VAULT_ADDR</span> <span class="o">||</span> <span class="sb">`https://</span><span class="si">${</span><span class="nx">VAULT_HOST</span><span class="si">}</span><span class="sb">:8200`</span><span class="p">;</span>
+<span class="c1">// auth.ts</span>
+<span class="k">import</span> <span class="o">*</span> <span class="kr">as</span> <span class="nx">secrets</span> <span class="k">from</span> <span class="s2">&quot;some-internal-secrets-library&quot;</span><span class="p">;</span>
+
+<span class="k">import</span> <span class="o">*</span> <span class="kr">as</span> <span class="nx">config</span> <span class="k">from</span> <span class="s2">&quot;./config&quot;</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="kd">const</span> <span class="nx">CLIENT</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">secrets</span><span class="p">.</span><span class="nx">Client</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">VAULT_ADDR</span><span class="p">);</span>
+</code></pre></div></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2020-07-08T00:00:00-07:00" pubdate>Jul 08, 2020</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/configuration.html">Configuration</a>,    <a class="category" href="https://blog.bossylobster.com/tag/soa.html">SOA</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2020/07/addr-vs-host.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2020/07/addr-vs-host.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
 <aside class="sidebar">
   <section class="sidebar-img">
     <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
@@ -260,6 +240,9 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
 </script>
   <script type="text/javascript">
     var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2020/07/addr-vs-host.html';
+    var disqus_url = 'https://blog.bossylobster.com/2020/07/addr-vs-host.html';
+    var disqus_title = "<p><code>ADDR</code> vs. <code>HOST</code></p>";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';

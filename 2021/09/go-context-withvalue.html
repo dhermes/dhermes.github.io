@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Wrapping Behavior of context.WithValue() &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Wrapping Behavior of <code>context.WithValue()</code></p>" />
+<meta itemprop="description" content="" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Wrapping Behavior of <code>context.WithValue()</code></p>" />
+<meta property="og:description" content="" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Wrapping Behavior of <code>context.WithValue()</code></p>" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:creator" content="@bossylobster" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-09-10-go-context-withvalue.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Wrapping Behavior of context.WithValue()</h1>
+    <p class="meta">
+<time datetime="2021-09-10T00:00:00-07:00" pubdate>Sep 10, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><h3>Motivation</h3>
+<p>Throughout the Go monorepo we use <code>context.WithValue()</code> to "stash" a global
+value on a root context. For example</p>
+<div class="highlight"><pre><span></span><code><span class="nx">ctx</span> <span class="p">=</span> <span class="nx">logger</span><span class="p">.</span><span class="nx">WithLogger</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">log</span><span class="p">)</span>
+<span class="c1">// ... later ...</span>
+<span class="nx">log</span> <span class="o">:=</span> <span class="nx">logger</span><span class="p">.</span><span class="nx">GetLogger</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</code></pre></div>
+
+<p>The implementations for stashing a <code>logger.Log</code> are in the same general form
+as most context wrapping helpers:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span> <span class="nx">loggerKey</span> <span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">func</span> <span class="nx">WithLogger</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">log</span> <span class="nx">Log</span><span class="p">)</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">context</span><span class="p">.</span><span class="nx">WithValue</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">loggerKey</span><span class="p">{},</span> <span class="nx">log</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nx">GetLogger</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="nx">Log</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="nx">value</span> <span class="o">:=</span> <span class="nx">ctx</span><span class="p">.</span><span class="nx">Value</span><span class="p">(</span><span class="nx">loggerKey</span><span class="p">{});</span> <span class="nx">value</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="nx">typed</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">value</span><span class="p">.(</span><span class="nx">Log</span><span class="p">);</span> <span class="nx">ok</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">typed</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Our goal here is to understand how <code>context.WithValue()</code> keeps the
+data around and how <code>ctx.Value()</code> is able to extract it back out.</p>
+<h3>Dealing with Unexported Types</h3>
+<p>In addition, to defining the <code>context.Context</code> interface, the Go standard
+library also defines some unexported concrete implementations. In particular,
+<code>emptyCtx</code> is <a href="https://github.com/golang/go/blob/go1.17.1/src/context/context.go#L171">defined</a> to support <code>context.Background()</code> and <code>valueCtx</code>
+is <a href="https://github.com/golang/go/blob/go1.17.1/src/context/context.go#L538">defined</a> to support <code>context.WithValue()</code>.</p>
+<p>In order to see <strong>inside</strong> values of each of these types, we can create
+a sufficiently similar type and then use the <code>reflect</code> and <code>unsafe</code> packages
+to "cast" the memory from the standard library types into our own types.
+For example:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span> <span class="nx">CtxPointer</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="o">*</span><span class="kt">int</span> <span class="p">{</span>
+    <span class="nx">rc</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">ValueOf</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+    <span class="nx">p</span> <span class="o">:=</span> <span class="nx">unsafe</span><span class="p">.</span><span class="nx">Pointer</span><span class="p">(</span><span class="nx">rc</span><span class="p">.</span><span class="nx">Pointer</span><span class="p">())</span>
+    <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="kt">int</span><span class="p">)(</span><span class="nx">p</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nx">ToEmptyCtx</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="o">*</span><span class="nx">EmptyCtx</span> <span class="p">{</span>
+    <span class="nx">p</span> <span class="o">:=</span> <span class="nx">unsafe</span><span class="p">.</span><span class="nx">Pointer</span><span class="p">(</span><span class="nx">CtxPointer</span><span class="p">(</span><span class="nx">ctx</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="o">*</span><span class="nx">EmptyCtx</span><span class="p">)(</span><span class="nx">p</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>The fields in the types themselves are straightforward to copy over:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span> <span class="nx">EmptyCtx</span> <span class="kt">int</span>
+
+<span class="kd">type</span> <span class="nx">ValueCtx</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">wrapped</span>  <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span> <span class="c1">// Intentionally avoid struct-embedding</span>
+    <span class="nx">key</span><span class="p">,</span> <span class="nx">val</span> <span class="kd">interface</span><span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3>Unwrapping It All</h3>
+<p>In order to better understand how context wrapping via <code>context.WithValue()</code>
+works, we'll stash multiple values for the same key onto a context:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span> <span class="nx">simpleKey</span> <span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">ctx1</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;ctx1 = %s\n&quot;</span><span class="p">,</span> <span class="nx">ToEmptyCtx</span><span class="p">(</span><span class="nx">ctx1</span><span class="p">))</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;  ctx1.Value(simpleKey{}) = %v\n&quot;</span><span class="p">,</span> <span class="nx">ctx1</span><span class="p">.</span><span class="nx">Value</span><span class="p">(</span><span class="nx">simpleKey</span><span class="p">{}))</span>
+    <span class="c1">// Wrap once.</span>
+    <span class="nx">ctx2</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nx">WithValue</span><span class="p">(</span><span class="nx">ctx1</span><span class="p">,</span> <span class="nx">simpleKey</span><span class="p">{},</span> <span class="s">&quot;x&quot;</span><span class="p">)</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;ctx2 = %s\n&quot;</span><span class="p">,</span> <span class="nx">ToValueCtx</span><span class="p">(</span><span class="nx">ctx2</span><span class="p">))</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;  ctx2.Value(simpleKey{}) = %q\n&quot;</span><span class="p">,</span> <span class="nx">ctx2</span><span class="p">.</span><span class="nx">Value</span><span class="p">(</span><span class="nx">simpleKey</span><span class="p">{}))</span>
+    <span class="c1">// Wrap twice.</span>
+    <span class="nx">ctx3</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nx">WithValue</span><span class="p">(</span><span class="nx">ctx2</span><span class="p">,</span> <span class="nx">simpleKey</span><span class="p">{},</span> <span class="s">&quot;y&quot;</span><span class="p">)</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;ctx3 = %s\n&quot;</span><span class="p">,</span> <span class="nx">ToValueCtx</span><span class="p">(</span><span class="nx">ctx3</span><span class="p">))</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;  ctx3.Value(simpleKey{}) = %q\n&quot;</span><span class="p">,</span> <span class="nx">ctx3</span><span class="p">.</span><span class="nx">Value</span><span class="p">(</span><span class="nx">simpleKey</span><span class="p">{}))</span>
+    <span class="c1">// Wrap thrice.</span>
+    <span class="nx">ctx4</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nx">WithValue</span><span class="p">(</span><span class="nx">ctx3</span><span class="p">,</span> <span class="nx">simpleKey</span><span class="p">{},</span> <span class="s">&quot;z&quot;</span><span class="p">)</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;ctx4 = %s\n&quot;</span><span class="p">,</span> <span class="nx">ToValueCtx</span><span class="p">(</span><span class="nx">ctx4</span><span class="p">))</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;  ctx4.Value(simpleKey{}) = %q\n&quot;</span><span class="p">,</span> <span class="nx">ctx4</span><span class="p">.</span><span class="nx">Value</span><span class="p">(</span><span class="nx">simpleKey</span><span class="p">{}))</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Running the script we see that the <strong>latest</strong> value stashed for the key
+wins in <code>valueCtx.Value()</code>. We also see that the second stage (<code>ctx2</code>)
+wraps the first (<code>0xc00009e000</code>), the third stage (<code>ctx3</code>) wraps the second
+(<code>0xc0000981b0</code>) and so on.</p>
+<div class="highlight"><pre><span></span><code>$ go run docs/go-context-withvalue/main.go
+ctx1 = EmptyCtx(0) [address=0xc00009e000]
+  ctx1.Value(simpleKey{}) = &lt;nil&gt;
+ctx2 = ValueCtx(wrapped=0xc00009e000, key=main.simpleKey{}, val=&quot;x&quot;) [address=0xc0000981b0]
+  ctx2.Value(simpleKey{}) = &quot;x&quot;
+ctx3 = ValueCtx(wrapped=0xc0000981b0, key=main.simpleKey{}, val=&quot;y&quot;) [address=0xc0000981e0]
+  ctx3.Value(simpleKey{}) = &quot;y&quot;
+ctx4 = ValueCtx(wrapped=0xc0000981e0, key=main.simpleKey{}, val=&quot;z&quot;) [address=0xc000098210]
+  ctx4.Value(simpleKey{}) = &quot;z&quot;
+</code></pre></div></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2021-09-10T00:00:00-07:00" pubdate>Sep 10, 2021</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/go.html">Go</a>,    <a class="category" href="https://blog.bossylobster.com/tag/golang.html">Golang</a>,    <a class="category" href="https://blog.bossylobster.com/tag/context.html">Context</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2021/09/go-context-withvalue.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2021/09/go-context-withvalue.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2021/09/go-context-withvalue.html';
+    var disqus_url = 'https://blog.bossylobster.com/2021/09/go-context-withvalue.html';
+    var disqus_title = "<p>Wrapping Behavior of <code>context.WithValue()</code></p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

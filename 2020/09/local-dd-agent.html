@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Running dd-agent Locally &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Running <code>dd-agent</code> Locally</p>" />
+<meta itemprop="description" content="" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Running <code>dd-agent</code> Locally</p>" />
+<meta property="og:description" content="" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Running <code>dd-agent</code> Locally</p>" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:creator" content="@bossylobster" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-28-local-dd-agent.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Running dd-agent Locally</h1>
+    <p class="meta">
+<time datetime="2020-09-28T00:00:00-07:00" pubdate>Sep 28, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><blockquote>
+<p><strong>TL;DR</strong>: Running Datadog (<code>dd-agent</code>) during local development can help
+confirm metrics and traces are sent as expected and can help debug when things
+go wrong. To run <code>dd-agent</code> locally just clone the
+<a href="https://github.com/dhermes/local-dd-agent">dhermes/local-dd-agent</a><sup id=sf-local-dd-agent-1-back><a href=#sf-local-dd-agent-1 class=simple-footnote title="As of b5b577154c7bf2c80020a0d87aa3c111e7cead8c">1</a></sup> repository and <code>make run</code>.</p>
+<p>Being able to quickly iterate with a local <code>dd-agent</code> helped to quickly
+locate bugfixes <a href="https://github.com/brightcove/hot-shots/pull/189">brightcove/hot-shots#189</a>.</p>
+</blockquote>
+<h3>Motivation</h3>
+<p>During local development, we often just turn off code that sends metrics and
+traces to <code>datadog</code>. We just trust that our application metrics and traces will
+work as expected when deployed to environments (e.g. Kubernetes) where
+<code>dd-agent</code> is running.</p>
+<p>This is especially challenging when things <strong>go wrong</strong>. For example, sometimes
+a task will exit before flushing all metrics out to <code>dd-agent</code> and debugging
+an application in Kubernetes is a much larger challenge than debugging it
+on a development machine.</p>
+<p>I was recently debugging a critical production issue caused by a bug in the
+connection error recovery<sup id=sf-local-dd-agent-2-back><a href=#sf-local-dd-agent-2 class=simple-footnote title="In particular, this was for errors caused by a failed connection to a Unix Domain Socket (UDS) usually available at /var/run/datadog/dsd.socket.">2</a></sup> code in <code>hot-shots</code>. (At Blend we use
+<code>hot-shots</code>, a popular open source library, as a base for connecting to Datadog
+in all<sup id=sf-local-dd-agent-3-back><a href=#sf-local-dd-agent-3 class=simple-footnote title="Maybe not all? But most.">3</a></sup> Node.js applications.) By running
+<code>dd-agent</code> locally, I was able to reproduce the bug and with a tight feedback
+loop track down three more <a href="https://github.com/brightcove/hot-shots/issues/128#issuecomment-699046970">problems</a> with the implementation. This led to a
+<a href="https://github.com/brightcove/hot-shots/pull/189">fix</a> as well so we can properly recover from connection errors.</p>
+<h3>Running <code>dd-agent</code></h3>
+<p>To run the <code>dd-agent</code> locally, clone <code>local-dd-agent</code> and build the Docker
+container for the <code>dd-agent</code> application</p>
+<div class=highlight><pre><span></span><code>git clone git@github.com:dhermes/local-dd-agent.git
+cd local-dd-agent/
+make build
+</code></pre></div>
+
+<p>then run the container via</p>
+<div class=highlight><pre><span></span><code>make run
+# OR:
+# make run DATADOG_ADDRESS=".../custom/path/to/dsd.socket"
+</code></pre></div>
+
+<p>The start logs<sup id=sf-local-dd-agent-4-back><a href=#sf-local-dd-agent-4 class=simple-footnote title="The container runs a UDP listener on port 8125 for metrics, a TCP listener on port 8126 for traces, a UDS listener at /var/run/datadog/dsd.socket in the container and a UDS listener at $(pwd)/var-run-datadog/dsd.socket on the host (i.e. the machine that invoked docker run).">4</a></sup> should resemble:</p>
+<div style="text-align: center;">
+<p><img alt="Local dd-agent Start" src="/images/local-dd-agent-start.png"></p>
+</div>
+<p>Triggering some requests to a sample application,
+we'd see example logs to the agent like:</p>
+<div style="text-align: center;">
+<p><img alt="Example Logs from Local dd-agent" src="/images/local-dd-agent.png"></p>
+</div>
+<h4>Common Testing Actions</h4>
+<p>After running an application (e.g. on port 10034) it will be useful to send
+a "bare" request</p>
+<div class=highlight><pre><span></span><code>curl http://localhost:10034
+</code></pre></div>
+
+<p>as well as a request that's part of a trace that has been opened in an
+upstream application</p>
+<div class=highlight><pre><span></span><code>curl \
+  --header 'x-datadog-trace-id: 3131313131313131313' \
+  --header 'x-datadog-parent-id: 4747474747474747474' \
+  http://localhost:10034
+</code></pre></div>
+
+<p>To compare to the "no <code>dd-agent</code>" experience, it's helpful to utilize an
+environment variable (e.g. <code>DATADOG_DISABLE</code>) to easily disable the metrics
+collector from emitting anything (i.e. make sure nothing gets sent out on port
+8125 to the <code>local-dd-agent</code> UDP metrics listener).</p>
+<p>Similar, having an environment variable (e.g. <code>DATADOG_TRACE_DEBUG_MODE</code>) can
+be quite helpful to put tracing in debug mode (e.g. to debug if the trace
+server on port 8126 can't be reached or APM responses are invalid):</p>
+<div class=highlight><pre><span></span><code>DATADOG_TRACE_DEBUG_MODE=true npm start
+
+# {"message":"Server listening on port 10034","level":"info","dd":{"trace_id":"4552692657769386461","span_id":"4552692657769386461","service":"dd-sanity-check","env":"dev"},"_timestamp":"2020-09-28T14:29:49.959Z"}
+# Encoding trace: [{"trace_id":"3f2e69d9dddf91dd","span_id":"3f2e69d9dddf91dd","parent_id":"0000000000000000","name":"serverInit","resource":"serverInit","error":0,"meta":{"service":"dd-sanity-check","env":"dev","version":"","language":"javascript"},"metrics":{"_sample_rate":1,"_dd.agent_psr":1,"_sampling_priority_v1":1},"start":1601303389949310200,"duration":12327637,"service":"dd-sanity-check"}]
+# Added encoded trace to buffer: 91 8b a8 74 72 61 63 65 5f 69 64 cf 3f 2e 69 d9 dd df 91 dd a7 73 70 61 6e 5f 69 64 cf 3f 2e 69 d9 dd df 91 dd a5 73 74 61 72 74 d3 16 38 f8 f2 f7 8e b5 00 a8 64 75 72 61 74 69 6f 6e d3 00 00 00 00 00 bc 1a d5 a5 65 72 72 6f 72 00 a9 70 61 72 65 6e 74 5f 69 64 cf 00 00 00 00 00 00 00 00 a4 6e 61 6d 65 aa 73 65 72 76 65 72 49 6e 69 74 a8 72 65 73 6f 75 72 63 65 aa 73 65 72 76 65 72 49 6e 69 74 a7 73 65 72 76 69 63 65 af 64 64 2d 73 61 6e 69 74 79 2d 63 68 65 63 6b a4 6d 65 74 61 84 a7 73 65 72 76 69 63 65 af 64 64 2d 73 61 6e 69 74 79 2d 63 68 65 63 6b a3 65 6e 76 a3 64 65 76 a7 76 65 72 73 69 6f 6e a0 a8 6c 61 6e 67 75 61 67 65 aa 6a 61 76 61 73 63 72 69 70 74 a7 6d 65 74 72 69 63 73 83 ac 5f 73 61 6d 70 6c 65 5f 72 61 74 65 cb 3f f0 00 00 00 00 00 00 ad 5f 64 64 2e 61 67 65 6e 74 5f 70 73 72 cb 3f f0 00 00 00 00 00 00 b5 5f 73 61 6d 70 6c 69 6e 67 5f 70 72 69 6f 72 69 74 79 5f 76 31 cb 3f f0 00 00 00 00 00 00
+# Request to the agent: {"path":"/v0.4/traces","method":"PUT","headers":{"Content-Type":"application/msgpack","Datadog-Meta-Tracer-Version":"0.20.3","X-Datadog-Trace-Count":"1","Datadog-Meta-Lang":"nodejs","Datadog-Meta-Lang-Version":"v12.18.3","Datadog-Meta-Lang-Interpreter":"v8"},"protocol":"http:","hostname":"localhost","port":"8126"}
+# Response from the agent: {}
+</code></pre></div>
+
+<h3>Caveats</h3>
+<p>The code in <code>local-dd-agent</code> is completely handwritten and is a best effort
+to map to Datadog features. There are <strong>known</strong> features not yet implemented
+(e.g. parsing of <code>_e{}</code> / Event metric datagrams) and likely <strong>unknown</strong>
+bugs or missing features (e.g. future API versions for APM).</p>
+<p>If it doesn't work as expected, please let me know and I'll be happy to
+help fix bugs, advise on how to extend and do anything else to resolve.</p><ol class=simple-footnotes><li id=sf-local-dd-agent-1>As of
+<code>b5b577154c7bf2c80020a0d87aa3c111e7cead8c</code> <a href=#sf-local-dd-agent-1-back class=simple-footnote-back>↩</a></li><li id=sf-local-dd-agent-2>In particular, this was for errors caused by a
+failed connection to a Unix Domain Socket (UDS) usually available at
+<code>/var/run/datadog/dsd.socket</code>. <a href=#sf-local-dd-agent-2-back class=simple-footnote-back>↩</a></li><li id=sf-local-dd-agent-3>Maybe not all? But most. <a href=#sf-local-dd-agent-3-back class=simple-footnote-back>↩</a></li><li id=sf-local-dd-agent-4>The container runs a UDP listener on port 8125 for metrics,
+a TCP listener on port 8126 for traces, a UDS listener at
+<code>/var/run/datadog/dsd.socket</code> in the container and a UDS listener at
+<code>$(pwd)/var-run-datadog/dsd.socket</code> on the host (i.e. the machine that
+invoked <code>docker run</code>). <a href=#sf-local-dd-agent-4-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2020-09-28T00:00:00-07:00" pubdate>Sep 28, 2020</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/datadog.html">Datadog</a>,    <a class="category" href="https://blog.bossylobster.com/tag/docker.html">Docker</a>,    <a class="category" href="https://blog.bossylobster.com/tag/uds.html">UDS</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2020/09/local-dd-agent.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2020/09/local-dd-agent.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2020/09/local-dd-agent.html';
+    var disqus_url = 'https://blog.bossylobster.com/2020/09/local-dd-agent.html';
+    var disqus_title = "<p>Running <code>dd-agent</code> Locally</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

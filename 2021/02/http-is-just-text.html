@@ -2,9 +2,9 @@
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<head itemscope itemtype="http://schema.org/Article">
   <meta charset="utf-8">
-  <title>Bossy Lobster</title>
+  <title>HTTP Is Just Text &mdash; Bossy Lobster</title>
   <meta name="author" content="Danny Hermes">
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
@@ -16,6 +16,21 @@
 <link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
 
 
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>HTTP Is Just Text</p>" />
+<meta itemprop="description" content="" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>HTTP Is Just Text</p>" />
+<meta property="og:description" content="" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>HTTP Is Just Text</p>" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:creator" content="@bossylobster" />
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -69,33 +84,11 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 </ul></nav>
   <div id="main">
     <div id="content">
-<div class="blog-index">
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-03-03-custom-github-actions.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/03/custom-github-actions.html">Custom GitHub Actions</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-03-03T00:00:00-08:00" pubdate>Mar 03, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><p>The "obvious" way to write a custom GitHub Action is using Node.js, however
-it's not the only way. As it turns out, a GitHub Action really just
-communicates with the "orchestrator" via environment variables (as inputs)
-and STDOUT (to produce custom outputs).</p>
-<h3>Options</h3>
-<p>When defining an action, there are …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/03/custom-github-actions.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
+<div>
+  <article class="hentry" role="article">
 <header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-02-24-http-is-just-text.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/02/http-is-just-text.html">HTTP Is Just Text</a>
-      </h1>
+      <h1 class="entry-title">HTTP Is Just Text</h1>
     <p class="meta">
 <time datetime="2021-02-24T00:00:00-08:00" pubdate>Feb 24, 2021</time>    </p>
 </header>
@@ -105,79 +98,105 @@ We'll use netcat (<code>nc</code>) to view the <strong>raw</strong> data sent to
 an HTTP server<sup id=sf-http-is-just-text-1-back><a href=#sf-http-is-just-text-1 class=simple-footnote title="Note that HTTP/2 is a binary protocol so this only applies to HTTP/1.1.">1</a></sup>.</p>
 <h3>Capture a Request</h3>
 <p>We'll run a dummy listener via <code>nc</code> and directly inspect the body of an
-HTTP …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/02/http-is-just-text.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-12-01-broken-pipe.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-12-01T00:00:00-08:00" pubdate>Dec 01, 2020</time>    </p>
-</header>
+HTTP request. To run the listener on port <code>6426</code> via <code>nc -l</code> (<code>-l</code> for listen)
+and in another terminal, use <code>curl</code> to make a simple HTTP request</p>
+<div class=highlight><pre><span></span><code>$ curl --max-time 1 http://localhost:6426
+curl: (28) Operation timed out after 1005 milliseconds with 0 bytes received
+</code></pre></div>
 
-  <div class="entry-content"><div style="text-align: center;">
-<p><img alt="Broken Pipe" src="/images/broken-pipe.jpg"></p>
+<p>In our other shell, we should see something like:</p>
+<div class=highlight><pre><span></span><code>$ nc -l 6426
+GET / HTTP/1.1
+Host: localhost:6426
+User-Agent: curl/7.64.1
+Accept: */*
+
+$
+</code></pre></div>
+
+<p>Let's write this to a file so we can keep it around later</p>
+<div class=highlight><pre><span></span><code>$ nc -l 6426 &gt; request.bin
+$ hexdump -C request.bin
+00000000  47 45 54 20 2f 20 48 54  54 50 2f 31 2e 31 0d 0a  |GET / HTTP/1.1..|
+00000010  48 6f 73 74 3a 20 6c 6f  63 61 6c 68 6f 73 74 3a  |Host: localhost:|
+00000020  36 34 32 36 0d 0a 55 73  65 72 2d 41 67 65 6e 74  |6426..User-Agent|
+00000030  3a 20 63 75 72 6c 2f 37  2e 36 34 2e 31 0d 0a 41  |: curl/7.64.1..A|
+00000040  63 63 65 70 74 3a 20 2a  2f 2a 0d 0a 0d 0a        |ccept: */*....|
+0000004e
+</code></pre></div>
+
+<p>In particular note that the newline characters are <code>0d 0a</code>, i.e. <code>\r\n</code>:</p>
+<div class=highlight><pre><span></span><code>$ python
+&gt;&gt;&gt; b'\x0d\x0a'
+b'\r\n'
+</code></pre></div>
+
+<h3>Capture a Response</h3>
+<p>We'll use an Express server on port <code>6426</code> to capture an HTTP response:</p>
+<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>express</span> <span class=o>=</span> <span class=nx>require</span><span class=p>(</span><span class=s2>"express"</span><span class=p>);</span>
+
+<span class=kd>function</span> <span class=nx>main</span><span class=p>(</span><span class=nx>port</span><span class=p>)</span> <span class=p>{</span>
+  <span class=kd>const</span> <span class=nx>app</span> <span class=o>=</span> <span class=nx>express</span><span class=p>();</span>
+
+  <span class=nx>app</span><span class=p>.</span><span class=nx>get</span><span class=p>(</span><span class=s2>"/"</span><span class=p>,</span> <span class=p>(</span><span class=nx>_req</span><span class=p>,</span> <span class=nx>res</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
+    <span class=nx>res</span><span class=p>.</span><span class=nx>send</span><span class=p>(</span><span class=s2>"Hello World!\n"</span><span class=p>);</span>
+  <span class=p>});</span>
+
+  <span class=nx>app</span><span class=p>.</span><span class=nx>listen</span><span class=p>(</span><span class=nx>port</span><span class=p>,</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=p>{</span>
+    <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=sb>`Listening on http://localhost:</span><span class=si>${</span><span class=nx>port</span><span class=si>}</span><span class=sb>`</span><span class=p>);</span>
+  <span class=p>});</span>
+<span class=p>}</span>
+
+<span class=k>if</span> <span class=p>(</span><span class=nx>require</span><span class=p>.</span><span class=nx>main</span> <span class=o>===</span> <span class=nx>module</span><span class=p>)</span> <span class=p>{</span>
+  <span class=nx>main</span><span class=p>(</span><span class=mf>6426</span><span class=p>);</span>
+<span class=p>}</span>
+</code></pre></div>
+
+<p>Running this via <code>node index.js</code>, we can see what a "regular" <code>curl</code> command
+returns</p>
+<div class=highlight><pre><span></span><code>$ curl http://localhost:6426
+Hello World!
+</code></pre></div>
+
+<p>In order to see the <strong>raw</strong> TCP response instead of the parsed HTTP response,
+we can again use netcat:</p>
+<div class=highlight><pre><span></span><code>$ cat request.bin | nc localhost 6426
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: text/html; charset=utf-8
+Content-Length: 13
+ETag: W/"d-oLZZOWcLwsAQ9NXWoLPk5FkPuSs"
+Date: Thu, 25 Feb 2021 04:47:12 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+Hello World!
+</code></pre></div>
+
+<p>As with the request, we see familiar elements of an HTTP response <strong>other</strong>
+than the body. For example the first line has the status code and the next
+seven lines contain the headers.</p><ol class=simple-footnotes><li id=sf-http-is-just-text-1>Note that HTTP/2 is a binary protocol so this only applies
+to HTTP/1.1. <a href=#sf-http-is-just-text-1-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2021-02-24T00:00:00-08:00" pubdate>Feb 24, 2021</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/http.html">HTTP</a>,    <a class="category" href="https://blog.bossylobster.com/tag/protocol.html">Protocol</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2021/02/http-is-just-text.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2021/02/http-is-just-text.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
 </div>
-<p>I recently put on my detective hat and tracked down a bug in network error
-recovery in a popular PostgreSQL library. Below, we'll walk through
-the process of bugfinding and iteratively making the feedback loop smaller
-and smaller. In order to find and fix the bug I</p>
-<ul>
-<li>Confirmed the root …</li></ul></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2020-11-25-pow-confusion.template" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-11-25T00:00:00-08:00" pubdate>Nov 25, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>In my first summer of graduate school my code suddenly stopped working
-because Fortran and Python (via <code>pow()</code> in C) do exponentiation differently.
-Once I debugged and understood the problem, I learned about the highly
-optimized assembly code produced by Fortran for integer exponents.</p>
-<p>To give a sample of the …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/11/pow-confusion.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-28-local-dd-agent.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/09/local-dd-agent.html">Running dd-agent Locally</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-09-28T00:00:00-07:00" pubdate>Sep 28, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><blockquote>
-<p><strong>TL;DR</strong>: Running Datadog (<code>dd-agent</code>) during local development can help
-confirm metrics and traces are sent as expected and can help debug when things
-go wrong. To run <code>dd-agent</code> locally just clone the
-<a href="https://github.com/dhermes/local-dd-agent">dhermes/local-dd-agent</a><sup id=sf-local-dd-agent-1-back><a href=#sf-local-dd-agent-1 class=simple-footnote title="As of b5b577154c7bf2c80020a0d87aa3c111e7cead8c">1</a></sup> repository and <code>make run</code>.</p>
-<p>Being able to quickly iterate with a local <code>dd-agent</code> helped …</p></blockquote></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/09/local-dd-agent.html">Read On &crarr;</a>
-  </footer>
-      </article>
-<div class="pagination">
-    <a class="prev" href="https://blog.bossylobster.com/page/5">&larr; Older</a>
-
-    <a class="next" href="https://blog.bossylobster.com/page/3">Newer &rarr;</a>
-  <br />
-</div></div>
 <aside class="sidebar">
   <section class="sidebar-img">
     <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
@@ -252,6 +271,9 @@ go wrong. To run <code>dd-agent</code> locally just clone the
 </script>
   <script type="text/javascript">
     var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2021/02/http-is-just-text.html';
+    var disqus_url = 'https://blog.bossylobster.com/2021/02/http-is-just-text.html';
+    var disqus_title = "<p>HTTP Is Just Text</p>";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';

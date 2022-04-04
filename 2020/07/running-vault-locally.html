@@ -2,9 +2,9 @@
 <!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
 <!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<head itemscope itemtype="http://schema.org/Article">
   <meta charset="utf-8">
-  <title>Tag: Node.js &mdash; Bossy Lobster</title>
+  <title>Running vault Locally &mdash; Bossy Lobster</title>
   <meta name="author" content="Danny Hermes">
 
   <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
@@ -16,6 +16,21 @@
 <link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
 
 
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Running <code>vault</code> Locally</p>" />
+<meta itemprop="description" content="" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Running <code>vault</code> Locally</p>" />
+<meta property="og:description" content="" />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Running <code>vault</code> Locally</p>" />
+<meta name="twitter:description" content="" />
+<meta name="twitter:creator" content="@bossylobster" />
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -70,67 +85,68 @@ document.getElementById('site-search').onsubmit = site_search_submit;
   <div id="main">
     <div id="content">
 <div>
-    <article role="article">
-        <header>
-            <h1 class="entry-title">Tag: Node.js</h1>
-        </header>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-07-running-vault-locally.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Running vault Locally</h1>
+    <p class="meta">
+<time datetime="2020-07-07T00:00:00-07:00" pubdate>Jul 07, 2020</time>    </p>
+</header>
 
-        <div id="blog-archives">
-            <h2>2021</h2>
-                    <article>
-                        <h1><a href="https://blog.bossylobster.com/2021/05/node-ca-append.html"><p>Fixing the Custom CA Problem in Node.js</p></a></h1>
-                        <time datetime="2021-05-12 00:00:00-07:00" pubdate>
-                            <span class="month">May</span>
-                            <span class="day">12</span>
-                            <span class="year">2021</span>
-                        </time>
-                        <footer>
-                        </footer>
-                    </article>
-                    <article>
-                        <h1><a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html"><p>The Node.js CA Footgun</p></a></h1>
-                        <time datetime="2021-05-11 00:00:00-07:00" pubdate>
-                            <span class="month">May</span>
-                            <span class="day">11</span>
-                            <span class="year">2021</span>
-                        </time>
-                        <footer>
-                        </footer>
-                    </article>
-            <h2>2020</h2>
-                    <article>
-                        <h1><a href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html"><p>Difference Between <code>localhost</code> and <code>0.0.0.0</code></p></a></h1>
-                        <time datetime="2020-07-17 00:00:00-07:00" pubdate>
-                            <span class="month">Jul</span>
-                            <span class="day">17</span>
-                            <span class="year">2020</span>
-                        </time>
-                        <footer>
-                        </footer>
-                    </article>
-                    <article>
-                        <h1><a href="https://blog.bossylobster.com/2020/05/trust-proxy.html"><p>Express Trust Proxy</p></a></h1>
-                        <time datetime="2020-05-14 00:00:00-07:00" pubdate>
-                            <span class="month">May</span>
-                            <span class="day">14</span>
-                            <span class="year">2020</span>
-                        </time>
-                        <footer>
-                        </footer>
-                    </article>
-            <h2>2011</h2>
-                    <article>
-                        <h1><a href="https://blog.bossylobster.com/2011/08/lesson-v8-can-teach-python-and-other.html"><p>The Lesson V8 Can Teach Python and Other Dynamic Languages</p></a></h1>
-                        <time datetime="2011-08-17 00:00:00-07:00" pubdate>
-                            <span class="month">Aug</span>
-                            <span class="day">17</span>
-                            <span class="year">2011</span>
-                        </time>
-                        <footer>
-                        </footer>
-                    </article>
-        </div>
-    </article>
+  <div class="entry-content"><p>In order to run <code>vault</code> locally (I did this because I was on an airplane),
+first start the server with a known root token</p>
+<div class="highlight"><pre><span></span><code><span class="go">export VAULT_TOKEN=root VAULT_ADDR=http://localhost:8200</span>
+<span class="go">vault server -dev -dev-root-token-id=&quot;${VAULT_TOKEN}&quot;</span>
+
+<span class="go">vault version  # As a baseline, this is the version of `vault` I am using</span>
+<span class="gp"># </span>Vault v1.4.2 <span class="o">(</span><span class="s1">&#39;18f1c494be8b06788c2fdda1a4296eb3c4b174ce+CHANGES&#39;</span><span class="o">)</span>
+</code></pre></div>
+
+<p>then replace the secrets engine with KVv1 (which is what we use at Blend at
+the time of this writing)</p>
+<div class="highlight"><pre><span></span><code><span class="go">vault secrets disable secret</span>
+<span class="go">vault secrets enable -path=secret -version=1 kv</span>
+</code></pre></div>
+
+<p>and finally seed any secrets that we'll use, for example</p>
+<div class="highlight"><pre><span></span><code><span class="go">vault write \</span>
+<span class="go">  secret/dev/service/deployment/cheese/default/BOARD_CREDENTIALS \</span>
+<span class="go">  value=joe@mail.invalid:s33krit</span>
+</code></pre></div>
+
+<h3>Docker</h3>
+<p>If you don't have <code>vault</code> installed or want to avoid forgetting that you've
+got a <code>vault</code> server running, you can use <code>docker</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="go">docker run \</span>
+<span class="go">  --rm \</span>
+<span class="go">  --interactive --tty \</span>
+<span class="go">  --name vault-dev-server \</span>
+<span class="go">  --publish 8200:8200 \</span>
+<span class="go">  --cap-add IPC_LOCK \</span>
+<span class="go">  --env VAULT_DEV_ROOT_TOKEN_ID=root \</span>
+<span class="go">  vault:1.4.1</span>
+</code></pre></div>
+
+<p>and then the same commands can be run to put it in KVv1 mode.</p></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2020-07-07T00:00:00-07:00" pubdate>Jul 07, 2020</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/vault.html">Vault</a>,    <a class="category" href="https://blog.bossylobster.com/tag/docker.html">Docker</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2020/07/running-vault-locally.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2020/07/running-vault-locally.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
 </div>
 <aside class="sidebar">
   <section class="sidebar-img">
@@ -141,19 +157,19 @@ document.getElementById('site-search').onsubmit = site_search_submit;
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
-          <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
+          <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
       </li>
       <li class="post">
-          <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
+          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
       </li>
       <li class="post">
-          <a href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Difference Between localhost and 0.0.0.0</a>
+          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
       </li>
       <li class="post">
-          <a href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Express Trust Proxy</a>
+          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
       </li>
       <li class="post">
-          <a href="https://blog.bossylobster.com/2011/08/lesson-v8-can-teach-python-and-other.html">The Lesson V8 Can Teach Python and Other Dynamic Languages</a>
+          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
       </li>
     </ul>
   </section>
@@ -180,7 +196,7 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2021  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
@@ -206,6 +222,9 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 </script>
   <script type="text/javascript">
     var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2020/07/running-vault-locally.html';
+    var disqus_url = 'https://blog.bossylobster.com/2020/07/running-vault-locally.html';
+    var disqus_title = "<p>Running <code>vault</code> Locally</p>";
     (function() {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
       dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
