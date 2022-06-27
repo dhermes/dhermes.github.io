@@ -72,6 +72,55 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-11-01-safe-column-renames.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-11-01T00:00:00-07:00" pubdate>Nov 01, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="Rename Name Tag" src="/images/rename_created_at.jpg"></p>
+</div>
+<h3>Minor Mismatch</h3>
+<p>When using a database in an application, there are many ways the idioms from
+the database ecosystem can disagree with the idioms in the programming language
+used to write the application. The object-relational impedance <a href="https://en.wikipedia.org/wiki/Object%E2%80%93relational_impedance_mismatch">mismatch</a> is
+one such example of this, but that is mostly about differences between …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-30-database-migrations-milestone.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-10-30T00:00:00-07:00" pubdate>Oct 30, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p><img alt="Database Milestone" src="/images/database_milestone.jpg"></p>
+<h3 id=motivation>Motivation</h3>
+<p>Over time an application becomes a living thing. When operating a running
+service, it's crucial to not only ask the question</p>
+<blockquote>
+<p>Does the code being deployed work?</p>
+</blockquote>
+<p>it's also crucial to ask</p>
+<blockquote>
+<p>Can I safely deploy this change given the currently running version of my
+service?</p>
+</blockquote>
+<p>This second question …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-29-database-migrations-table.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/10/database-migrations-table.html">The Case for a Metadata Table for Database Migrations</a>
@@ -131,45 +180,6 @@ source movement. When used in combination, occasionally idioms from Go don't …
     <a rel="full-article" href="https://blog.bossylobster.com/2021/10/go-duration-postgresql-interval.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-05-decrypt-vault-ciphertext-context.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Decrypting Vault Ciphertext with a Context</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-10-05T00:00:00-07:00" pubdate>Oct 05, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><p>In a previous <a href="/2021/07/vault-import.html">post</a>, I described a use case for customer provided keys
-with Vault. One of the implications of this was the need for decryption after a
-bulk data export. In that post, I gave a concrete example of decrypting Vault
-ciphertext <strong>directly</strong> with a customer provided key. However …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-04-atomically-idempotent.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Atomically Idempotent</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-10-04T00:00:00-07:00" pubdate>Oct 04, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><p>Recently, I was analyzing some initialization code in Go with a <a href="https://github.com/mat285">teammate</a>.
-The value being initialized was meant to be used in concurrent Go, so
-initialization had some requirement of atomicity. The code essentially boiled
-down to:</p>
-<div class="highlight"><pre><span></span><code><span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">T</span><span class="p">)</span> <span class="nx">Start</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">.</span><span class="nx">State</span><span class="p">)</span> <span class="o">==</span> <span class="nx">Started</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="c1">// Early Exit …</span></code></pre></div></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/3">&larr; Older</a>
 
@@ -185,6 +195,12 @@ down to:</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
       </li>
       <li class="post">
@@ -192,12 +208,6 @@ down to:</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
       </li>
     </ul>
   </section>

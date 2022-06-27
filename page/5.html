@@ -72,6 +72,45 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2020-11-25-pow-confusion.template" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-11-25T00:00:00-08:00" pubdate>Nov 25, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p>In my first summer of graduate school my code suddenly stopped working
+because Fortran and Python (via <code>pow()</code> in C) do exponentiation differently.
+Once I debugged and understood the problem, I learned about the highly
+optimized assembly code produced by Fortran for integer exponents.</p>
+<p>To give a sample of the …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/11/pow-confusion.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-28-local-dd-agent.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/09/local-dd-agent.html">Running dd-agent Locally</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-09-28T00:00:00-07:00" pubdate>Sep 28, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><blockquote>
+<p><strong>TL;DR</strong>: Running Datadog (<code>dd-agent</code>) during local development can help
+confirm metrics and traces are sent as expected and can help debug when things
+go wrong. To run <code>dd-agent</code> locally just clone the
+<a href="https://github.com/dhermes/local-dd-agent">dhermes/local-dd-agent</a><sup id=sf-local-dd-agent-1-back><a href=#sf-local-dd-agent-1 class=simple-footnote title="As of b5b577154c7bf2c80020a0d87aa3c111e7cead8c">1</a></sup> repository and <code>make run</code>.</p>
+<p>Being able to quickly iterate with a local <code>dd-agent</code> helped …</p></blockquote></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/09/local-dd-agent.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-04-istio-workload-secrets.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
@@ -130,47 +169,6 @@ fields. We can use a <code>struct …</code></p></div>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-27-life-of-request.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-27T00:00:00-07:00" pubdate>Jul 27, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>I recently<sup id=sf-life-of-request-1-back><a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020.">1</a></sup> had the
-privilege of co-authoring a blog post on the Blend <a href="https://full-stack.blend.com/">engineering blog</a> with
-my esteemed colleague <a href="https://github.com/hapoore">Austin Poore</a>. Our engineering organization is
-growing like crazy right now and it's a lot of fun so if any of this post is
-interesting to you, check out our …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/life-of-request.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-17-loopback-vs-any-ip.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Difference Between localhost and 0.0.0.0</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-17T00:00:00-07:00" pubdate>Jul 17, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><blockquote>
-<p><strong>Note</strong>: In a <code>docker</code> container, a server can only be available
-<strong>outside of the container / pod</strong> if it is bound to the "any host"
-IP<sup id=sf-loopback-vs-any-ip-1-back><a href=#sf-loopback-vs-any-ip-1 class=simple-footnote title='The "any host" IP is 0.0.0.0 for IPv4 and :: for IPv6'>1</a></sup>.
-Binding a server to <code>localhost</code> / the loopback IP<sup id=sf-loopback-vs-any-ip-2-back><a href=#sf-loopback-vs-any-ip-2 class=simple-footnote title="The loopback IP is 127.0.0.1 for IPv4 and ::1 for IPv6.">2</a></sup> will mean the server is
-only reachable within the container / pod.</p>
-</blockquote>
-<p>Consider the following Express …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/6">&larr; Older</a>
 
@@ -186,6 +184,12 @@ only reachable within the container / pod.</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
       </li>
       <li class="post">
@@ -193,12 +197,6 @@ only reachable within the container / pod.</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
       </li>
     </ul>
   </section>

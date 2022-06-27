@@ -1,5 +1,398 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2022-03-04T00:00:00-08:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Epitaph: Blend</title><link href="https://blog.bossylobster.com/2022/03/blend-epitaph.html" rel="alternate"></link><published>2022-03-04T00:00:00-08:00</published><updated>2022-03-04T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2022-03-04:/2022/03/blend-epitaph.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2022-05-26T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>What npm Can Learn from Go</title><link href="https://blog.bossylobster.com/2022/05/npm-mod.html" rel="alternate"></link><published>2022-05-26T00:00:00-07:00</published><updated>2022-05-26T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2022-05-26:/2022/05/npm-mod.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="npm and Go" src="/images/npm-and-go.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/05/npm-mod/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;As programming language ecosystems evolve, they learn from each other. When this
+happens we all benefit from more useful features, patterns, libraries, and
+tools. A core part of a programming language ecosystem — packaging —
+can be a source of pain, e.g. from …&lt;/p&gt;</summary><content type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="npm and Go" src="/images/npm-and-go.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/05/npm-mod/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;As programming language ecosystems evolve, they learn from each other. When this
+happens we all benefit from more useful features, patterns, libraries, and
+tools. A core part of a programming language ecosystem — packaging —
+can be a source of pain, e.g. from version &lt;a href="https://medium.com/knerd/the-nine-circles-of-python-dependency-hell-481d53e3e025"&gt;conflicts&lt;/a&gt;, slow &lt;a href="https://fasterthanli.me/articles/why-is-my-rust-build-so-slow"&gt;build&lt;/a&gt;
+times, security &lt;a href="https://www.synopsys.com/blogs/software-security/malicious-dependency-supply-chain/"&gt;issues&lt;/a&gt;, etc.&lt;/p&gt;
+&lt;p&gt;At Hardfin we are happy users of both Go and TypeScript. We love the wealth of
+useful packages in the &lt;code&gt;npm&lt;/code&gt; ecosystem that help us build modern web
+applications. There are a few common patterns in the Go packaging landscape that
+don't translate to the &lt;code&gt;npm&lt;/code&gt; packaging experience, but we would love it if they
+did! In this post we'll introduce a tool that exemplifies language ecosystem
+cross pollination. This tool is a minimal implementation of an experiment to
+bring the benefits of Go package vendoring to the &lt;code&gt;npm&lt;/code&gt; ecosystem.&lt;/p&gt;
+&lt;h2&gt;Stuck on an airplane&lt;/h2&gt;
+&lt;p&gt;Alice is scrambling to leave her apartment for a flight that takes off in less
+than an hour. She wants to get familiar with the application her new team
+maintains, so she clones the repo in a hurry before packing her laptop. In a mad
+dash she &lt;strong&gt;just&lt;/strong&gt; manages to board the plane before the gate closes. Finally
+with a chance to collect herself and breathe, she opens her laptop and gets
+ready to start coding.&lt;/p&gt;
+&lt;p&gt;After reading the team's getting started document, she hops into the backend
+code and fires up the server:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;go run ./cmd/feather-server/main.go
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Now that the backend is running, she moves on to the frontend instructions in
+the getting started document. Unfortunately, this is a roadblock that she'll
+need inflight Wi-Fi to overcome. To build and run the frontend, she first
+needs to install all dependencies:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;npm ci
+npm run feather-app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Meanwhile on the ground, Alice's new teammates Eve and Trudy are struggling to
+understand why the frontend build caused the latest production deploy to fail.
+It's very unfortunate timing — they are trying to ship a new feature as
+part of a customer demo.&lt;/p&gt;
+&lt;p&gt;There were no signs of trouble in the latest merged pull request; all CI checks
+passed. But the build is failing to install dependencies with:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ npm ci
+npm ERR! code E404
+npm ERR! &lt;span class=m&gt;404&lt;/span&gt; Not Found - GET https://registry.npmjs.org/skugga/-/skugga-9.1.1.tgz - Not found
+npm ERR! &lt;span class=m&gt;404&lt;/span&gt;
+npm ERR! &lt;span class=m&gt;404&lt;/span&gt;  &lt;span class=s1&gt;'skugga@https://registry.npmjs.org/skugga/-/skugga-9.1.1.tgz'&lt;/span&gt; is not &lt;span class=k&gt;in&lt;/span&gt; this registry.
+npm ERR! &lt;span class=m&gt;404&lt;/span&gt;
+npm ERR! &lt;span class=m&gt;404&lt;/span&gt; Note that you can also install from a
+npm ERR! &lt;span class=m&gt;404&lt;/span&gt; tarball, folder, http url, or git url.
+
+npm ERR! A &lt;span class=nb&gt;complete&lt;/span&gt; log of this run can be found &lt;span class=k&gt;in&lt;/span&gt;:
+npm ERR!     /root/.npm/_logs/2022-04-29T16_20_17_523Z-debug-0.log
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After 30 minutes of scrambling and head scratching, they hop on Twitter and from
+reading posts in their timeline they realize the author of &lt;code&gt;skugga&lt;/code&gt; has removed
+the package entirely from the package registry.&lt;/p&gt;
+&lt;h2&gt;Why airplane mode for dependencies?&lt;/h2&gt;
+&lt;p&gt;Why was Alice able to start the Go backend after &lt;strong&gt;only&lt;/strong&gt; just cloning the
+repository? Her team &lt;a href="https://go.dev/ref/mod#go-mod-vendor"&gt;uses&lt;/a&gt; &lt;code&gt;go mod vendor&lt;/code&gt; and checks in the root
+&lt;code&gt;vendor/&lt;/code&gt; directory to the codebase. This means that after &lt;code&gt;git clone&lt;/code&gt;, all
+application binaries can be built by the Go compiler — no dependencies to
+fetch, no inflight Wi-Fi necessary! In addition to enabling airplane mode,
+there are several other benefits&lt;sup id=sf-npm-mod-1-back&gt;&lt;a href=#sf-npm-mod-1 class=simple-footnote title="The primary downside of checking in vendor/ is a larger git checkout."&gt;1&lt;/a&gt;&lt;/sup&gt; from checking in the &lt;code&gt;vendor/&lt;/code&gt;
+directory:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;New dependencies show up in pull requests as changes to &lt;code&gt;vendor/&lt;/code&gt;; the
+  larger the diff, the more "weight" that the dependency adds&lt;/li&gt;
+&lt;li&gt;All builds (Docker and otherwise) are hermetic and don't require
+  fetching packages from the public internet&lt;sup id=sf-npm-mod-2-back&gt;&lt;a href=#sf-npm-mod-2 class=simple-footnote title="Mostly hermetic. This   really only applies to the components of the build containing Go or   TypeScript code (and packages)."&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;Even if dependencies are &lt;a href="https://qz.com/646467/how-one-programmer-broke-the-internet-by-deleting-a-tiny-piece-of-code/"&gt;deleted&lt;/a&gt; by a third party, this won't impact
+  the current codebase (avoiding the
+  "my code didn't change but it stopped working!" crisis that Eve and Trudy
+  are in)&lt;/li&gt;
+&lt;li&gt;Fully consistent development environments for all team members (without
+  need for consistent &lt;code&gt;~/.npm/_cacache&lt;/code&gt;, &lt;code&gt;~/Library/Caches/Yarn/v6&lt;/code&gt;, etc.)&lt;/li&gt;
+&lt;li&gt;Supply chain &lt;a href="https://jfrog.com/blog/npm-supply-chain-attack-targets-german-based-companies/"&gt;attacks&lt;/a&gt; cannot impact the dependencies without making it
+  into a pull request&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Switching &lt;code&gt;npm&lt;/code&gt; into airplane mode&lt;/h2&gt;
+&lt;p&gt;In order to bring the &lt;code&gt;go mod vendor&lt;/code&gt; experience to the &lt;code&gt;npm&lt;/code&gt; ecosystem, we've
+created an experimental CLI &lt;a href="https://github.com/hardfinhq/npm-mod"&gt;tool&lt;/a&gt; called &lt;code&gt;npm-mod&lt;/code&gt;. Using the tool, Alice
+can download all package tarballs into the &lt;code&gt;vendor/&lt;/code&gt; directory and change the
+application's &lt;code&gt;package.json&lt;/code&gt; and &lt;code&gt;package-lock.json&lt;/code&gt; so that all &lt;strong&gt;remote&lt;/strong&gt;
+package references are replaced with local file references.&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ npm-mod tidy
+$ npm-mod vendor
+Saved babel__helper-builder-binary-assignment-operator-visitor-7.16.7.tgz
+Saved babel__generator-7.17.9.tgz
+...
+$
+$ ls -1 vendor/
+abab-2.0.6.tgz
+...
+$ ls -1 vendor/ &lt;span class=p&gt;|&lt;/span&gt; wc -l
+    &lt;span class=m&gt;1135&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After running this, both &lt;code&gt;package.json&lt;/code&gt; and &lt;code&gt;package-lock.json&lt;/code&gt; will be
+changed and a new &lt;code&gt;.npm-mod.tidy.json&lt;/code&gt; file will be added:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=gh&gt;diff --git a/package-lock.json b/package-lock.json&lt;/span&gt;
+&lt;span class=gh&gt;index 5303979..02c30e9 100644&lt;/span&gt;
+&lt;span class=gd&gt;--- a/package-lock.json&lt;/span&gt;
+&lt;span class=gi&gt;+++ b/package-lock.json&lt;/span&gt;
+&lt;span class=gu&gt;@@ -18,8 +18,8 @@&lt;/span&gt;
+       }
+     },
+     "node_modules/@ampproject/remapping": {
+&lt;span class=gd&gt;-      "version": "2.1.2",&lt;/span&gt;
+&lt;span class=gd&gt;-      "resolved": "https://registry.npmjs.org/@ampproject/remapping/-/remapping-2.1.2.tgz",&lt;/span&gt;
+&lt;span class=gi&gt;+      "version": "file:vendor/ampproject__remapping-2.1.2.tgz",&lt;/span&gt;
+&lt;span class=gi&gt;+      "resolved": "file:vendor/ampproject__remapping-2.1.2.tgz",&lt;/span&gt;
+       "integrity": "sha512-hoyByceqwKirw7w3Z7gnIIZC3Wx3J484Y3L/cMpXFbr7d9ZQj2mODrirNzcJa+SM3UlpWXYvKV4RlRpFXlWgXg==",
+       "dependencies": {
+         "@jridgewell/trace-mapping": "^0.3.0"
+&lt;span class=gu&gt;@@ -29,8 +29,8 @@&lt;/span&gt;
+...
+&lt;span class=gh&gt;diff --git a/package.json b/package.json&lt;/span&gt;
+&lt;span class=gh&gt;index 82115d2..753457c 100644&lt;/span&gt;
+&lt;span class=gd&gt;--- a/package.json&lt;/span&gt;
+&lt;span class=gi&gt;+++ b/package.json&lt;/span&gt;
+&lt;span class=gu&gt;@@ -3,13 +3,13 @@&lt;/span&gt;
+   "version": "0.0.1",
+   "private": true,
+   "dependencies": {
+&lt;span class=gd&gt;-    "@testing-library/jest-dom": "^5.16.4",&lt;/span&gt;
+&lt;span class=gd&gt;-    "@testing-library/react": "^13.1.1",&lt;/span&gt;
+&lt;span class=gd&gt;-    "@testing-library/user-event": "^13.5.0",&lt;/span&gt;
+&lt;span class=gd&gt;-    "react": "^18.0.0",&lt;/span&gt;
+&lt;span class=gd&gt;-    "react-dom": "^18.0.0",&lt;/span&gt;
+&lt;span class=gd&gt;-    "react-scripts": "5.0.1",&lt;/span&gt;
+&lt;span class=gd&gt;-    "web-vitals": "^2.1.4"&lt;/span&gt;
+&lt;span class=gi&gt;+    "@testing-library/jest-dom": "file:vendor/testing-library__jest-dom-5.16.4.tgz",&lt;/span&gt;
+&lt;span class=gi&gt;+    "@testing-library/react": "file:vendor/testing-library__react-13.1.1.tgz",&lt;/span&gt;
+&lt;span class=gi&gt;+    "@testing-library/user-event": "file:vendor/testing-library__user-event-13.5.0.tgz",&lt;/span&gt;
+&lt;span class=gi&gt;+    "react": "file:vendor/react-18.0.0.tgz",&lt;/span&gt;
+&lt;span class=gi&gt;+    "react-dom": "file:vendor/react-dom-18.0.0.tgz",&lt;/span&gt;
+&lt;span class=gi&gt;+    "react-scripts": "file:vendor/react-scripts-5.0.1.tgz",&lt;/span&gt;
+&lt;span class=gi&gt;+    "web-vitals": "file:vendor/web-vitals-2.1.4.tgz"&lt;/span&gt;
+   },
+   "scripts": {
+     "start": "react-scripts start",
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2&gt;The next flight: future work&lt;/h2&gt;
+&lt;p&gt;After doing this, Alice can happily install all of the &lt;code&gt;npm&lt;/code&gt; packages for her
+team's application without any internet connection:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ ping hardfin.com
+ping: cannot resolve hardfin.com: Unknown host
+$
+$ &lt;span class=nb&gt;time&lt;/span&gt; npm ci
+...
+
+added &lt;span class=m&gt;1393&lt;/span&gt; packages, and audited &lt;span class=m&gt;1394&lt;/span&gt; packages &lt;span class=k&gt;in&lt;/span&gt; 4s
+
+...
+
+real    0m4.456s
+user    0m5.112s
+sys     0m5.802s
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This is still an experiment and we'd want to see some improvements before
+recommending &lt;code&gt;npm-mod&lt;/code&gt; as a core part of your team's workflow:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;This tool is intended for &lt;strong&gt;applications&lt;/strong&gt;, it should not be used for a
+  library published to a package registry.&lt;/li&gt;
+&lt;li&gt;The vendoring process should hook into &lt;code&gt;npm audit&lt;/code&gt; (&lt;a href="https://overreacted.io/npm-audit-broken-by-design/"&gt;problems&lt;/a&gt; with
+  &lt;code&gt;npm audit&lt;/code&gt; notwithstanding).&lt;/li&gt;
+&lt;li&gt;The existence of &lt;code&gt;npm&lt;/code&gt; install scripts still poses a large security
+  concern. There is a growing &lt;a href="https://github.com/npm/rfcs/pull/488"&gt;movement&lt;/a&gt; to disable install scripts.&lt;/li&gt;
+&lt;li&gt;Though the &lt;code&gt;vendor/&lt;/code&gt; approach mitigates supply chain "denial of service"
+  attacks like the &lt;code&gt;colors&lt;/code&gt; &lt;a href="https://research.swtch.com/npm-colors"&gt;incident&lt;/a&gt;, actually &lt;strong&gt;catching&lt;/strong&gt; instances
+  of this during code review is still a challenge if the only artifacts
+  checked into the &lt;code&gt;vendor/&lt;/code&gt; directory are tarballs.&lt;/li&gt;
+&lt;li&gt;There is no &lt;code&gt;npm&lt;/code&gt; equivalent of the Go build cache (&lt;code&gt;go env GOCACHE&lt;/code&gt;);
+  if the same Go package is built multiple times, the previous builds can
+  be reused. The nearest equivalent is the presence of the same
+  (already installed) package in &lt;code&gt;node_modules/&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Landing the plane&lt;/h2&gt;
+&lt;p&gt;We'd love to continue the &lt;a href="https://github.com/hardfinhq/npm-mod/issues"&gt;discussion&lt;/a&gt; and improve &lt;code&gt;npm-mod&lt;/code&gt; to a point
+where teams like Alice's and our own are comfortable using it in daily
+workflows. By adopting this workflow and gaining airplane mode, teams can
+avoid unexpected breakages and ensure &lt;strong&gt;all&lt;/strong&gt; code required to build the
+repo is present after checkout.&lt;/p&gt;
+&lt;p&gt;In addition to the tooling, there is a cultural norm in the Go community
+of viewing new dependencies with skepticism. This is captured by a
+&lt;a href="https://go-proverbs.github.io/"&gt;Go proverb&lt;/a&gt;: A little copying is better than a little dependency.
+Checking application dependencies into the codebase means they are front
+and center, both for security and for their contents. In addition to enabling
+airplane mode, we hope that by vendoring the &lt;a href="https://twitter.com/acdlite/status/1483223737424130048"&gt;weight&lt;/a&gt; of dependencies starts
+to get more consideration.&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Gopher Landing" src="/images/gopher-biplane.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-npm-mod-1&gt;The primary &lt;a href="https://penkovski.com/post/to-vendor-or-not-to-vendor/"&gt;downside&lt;/a&gt; of checking in
+&lt;code&gt;vendor/&lt;/code&gt; is a larger &lt;code&gt;git&lt;/code&gt; checkout. &lt;a href=#sf-npm-mod-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-npm-mod-2&gt;&lt;strong&gt;Mostly&lt;/strong&gt; hermetic. This
+  really only applies to the components of the build containing Go or
+  TypeScript code (and packages). &lt;a href=#sf-npm-mod-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="npm"></category><category term="Go"></category><category term="Packaging"></category><category term="Airplane Mode"></category><category term="Offline"></category></entry><entry><title>Emulating RDS Permissions with Terraform</title><link href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html" rel="alternate"></link><published>2022-04-04T00:00:00-07:00</published><updated>2022-04-04T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2022-04-04:/2022/04/emulate-rds-permissions.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Terraform, PostgreSQL and RDS" src="/images/terraform-postgresql-and-rds.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/04/emulate-rds-permissions/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;At Hardfin, we use AWS RDS for managed PostgreSQL instances to simplify our
+infrastructure and focus on product. For the most part, RDS is
+"just PostgreSQL" and acts like the PostgreSQL instances that we run on our
+development machines. Unfortunately, it differs …&lt;/p&gt;</summary><content type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Terraform, PostgreSQL and RDS" src="/images/terraform-postgresql-and-rds.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/04/emulate-rds-permissions/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;At Hardfin, we use AWS RDS for managed PostgreSQL instances to simplify our
+infrastructure and focus on product. For the most part, RDS is
+"just PostgreSQL" and acts like the PostgreSQL instances that we run on our
+development machines. Unfortunately, it differs in a few key ways —
+and that opens the door for dreaded "it works on my machine" issues.&lt;/p&gt;
+&lt;p&gt;We recently encountered a surprising error in RDS, which we couldn't replicate
+in our local development setup. In order to prevent future issues like
+this, we took steps to make our Dockerized PostgreSQL instance much more
+similar to an RDS instance.&lt;/p&gt;
+&lt;p&gt;We are big proponents of Infrastructure-as-Code at Hardfin. We utilize
+&lt;a href="https://www.terraform.io/"&gt;Terraform&lt;/a&gt; to describe as much of our infrastructure as we can, including
+AWS RDS instances running PostgreSQL.&lt;/p&gt;
+&lt;p&gt;In addition to AWS resources, we use Terraform to directly manage some
+PostgreSQL resources. A fresh RDS instance comes with a single role (the RDS
+master user) available to DB operators. We &lt;strong&gt;only&lt;/strong&gt; use this this RDS master
+user via the &lt;a href="https://registry.terraform.io/providers/cyrilgdn/postgresql"&gt;PostgreSQL provider&lt;/a&gt; to create new application roles with
+minimal privileges.&lt;/p&gt;
+&lt;h2&gt;Getting locked out&lt;/h2&gt;
+&lt;p&gt;RDS &lt;a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.MasterAccounts.html"&gt;best practices&lt;/a&gt; recommend against using the RDS master user within
+applications; it has elevated privileges beyond what applications should be able
+to do.&lt;/p&gt;
+&lt;p&gt;As part of scoping a minimal set of privileges, we utilize grants to create
+(1) an admin role used during migrations and other offline operations, and,
+(2) an application role used directly while running the application. The admin
+role permissions allow a full set of &lt;a href="https://en.wikipedia.org/wiki/Data_definition_language"&gt;DDL&lt;/a&gt; operations while the application
+role has a scope limited to &lt;a href="https://en.wikipedia.org/wiki/Data_manipulation_language"&gt;DML&lt;/a&gt; operations.&lt;/p&gt;
+&lt;p&gt;As part of the process of limiting access, we merged a change to limit which
+roles can &lt;code&gt;CONNECT&lt;/code&gt; to a PostgreSQL &lt;code&gt;DATABASE&lt;/code&gt; and to even further limit which
+roles can &lt;code&gt;CREATE&lt;/code&gt; in the &lt;code&gt;DATABASE&lt;/code&gt;. After running this against a Dockerized
+PostgreSQL instance used for local development, all changes were applied
+successfully.&lt;/p&gt;
+&lt;p&gt;Once unit tests passed in CI, we merged the change and ran the Terraform plan in
+our &lt;code&gt;sandbox&lt;/code&gt; environment against an actual RDS instance. These changes too were
+applied successfully, or so we thought. Later that day, another small change was
+made to the same Terraform workspace. With no signs of trouble in testing, this
+change was merged. When we went to generate a plan in &lt;code&gt;sandbox&lt;/code&gt;, we found out
+the RDS master user was &lt;strong&gt;locked out&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ terraform apply
+...
+postgresql_grant.revoke_public: Refreshing state... &lt;span class=o&gt;[&lt;/span&gt;&lt;span class=nv&gt;id&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;public_initech_database&lt;span class=o&gt;]&lt;/span&gt;
+...
+╷
+│ Error: error detecting capabilities: error PostgreSQL version: pq: permission denied &lt;span class=k&gt;for&lt;/span&gt; database &lt;span class=s2&gt;"initech"&lt;/span&gt;
+│
+│   with postgresql_grant.revoke_public,
+│   on grants.tf line &lt;span class=m&gt;6&lt;/span&gt;, &lt;span class=k&gt;in&lt;/span&gt; resource &lt;span class=s2&gt;"postgresql_grant"&lt;/span&gt; &lt;span class=s2&gt;"revoke_public"&lt;/span&gt;:
+│    &lt;span class=m&gt;6&lt;/span&gt;: resource &lt;span class=s2&gt;"postgresql_grant"&lt;/span&gt; &lt;span class=s2&gt;"revoke_public"&lt;/span&gt; &lt;span class=o&gt;{&lt;/span&gt;
+│
+╵
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2&gt;What went wrong&lt;/h2&gt;
+&lt;p&gt;The RDS master user got locked out as a result of a change that introduced
+three &lt;code&gt;DATABASE&lt;/code&gt; grants:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nv&gt;resource&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;postgresql_grant&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;revoke_public&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt; {
+  &lt;span class=nv&gt;database&lt;/span&gt;    &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nv&gt;postgresql_database&lt;/span&gt;.&lt;span class=nv&gt;initech&lt;/span&gt;.&lt;span class=nv&gt;name&lt;/span&gt;
+  &lt;span class=nv&gt;role&lt;/span&gt;        &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;public&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;
+  &lt;span class=nv&gt;object_type&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;database&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;
+  &lt;span class=nv&gt;privileges&lt;/span&gt;  &lt;span class=o&gt;=&lt;/span&gt; []
+}
+
+&lt;span class=nv&gt;resource&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;postgresql_grant&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;app_role_connect&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt; {
+  &lt;span class=nv&gt;database&lt;/span&gt;    &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nv&gt;postgresql_database&lt;/span&gt;.&lt;span class=nv&gt;initech&lt;/span&gt;.&lt;span class=nv&gt;name&lt;/span&gt;
+  &lt;span class=nv&gt;role&lt;/span&gt;        &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nv&gt;postgresql_role&lt;/span&gt;.&lt;span class=nv&gt;app_role_gibbons&lt;/span&gt;.&lt;span class=nv&gt;name&lt;/span&gt;
+  &lt;span class=nv&gt;object_type&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;database&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;
+  &lt;span class=nv&gt;privileges&lt;/span&gt;  &lt;span class=o&gt;=&lt;/span&gt; [&lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;CONNECT&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;]
+}
+
+&lt;span class=nv&gt;resource&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;postgresql_grant&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;admin_role_full&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt; {
+  &lt;span class=nv&gt;database&lt;/span&gt;    &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nv&gt;postgresql_database&lt;/span&gt;.&lt;span class=nv&gt;initech&lt;/span&gt;.&lt;span class=nv&gt;name&lt;/span&gt;
+  &lt;span class=nv&gt;role&lt;/span&gt;        &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nv&gt;postgresql_role&lt;/span&gt;.&lt;span class=nv&gt;admin_role_lumbergh&lt;/span&gt;.&lt;span class=nv&gt;name&lt;/span&gt;
+  &lt;span class=nv&gt;object_type&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;database&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;
+  &lt;span class=nv&gt;privileges&lt;/span&gt;  &lt;span class=o&gt;=&lt;/span&gt; [&lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;CREATE&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;, &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;TEMPORARY&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;, &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;CONNECT&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;]
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After applying, only the admin and application role were allowed to connect
+to the database&lt;sup id=sf-emulate-rds-permissions-1-back&gt;&lt;a href=#sf-emulate-rds-permissions-1 class=simple-footnote title="The DATABASE privileges (e.g. lumbergh=CTc/lumbergh+) corresponds to CREATE (C), TEMPORARY (T) and CONNECT (c)."&gt;1&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=n&gt;initech&lt;/span&gt;&lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=err&gt;\&lt;/span&gt;&lt;span class=n&gt;l&lt;/span&gt; &lt;span class=n&gt;initech&lt;/span&gt;
+                                 &lt;span class=n&gt;List&lt;/span&gt; &lt;span class=k&gt;of&lt;/span&gt; &lt;span class=n&gt;databases&lt;/span&gt;
+  &lt;span class=n&gt;Name&lt;/span&gt;   &lt;span class=o&gt;|&lt;/span&gt;  &lt;span class=k&gt;Owner&lt;/span&gt;   &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=k&gt;Encoding&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;   &lt;span class=k&gt;Collate&lt;/span&gt;   &lt;span class=o&gt;|&lt;/span&gt;    &lt;span class=n&gt;Ctype&lt;/span&gt;    &lt;span class=o&gt;|&lt;/span&gt;   &lt;span class=k&gt;Access&lt;/span&gt; &lt;span class=k&gt;privileges&lt;/span&gt;
+&lt;span class=c1&gt;---------+----------+----------+-------------+-------------+-----------------------&lt;/span&gt;
+ &lt;span class=n&gt;initech&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;lumbergh&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;UTF8&lt;/span&gt;     &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;en_US&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;UTF&lt;/span&gt;&lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mi&gt;8&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;en_US&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;UTF&lt;/span&gt;&lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mi&gt;8&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;lumbergh&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;CTc&lt;/span&gt;&lt;span class=o&gt;/&lt;/span&gt;&lt;span class=n&gt;lumbergh&lt;/span&gt;&lt;span class=o&gt;+&lt;/span&gt;
+         &lt;span class=o&gt;|&lt;/span&gt;          &lt;span class=o&gt;|&lt;/span&gt;          &lt;span class=o&gt;|&lt;/span&gt;             &lt;span class=o&gt;|&lt;/span&gt;             &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;gibbons&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=k&gt;c&lt;/span&gt;&lt;span class=o&gt;/&lt;/span&gt;&lt;span class=n&gt;lumbergh&lt;/span&gt;
+&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;row&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Crucially, this list does not include the RDS master user:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ &lt;span class=nv&gt;PGPASSWORD&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=k&gt;$(&lt;/span&gt;cat ./very-secret.txt&lt;span class=k&gt;)&lt;/span&gt; psql &lt;span class=se&gt;\&lt;/span&gt;
+&amp;gt;   &lt;span class=s2&gt;"postgres://initech_master_user@initech-sandbox.cthulhu2hyup.zz-outercentral-7.rds.amazonaws.com:5432/initech"&lt;/span&gt;
+psql: error: connection to server at &lt;span class=s2&gt;"initech-sandbox.cthulhu2hyup.zz-outercentral-7.rds.amazonaws.com"&lt;/span&gt; &lt;span class=o&gt;(&lt;/span&gt;&lt;span class=m&gt;10&lt;/span&gt;.54.42.10&lt;span class=o&gt;)&lt;/span&gt;, port &lt;span class=m&gt;5432&lt;/span&gt; failed: FATAL:  permission denied &lt;span class=k&gt;for&lt;/span&gt; database &lt;span class=s2&gt;"initech"&lt;/span&gt;
+DETAIL:  User does not have CONNECT privilege.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2&gt;Detecting issues locally&lt;/h2&gt;
+&lt;p&gt;We never detected this &lt;code&gt;CONNECT&lt;/code&gt; issue because we were using a superuser in our
+Dockerized PostgreSQL instance during local development with the Terraform
+&lt;a href="https://registry.terraform.io/providers/cyrilgdn/postgresql"&gt;provider&lt;/a&gt;. A superuser can &lt;strong&gt;never&lt;/strong&gt; get locked out because it can do
+anything and everything in the PostgreSQL instance.&lt;/p&gt;
+&lt;p&gt;To fix this, we introduced an equivalent to the RDS master user locally and
+stopped using the superuser from Terraform. After switching to this user
+in the Terraform provider, we were able to replicate the &lt;code&gt;CONNECT&lt;/code&gt; issue.&lt;/p&gt;
+&lt;p&gt;To create the RDS master user locally, we jumped on an RDS instance and examined
+the attributes of the RDS master user:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=n&gt;initech&lt;/span&gt;&lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=err&gt;\&lt;/span&gt;&lt;span class=n&gt;du&lt;/span&gt; &lt;span class=n&gt;initech_master_user&lt;/span&gt;
+                             &lt;span class=n&gt;List&lt;/span&gt; &lt;span class=k&gt;of&lt;/span&gt; &lt;span class=n&gt;roles&lt;/span&gt;
+      &lt;span class=k&gt;Role&lt;/span&gt; &lt;span class=n&gt;name&lt;/span&gt;      &lt;span class=o&gt;|&lt;/span&gt;          &lt;span class=n&gt;Attributes&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt;    &lt;span class=n&gt;Member&lt;/span&gt; &lt;span class=k&gt;of&lt;/span&gt;
+&lt;span class=c1&gt;---------------------+-------------------------------+-----------------&lt;/span&gt;
+ &lt;span class=n&gt;initech_master_user&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=k&gt;Create&lt;/span&gt; &lt;span class=k&gt;role&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=k&gt;Create&lt;/span&gt; &lt;span class=n&gt;DB&lt;/span&gt;       &lt;span class=o&gt;+|&lt;/span&gt; &lt;span class=err&gt;{&lt;/span&gt;&lt;span class=n&gt;rds_superuser&lt;/span&gt;&lt;span class=err&gt;}&lt;/span&gt;
+                     &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;Password&lt;/span&gt; &lt;span class=k&gt;valid&lt;/span&gt; &lt;span class=k&gt;until&lt;/span&gt; &lt;span class=n&gt;infinity&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;
+
+&lt;span class=n&gt;initech&lt;/span&gt;&lt;span class=o&gt;=&amp;gt;&lt;/span&gt; &lt;span class=k&gt;SELECT&lt;/span&gt; &lt;span class=o&gt;*&lt;/span&gt; &lt;span class=k&gt;FROM&lt;/span&gt; &lt;span class=n&gt;pg_catalog&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;pg_roles&lt;/span&gt; &lt;span class=k&gt;WHERE&lt;/span&gt; &lt;span class=n&gt;rolname&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'initech_master_user'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+       &lt;span class=n&gt;rolname&lt;/span&gt;       &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolsuper&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolinherit&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolcreaterole&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolcreatedb&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolcanlogin&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolreplication&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolconnlimit&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolpassword&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolvaliduntil&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolbypassrls&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;rolconfig&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt;  &lt;span class=n&gt;oid&lt;/span&gt;
+&lt;span class=c1&gt;---------------------+----------+------------+---------------+-------------+-------------+----------------+--------------+-------------+---------------+--------------+-----------+-------&lt;/span&gt;
+ &lt;span class=n&gt;initech_master_user&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;f&lt;/span&gt;        &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;t&lt;/span&gt;          &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;t&lt;/span&gt;             &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;t&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;t&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;f&lt;/span&gt;              &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=o&gt;********&lt;/span&gt;    &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;infinity&lt;/span&gt;      &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=n&gt;f&lt;/span&gt;            &lt;span class=o&gt;|&lt;/span&gt;           &lt;span class=o&gt;|&lt;/span&gt; &lt;span class=mi&gt;13370&lt;/span&gt;
+&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt; &lt;span class=k&gt;row&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Using this information, we created an SQL file (&lt;code&gt;rds_master_user.sql&lt;/code&gt;) to
+create this role in the Dockerized PostgreSQL instance:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;CREATE&lt;/span&gt; &lt;span class=k&gt;ROLE&lt;/span&gt; &lt;span class=n&gt;initech_master_user&lt;/span&gt;
+  &lt;span class=k&gt;WITH&lt;/span&gt; &lt;span class=k&gt;ENCRYPTED&lt;/span&gt; &lt;span class=n&gt;PASSWORD&lt;/span&gt; &lt;span class=s1&gt;'...'&lt;/span&gt;
+  &lt;span class=k&gt;VALID&lt;/span&gt; &lt;span class=k&gt;UNTIL&lt;/span&gt; &lt;span class=s1&gt;'infinity'&lt;/span&gt;
+  &lt;span class=n&gt;NOSUPERUSER&lt;/span&gt;
+  &lt;span class=n&gt;INHERIT&lt;/span&gt;
+  &lt;span class=n&gt;CREATEROLE&lt;/span&gt;
+  &lt;span class=k&gt;CREATEDB&lt;/span&gt;
+  &lt;span class=n&gt;LOGIN&lt;/span&gt;
+  &lt;span class=n&gt;NOREPLICATION&lt;/span&gt;
+  &lt;span class=k&gt;CONNECTION&lt;/span&gt; &lt;span class=k&gt;LIMIT&lt;/span&gt; &lt;span class=o&gt;-&lt;/span&gt;&lt;span class=mi&gt;1&lt;/span&gt;
+  &lt;span class=n&gt;NOBYPASSRLS&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;In order to ensure this role gets created during PostgreSQL startup, we
+volume mount it at &lt;code&gt;/docker-entrypoint-initdb.d/rds_master_user.sql&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;Fixing the issue&lt;/h2&gt;
+&lt;p&gt;In order to fix the broken RDS instance, we temporarily granted the admin
+role to the RDS master user:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;GRANT&lt;/span&gt; &lt;span class=n&gt;lumbergh&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt; &lt;span class=n&gt;initech_master_user&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=c1&gt;-- AFTER: REVOKE lumbergh FROM initech_master_user;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and made sure the master user could connect as well:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nv&gt;locals&lt;/span&gt; {
+  &lt;span class=nv&gt;aws_master_user&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;initech_master_user&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;
+}
+
+&lt;span class=nv&gt;resource&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;postgresql_grant&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;aws_master_user_connect&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt; {
+  &lt;span class=nv&gt;database&lt;/span&gt;    &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nv&gt;postgresql_database&lt;/span&gt;.&lt;span class=nv&gt;initech&lt;/span&gt;.&lt;span class=nv&gt;name&lt;/span&gt;
+  &lt;span class=nv&gt;role&lt;/span&gt;        &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=nv&gt;local&lt;/span&gt;.&lt;span class=nv&gt;aws_master_user&lt;/span&gt;
+  &lt;span class=nv&gt;object_type&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;database&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;
+  &lt;span class=nv&gt;privileges&lt;/span&gt;  &lt;span class=o&gt;=&lt;/span&gt; [&lt;span class=s2&gt;"&lt;/span&gt;&lt;span class=s&gt;CONNECT&lt;/span&gt;&lt;span class=s2&gt;"&lt;/span&gt;]
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Subtle behavior differences between local development and production can lead to
+not-so-subtle issues. There is a long tail of problems that can arise if the
+development setup is too different, particularly issues around permissions.&lt;/p&gt;
+&lt;p&gt;Emulating the PostgreSQL RDS master user allows Terraform to manage roles
+locally in the same way they are managed in production. This is just one of many
+changes needed to make the local development database faithful to production.
+Luckily, using Terraform locally allows us to bridge &lt;strong&gt;many&lt;/strong&gt; other gaps by
+giving us the same roles and grants that we have in RDS.&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Bill Lumbergh; Initech" src="/images/lumbergh.png"&gt;&lt;/p&gt;
+&lt;/div&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-emulate-rds-permissions-1&gt;The &lt;code&gt;DATABASE&lt;/code&gt; privileges (e.g. &lt;code&gt;lumbergh=CTc/lumbergh+&lt;/code&gt;)
+corresponds to CREATE (&lt;code&gt;C&lt;/code&gt;), TEMPORARY (&lt;code&gt;T&lt;/code&gt;) and CONNECT (&lt;code&gt;c&lt;/code&gt;). &lt;a href=#sf-emulate-rds-permissions-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Terraform"></category><category term="Docker"></category><category term="PostgreSQL"></category></entry><entry><title>Epitaph: Blend</title><link href="https://blog.bossylobster.com/2022/03/blend-epitaph.html" rel="alternate"></link><published>2022-03-04T00:00:00-08:00</published><updated>2022-03-04T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2022-03-04:/2022/03/blend-epitaph.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="Auf Wiedersehen" src="/images/so-long-farewell.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;h3&gt;Goodbye&lt;/h3&gt;

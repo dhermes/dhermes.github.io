@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Emulating RDS Permissions with Terraform &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Keeping local development in lock-step with RDS. Avoiding costly mistakes like locking out the RDS master user." />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Emulating RDS Permissions with Terraform</p>" />
+<meta itemprop="description" content="Keeping local development in lock-step with RDS. Avoiding costly mistakes like locking out the RDS master user." />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/terraform-postgresql-and-rds.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Emulating RDS Permissions with Terraform</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/terraform-postgresql-and-rds.png" />
+<meta property="og:description" content="Keeping local development in lock-step with RDS. Avoiding costly mistakes like locking out the RDS master user." />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Emulating RDS Permissions with Terraform</p>" />
+<meta name="twitter:description" content="Keeping local development in lock-step with RDS. Avoiding costly mistakes like locking out the RDS master user." />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/terraform-postgresql-and-rds.png" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2022-04-04-emulate-rds-permissions.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Emulating RDS Permissions with Terraform</h1>
+    <p class="meta">
+<time datetime="2022-04-04T00:00:00-07:00" pubdate>Apr 04, 2022</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="Terraform, PostgreSQL and RDS" src="/images/terraform-postgresql-and-rds.png"></p>
+</div>
+<blockquote>
+<p>This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2022/04/emulate-rds-permissions/">blog</a>.</p>
+</blockquote>
+<p>At Hardfin, we use AWS RDS for managed PostgreSQL instances to simplify our
+infrastructure and focus on product. For the most part, RDS is
+"just PostgreSQL" and acts like the PostgreSQL instances that we run on our
+development machines. Unfortunately, it differs in a few key ways —
+and that opens the door for dreaded "it works on my machine" issues.</p>
+<p>We recently encountered a surprising error in RDS, which we couldn't replicate
+in our local development setup. In order to prevent future issues like
+this, we took steps to make our Dockerized PostgreSQL instance much more
+similar to an RDS instance.</p>
+<p>We are big proponents of Infrastructure-as-Code at Hardfin. We utilize
+<a href="https://www.terraform.io/">Terraform</a> to describe as much of our infrastructure as we can, including
+AWS RDS instances running PostgreSQL.</p>
+<p>In addition to AWS resources, we use Terraform to directly manage some
+PostgreSQL resources. A fresh RDS instance comes with a single role (the RDS
+master user) available to DB operators. We <strong>only</strong> use this this RDS master
+user via the <a href="https://registry.terraform.io/providers/cyrilgdn/postgresql">PostgreSQL provider</a> to create new application roles with
+minimal privileges.</p>
+<h2>Getting locked out</h2>
+<p>RDS <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.MasterAccounts.html">best practices</a> recommend against using the RDS master user within
+applications; it has elevated privileges beyond what applications should be able
+to do.</p>
+<p>As part of scoping a minimal set of privileges, we utilize grants to create
+(1) an admin role used during migrations and other offline operations, and,
+(2) an application role used directly while running the application. The admin
+role permissions allow a full set of <a href="https://en.wikipedia.org/wiki/Data_definition_language">DDL</a> operations while the application
+role has a scope limited to <a href="https://en.wikipedia.org/wiki/Data_manipulation_language">DML</a> operations.</p>
+<p>As part of the process of limiting access, we merged a change to limit which
+roles can <code>CONNECT</code> to a PostgreSQL <code>DATABASE</code> and to even further limit which
+roles can <code>CREATE</code> in the <code>DATABASE</code>. After running this against a Dockerized
+PostgreSQL instance used for local development, all changes were applied
+successfully.</p>
+<p>Once unit tests passed in CI, we merged the change and ran the Terraform plan in
+our <code>sandbox</code> environment against an actual RDS instance. These changes too were
+applied successfully, or so we thought. Later that day, another small change was
+made to the same Terraform workspace. With no signs of trouble in testing, this
+change was merged. When we went to generate a plan in <code>sandbox</code>, we found out
+the RDS master user was <strong>locked out</strong>:</p>
+<div class=highlight><pre><span></span><code>$ terraform apply
+...
+postgresql_grant.revoke_public: Refreshing state... <span class=o>[</span><span class=nv>id</span><span class=o>=</span>public_initech_database<span class=o>]</span>
+...
+╷
+│ Error: error detecting capabilities: error PostgreSQL version: pq: permission denied <span class=k>for</span> database <span class=s2>"initech"</span>
+│
+│   with postgresql_grant.revoke_public,
+│   on grants.tf line <span class=m>6</span>, <span class=k>in</span> resource <span class=s2>"postgresql_grant"</span> <span class=s2>"revoke_public"</span>:
+│    <span class=m>6</span>: resource <span class=s2>"postgresql_grant"</span> <span class=s2>"revoke_public"</span> <span class=o>{</span>
+│
+╵
+...
+</code></pre></div>
+
+<h2>What went wrong</h2>
+<p>The RDS master user got locked out as a result of a change that introduced
+three <code>DATABASE</code> grants:</p>
+<div class=highlight><pre><span></span><code><span class=nv>resource</span> <span class=s2>"</span><span class=s>postgresql_grant</span><span class=s2>"</span> <span class=s2>"</span><span class=s>revoke_public</span><span class=s2>"</span> {
+  <span class=nv>database</span>    <span class=o>=</span> <span class=nv>postgresql_database</span>.<span class=nv>initech</span>.<span class=nv>name</span>
+  <span class=nv>role</span>        <span class=o>=</span> <span class=s2>"</span><span class=s>public</span><span class=s2>"</span>
+  <span class=nv>object_type</span> <span class=o>=</span> <span class=s2>"</span><span class=s>database</span><span class=s2>"</span>
+  <span class=nv>privileges</span>  <span class=o>=</span> []
+}
+
+<span class=nv>resource</span> <span class=s2>"</span><span class=s>postgresql_grant</span><span class=s2>"</span> <span class=s2>"</span><span class=s>app_role_connect</span><span class=s2>"</span> {
+  <span class=nv>database</span>    <span class=o>=</span> <span class=nv>postgresql_database</span>.<span class=nv>initech</span>.<span class=nv>name</span>
+  <span class=nv>role</span>        <span class=o>=</span> <span class=nv>postgresql_role</span>.<span class=nv>app_role_gibbons</span>.<span class=nv>name</span>
+  <span class=nv>object_type</span> <span class=o>=</span> <span class=s2>"</span><span class=s>database</span><span class=s2>"</span>
+  <span class=nv>privileges</span>  <span class=o>=</span> [<span class=s2>"</span><span class=s>CONNECT</span><span class=s2>"</span>]
+}
+
+<span class=nv>resource</span> <span class=s2>"</span><span class=s>postgresql_grant</span><span class=s2>"</span> <span class=s2>"</span><span class=s>admin_role_full</span><span class=s2>"</span> {
+  <span class=nv>database</span>    <span class=o>=</span> <span class=nv>postgresql_database</span>.<span class=nv>initech</span>.<span class=nv>name</span>
+  <span class=nv>role</span>        <span class=o>=</span> <span class=nv>postgresql_role</span>.<span class=nv>admin_role_lumbergh</span>.<span class=nv>name</span>
+  <span class=nv>object_type</span> <span class=o>=</span> <span class=s2>"</span><span class=s>database</span><span class=s2>"</span>
+  <span class=nv>privileges</span>  <span class=o>=</span> [<span class=s2>"</span><span class=s>CREATE</span><span class=s2>"</span>, <span class=s2>"</span><span class=s>TEMPORARY</span><span class=s2>"</span>, <span class=s2>"</span><span class=s>CONNECT</span><span class=s2>"</span>]
+}
+</code></pre></div>
+
+<p>After applying, only the admin and application role were allowed to connect
+to the database<sup id=sf-emulate-rds-permissions-1-back><a href=#sf-emulate-rds-permissions-1 class=simple-footnote title="The DATABASE privileges (e.g. lumbergh=CTc/lumbergh+) corresponds to CREATE (C), TEMPORARY (T) and CONNECT (c).">1</a></sup>:</p>
+<div class=highlight><pre><span></span><code><span class=n>initech</span><span class=o>=&gt;</span> <span class=err>\</span><span class=n>l</span> <span class=n>initech</span>
+                                 <span class=n>List</span> <span class=k>of</span> <span class=n>databases</span>
+  <span class=n>Name</span>   <span class=o>|</span>  <span class=k>Owner</span>   <span class=o>|</span> <span class=k>Encoding</span> <span class=o>|</span>   <span class=k>Collate</span>   <span class=o>|</span>    <span class=n>Ctype</span>    <span class=o>|</span>   <span class=k>Access</span> <span class=k>privileges</span>
+<span class=c1>---------+----------+----------+-------------+-------------+-----------------------</span>
+ <span class=n>initech</span> <span class=o>|</span> <span class=n>lumbergh</span> <span class=o>|</span> <span class=n>UTF8</span>     <span class=o>|</span> <span class=n>en_US</span><span class=p>.</span><span class=n>UTF</span><span class=o>-</span><span class=mi>8</span> <span class=o>|</span> <span class=n>en_US</span><span class=p>.</span><span class=n>UTF</span><span class=o>-</span><span class=mi>8</span> <span class=o>|</span> <span class=n>lumbergh</span><span class=o>=</span><span class=n>CTc</span><span class=o>/</span><span class=n>lumbergh</span><span class=o>+</span>
+         <span class=o>|</span>          <span class=o>|</span>          <span class=o>|</span>             <span class=o>|</span>             <span class=o>|</span> <span class=n>gibbons</span><span class=o>=</span><span class=k>c</span><span class=o>/</span><span class=n>lumbergh</span>
+<span class=p>(</span><span class=mi>1</span> <span class=k>row</span><span class=p>)</span>
+</code></pre></div>
+
+<p>Crucially, this list does not include the RDS master user:</p>
+<div class=highlight><pre><span></span><code>$ <span class=nv>PGPASSWORD</span><span class=o>=</span><span class=k>$(</span>cat ./very-secret.txt<span class=k>)</span> psql <span class=se>\</span>
+&gt;   <span class=s2>"postgres://initech_master_user@initech-sandbox.cthulhu2hyup.zz-outercentral-7.rds.amazonaws.com:5432/initech"</span>
+psql: error: connection to server at <span class=s2>"initech-sandbox.cthulhu2hyup.zz-outercentral-7.rds.amazonaws.com"</span> <span class=o>(</span><span class=m>10</span>.54.42.10<span class=o>)</span>, port <span class=m>5432</span> failed: FATAL:  permission denied <span class=k>for</span> database <span class=s2>"initech"</span>
+DETAIL:  User does not have CONNECT privilege.
+</code></pre></div>
+
+<h2>Detecting issues locally</h2>
+<p>We never detected this <code>CONNECT</code> issue because we were using a superuser in our
+Dockerized PostgreSQL instance during local development with the Terraform
+<a href="https://registry.terraform.io/providers/cyrilgdn/postgresql">provider</a>. A superuser can <strong>never</strong> get locked out because it can do
+anything and everything in the PostgreSQL instance.</p>
+<p>To fix this, we introduced an equivalent to the RDS master user locally and
+stopped using the superuser from Terraform. After switching to this user
+in the Terraform provider, we were able to replicate the <code>CONNECT</code> issue.</p>
+<p>To create the RDS master user locally, we jumped on an RDS instance and examined
+the attributes of the RDS master user:</p>
+<div class=highlight><pre><span></span><code><span class=n>initech</span><span class=o>=&gt;</span> <span class=err>\</span><span class=n>du</span> <span class=n>initech_master_user</span>
+                             <span class=n>List</span> <span class=k>of</span> <span class=n>roles</span>
+      <span class=k>Role</span> <span class=n>name</span>      <span class=o>|</span>          <span class=n>Attributes</span>           <span class=o>|</span>    <span class=n>Member</span> <span class=k>of</span>
+<span class=c1>---------------------+-------------------------------+-----------------</span>
+ <span class=n>initech_master_user</span> <span class=o>|</span> <span class=k>Create</span> <span class=k>role</span><span class=p>,</span> <span class=k>Create</span> <span class=n>DB</span>       <span class=o>+|</span> <span class=err>{</span><span class=n>rds_superuser</span><span class=err>}</span>
+                     <span class=o>|</span> <span class=n>Password</span> <span class=k>valid</span> <span class=k>until</span> <span class=n>infinity</span> <span class=o>|</span>
+
+<span class=n>initech</span><span class=o>=&gt;</span> <span class=k>SELECT</span> <span class=o>*</span> <span class=k>FROM</span> <span class=n>pg_catalog</span><span class=p>.</span><span class=n>pg_roles</span> <span class=k>WHERE</span> <span class=n>rolname</span> <span class=o>=</span> <span class=s1>'initech_master_user'</span><span class=p>;</span>
+       <span class=n>rolname</span>       <span class=o>|</span> <span class=n>rolsuper</span> <span class=o>|</span> <span class=n>rolinherit</span> <span class=o>|</span> <span class=n>rolcreaterole</span> <span class=o>|</span> <span class=n>rolcreatedb</span> <span class=o>|</span> <span class=n>rolcanlogin</span> <span class=o>|</span> <span class=n>rolreplication</span> <span class=o>|</span> <span class=n>rolconnlimit</span> <span class=o>|</span> <span class=n>rolpassword</span> <span class=o>|</span> <span class=n>rolvaliduntil</span> <span class=o>|</span> <span class=n>rolbypassrls</span> <span class=o>|</span> <span class=n>rolconfig</span> <span class=o>|</span>  <span class=n>oid</span>
+<span class=c1>---------------------+----------+------------+---------------+-------------+-------------+----------------+--------------+-------------+---------------+--------------+-----------+-------</span>
+ <span class=n>initech_master_user</span> <span class=o>|</span> <span class=n>f</span>        <span class=o>|</span> <span class=n>t</span>          <span class=o>|</span> <span class=n>t</span>             <span class=o>|</span> <span class=n>t</span>           <span class=o>|</span> <span class=n>t</span>           <span class=o>|</span> <span class=n>f</span>              <span class=o>|</span>           <span class=o>-</span><span class=mi>1</span> <span class=o>|</span> <span class=o>********</span>    <span class=o>|</span> <span class=n>infinity</span>      <span class=o>|</span> <span class=n>f</span>            <span class=o>|</span>           <span class=o>|</span> <span class=mi>13370</span>
+<span class=p>(</span><span class=mi>1</span> <span class=k>row</span><span class=p>)</span>
+</code></pre></div>
+
+<p>Using this information, we created an SQL file (<code>rds_master_user.sql</code>) to
+create this role in the Dockerized PostgreSQL instance:</p>
+<div class=highlight><pre><span></span><code><span class=k>CREATE</span> <span class=k>ROLE</span> <span class=n>initech_master_user</span>
+  <span class=k>WITH</span> <span class=k>ENCRYPTED</span> <span class=n>PASSWORD</span> <span class=s1>'...'</span>
+  <span class=k>VALID</span> <span class=k>UNTIL</span> <span class=s1>'infinity'</span>
+  <span class=n>NOSUPERUSER</span>
+  <span class=n>INHERIT</span>
+  <span class=n>CREATEROLE</span>
+  <span class=k>CREATEDB</span>
+  <span class=n>LOGIN</span>
+  <span class=n>NOREPLICATION</span>
+  <span class=k>CONNECTION</span> <span class=k>LIMIT</span> <span class=o>-</span><span class=mi>1</span>
+  <span class=n>NOBYPASSRLS</span><span class=p>;</span>
+</code></pre></div>
+
+<p>In order to ensure this role gets created during PostgreSQL startup, we
+volume mount it at <code>/docker-entrypoint-initdb.d/rds_master_user.sql</code>.</p>
+<h2>Fixing the issue</h2>
+<p>In order to fix the broken RDS instance, we temporarily granted the admin
+role to the RDS master user:</p>
+<div class=highlight><pre><span></span><code><span class=k>GRANT</span> <span class=n>lumbergh</span> <span class=k>TO</span> <span class=n>initech_master_user</span><span class=p>;</span>
+<span class=c1>-- AFTER: REVOKE lumbergh FROM initech_master_user;</span>
+</code></pre></div>
+
+<p>and made sure the master user could connect as well:</p>
+<div class=highlight><pre><span></span><code><span class=nv>locals</span> {
+  <span class=nv>aws_master_user</span> <span class=o>=</span> <span class=s2>"</span><span class=s>initech_master_user</span><span class=s2>"</span>
+}
+
+<span class=nv>resource</span> <span class=s2>"</span><span class=s>postgresql_grant</span><span class=s2>"</span> <span class=s2>"</span><span class=s>aws_master_user_connect</span><span class=s2>"</span> {
+  <span class=nv>database</span>    <span class=o>=</span> <span class=nv>postgresql_database</span>.<span class=nv>initech</span>.<span class=nv>name</span>
+  <span class=nv>role</span>        <span class=o>=</span> <span class=nv>local</span>.<span class=nv>aws_master_user</span>
+  <span class=nv>object_type</span> <span class=o>=</span> <span class=s2>"</span><span class=s>database</span><span class=s2>"</span>
+  <span class=nv>privileges</span>  <span class=o>=</span> [<span class=s2>"</span><span class=s>CONNECT</span><span class=s2>"</span>]
+}
+</code></pre></div>
+
+<h2>Conclusion</h2>
+<p>Subtle behavior differences between local development and production can lead to
+not-so-subtle issues. There is a long tail of problems that can arise if the
+development setup is too different, particularly issues around permissions.</p>
+<p>Emulating the PostgreSQL RDS master user allows Terraform to manage roles
+locally in the same way they are managed in production. This is just one of many
+changes needed to make the local development database faithful to production.
+Luckily, using Terraform locally allows us to bridge <strong>many</strong> other gaps by
+giving us the same roles and grants that we have in RDS.</p>
+<div style="text-align: center;">
+<p><img alt="Bill Lumbergh; Initech" src="/images/lumbergh.png"></p>
+</div><ol class=simple-footnotes><li id=sf-emulate-rds-permissions-1>The <code>DATABASE</code> privileges (e.g. <code>lumbergh=CTc/lumbergh+</code>)
+corresponds to CREATE (<code>C</code>), TEMPORARY (<code>T</code>) and CONNECT (<code>c</code>). <a href=#sf-emulate-rds-permissions-1-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2022-04-04T00:00:00-07:00" pubdate>Apr 04, 2022</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/terraform.html">Terraform</a>,    <a class="category" href="https://blog.bossylobster.com/tag/docker.html">Docker</a>,    <a class="category" href="https://blog.bossylobster.com/tag/postgresql.html">PostgreSQL</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2022/04/emulate-rds-permissions.html';
+    var disqus_url = 'https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html';
+    var disqus_title = "<p>Emulating RDS Permissions with Terraform</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

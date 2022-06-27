@@ -72,6 +72,47 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-27-life-of-request.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-07-27T00:00:00-07:00" pubdate>Jul 27, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p>I recently<sup id=sf-life-of-request-1-back><a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020.">1</a></sup> had the
+privilege of co-authoring a blog post on the Blend <a href="https://full-stack.blend.com/">engineering blog</a> with
+my esteemed colleague <a href="https://github.com/hapoore">Austin Poore</a>. Our engineering organization is
+growing like crazy right now and it's a lot of fun so if any of this post is
+interesting to you, check out our …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/life-of-request.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-17-loopback-vs-any-ip.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Difference Between localhost and 0.0.0.0</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-07-17T00:00:00-07:00" pubdate>Jul 17, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><blockquote>
+<p><strong>Note</strong>: In a <code>docker</code> container, a server can only be available
+<strong>outside of the container / pod</strong> if it is bound to the "any host"
+IP<sup id=sf-loopback-vs-any-ip-1-back><a href=#sf-loopback-vs-any-ip-1 class=simple-footnote title='The "any host" IP is 0.0.0.0 for IPv4 and :: for IPv6'>1</a></sup>.
+Binding a server to <code>localhost</code> / the loopback IP<sup id=sf-loopback-vs-any-ip-2-back><a href=#sf-loopback-vs-any-ip-2 class=simple-footnote title="The loopback IP is 127.0.0.1 for IPv4 and ::1 for IPv6.">2</a></sup> will mean the server is
+only reachable within the container / pod.</p>
+</blockquote>
+<p>Consider the following Express …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-16-cordon-pod.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/cordon-pod.html">Isolating (Cordoning) a Misbehaving Pod</a>
@@ -136,50 +177,6 @@ first start the server with a known root token</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-05-14-trust-proxy.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Express Trust Proxy</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-05-14T00:00:00-07:00" pubdate>May 14, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><h3>Why?</h3>
-<p>Using <code>app.use('trust proxy', true)</code> is likely too permissive, this post
-explains concretely why.</p>
-<h3>Example Applications</h3>
-<p>Consider two Express applications <code>index-first.js</code> that uses
-<code>app.set("trust proxy", true)</code></p>
-<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>express</span> <span class=o>=</span> <span class=nx>require</span><span class=p>(</span><span class=s2>"express"</span><span class=p>);</span>
-<span class=kd>const</span> <span class=nx>app</span> <span class=o>=</span> <span class=nx>express</span><span class=p>();</span>
-<span class=kd>const</span> <span class=nx>port</span> <span class=o>=</span> <span class=mf>3000</span><span class=p>;</span>
-
-<span class=nx>app</span><span class=p>.</span><span class=nx>set</span><span class=p>(</span><span class=s2>"trust proxy"</span><span class=p>,</span> <span class=kc>true</span><span class=p>);</span>
-<span class=nx>app</span><span class=p>.</span><span class=nx>get</span><span class=p>(</span><span class=s2>"/"</span><span class=p>,</span> <span class=p>(</span><span class=nx>req</span><span class=p>,</span> <span class=nx>res …</span></code></pre></div></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-04-22-threadsafe-connection-pool.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-04-22T00:00:00-07:00" pubdate>Apr 22, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>I've been load testing quite a bit recently. So far I've been impressed by the
-<code>wrk</code> <a href="https://github.com/wg/wrk">project's</a> use of sockets to pour on a ridiculously high amount of
-load. When I had stretched the system under load <strong>past</strong> its limits, finding
-the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> was a breath of fresh air …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/7">&larr; Older</a>
 
@@ -195,6 +192,12 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
       </li>
       <li class="post">
@@ -202,12 +205,6 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
       </li>
     </ul>
   </section>

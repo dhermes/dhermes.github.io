@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Fri, 04 Mar 2022 00:00:00 -0800</lastBuildDate><item><title>Epitaph: Blend</title><link>https://blog.bossylobster.com/2022/03/blend-epitaph.html</link><description>&lt;div style="text-align: center;"&gt;
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Thu, 26 May 2022 00:00:00 -0700</lastBuildDate><item><title>What npm Can Learn from Go</title><link>https://blog.bossylobster.com/2022/05/npm-mod.html</link><description>&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="npm and Go" src="/images/npm-and-go.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/05/npm-mod/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;As programming language ecosystems evolve, they learn from each other. When this
+happens we all benefit from more useful features, patterns, libraries, and
+tools. A core part of a programming language ecosystem — packaging —
+can be a source of pain, e.g. from …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 26 May 2022 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2022-05-26:/2022/05/npm-mod.html</guid><category>misc</category><category>npm</category><category>Go</category><category>Packaging</category><category>Airplane Mode</category><category>Offline</category></item><item><title>Emulating RDS Permissions with Terraform</title><link>https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html</link><description>&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Terraform, PostgreSQL and RDS" src="/images/terraform-postgresql-and-rds.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/04/emulate-rds-permissions/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;At Hardfin, we use AWS RDS for managed PostgreSQL instances to simplify our
+infrastructure and focus on product. For the most part, RDS is
+"just PostgreSQL" and acts like the PostgreSQL instances that we run on our
+development machines. Unfortunately, it differs …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Mon, 04 Apr 2022 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2022-04-04:/2022/04/emulate-rds-permissions.html</guid><category>misc</category><category>Terraform</category><category>Docker</category><category>PostgreSQL</category></item><item><title>Epitaph: Blend</title><link>https://blog.bossylobster.com/2022/03/blend-epitaph.html</link><description>&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="Auf Wiedersehen" src="/images/so-long-farewell.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;h3&gt;Goodbye&lt;/h3&gt;

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>What npm Can Learn from Go &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="An experiment in Node.js packaging. Enabling airplane mode and improving supply chain security." />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>What npm Can Learn from Go</p>" />
+<meta itemprop="description" content="An experiment in Node.js packaging. Enabling airplane mode and improving supply chain security." />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/npm-and-go.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>What npm Can Learn from Go</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/npm-and-go.png" />
+<meta property="og:description" content="An experiment in Node.js packaging. Enabling airplane mode and improving supply chain security." />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>What npm Can Learn from Go</p>" />
+<meta name="twitter:description" content="An experiment in Node.js packaging. Enabling airplane mode and improving supply chain security." />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/npm-and-go.png" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2022-05-26-npm-mod.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">What npm Can Learn from Go</h1>
+    <p class="meta">
+<time datetime="2022-05-26T00:00:00-07:00" pubdate>May 26, 2022</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="npm and Go" src="/images/npm-and-go.png"></p>
+</div>
+<blockquote>
+<p>This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2022/05/npm-mod/">blog</a>.</p>
+</blockquote>
+<p>As programming language ecosystems evolve, they learn from each other. When this
+happens we all benefit from more useful features, patterns, libraries, and
+tools. A core part of a programming language ecosystem — packaging —
+can be a source of pain, e.g. from version <a href="https://medium.com/knerd/the-nine-circles-of-python-dependency-hell-481d53e3e025">conflicts</a>, slow <a href="https://fasterthanli.me/articles/why-is-my-rust-build-so-slow">build</a>
+times, security <a href="https://www.synopsys.com/blogs/software-security/malicious-dependency-supply-chain/">issues</a>, etc.</p>
+<p>At Hardfin we are happy users of both Go and TypeScript. We love the wealth of
+useful packages in the <code>npm</code> ecosystem that help us build modern web
+applications. There are a few common patterns in the Go packaging landscape that
+don't translate to the <code>npm</code> packaging experience, but we would love it if they
+did! In this post we'll introduce a tool that exemplifies language ecosystem
+cross pollination. This tool is a minimal implementation of an experiment to
+bring the benefits of Go package vendoring to the <code>npm</code> ecosystem.</p>
+<h2>Stuck on an airplane</h2>
+<p>Alice is scrambling to leave her apartment for a flight that takes off in less
+than an hour. She wants to get familiar with the application her new team
+maintains, so she clones the repo in a hurry before packing her laptop. In a mad
+dash she <strong>just</strong> manages to board the plane before the gate closes. Finally
+with a chance to collect herself and breathe, she opens her laptop and gets
+ready to start coding.</p>
+<p>After reading the team's getting started document, she hops into the backend
+code and fires up the server:</p>
+<div class=highlight><pre><span></span><code>go run ./cmd/feather-server/main.go
+</code></pre></div>
+
+<p>Now that the backend is running, she moves on to the frontend instructions in
+the getting started document. Unfortunately, this is a roadblock that she'll
+need inflight Wi-Fi to overcome. To build and run the frontend, she first
+needs to install all dependencies:</p>
+<div class=highlight><pre><span></span><code>npm ci
+npm run feather-app
+</code></pre></div>
+
+<p>Meanwhile on the ground, Alice's new teammates Eve and Trudy are struggling to
+understand why the frontend build caused the latest production deploy to fail.
+It's very unfortunate timing — they are trying to ship a new feature as
+part of a customer demo.</p>
+<p>There were no signs of trouble in the latest merged pull request; all CI checks
+passed. But the build is failing to install dependencies with:</p>
+<div class=highlight><pre><span></span><code>$ npm ci
+npm ERR! code E404
+npm ERR! <span class=m>404</span> Not Found - GET https://registry.npmjs.org/skugga/-/skugga-9.1.1.tgz - Not found
+npm ERR! <span class=m>404</span>
+npm ERR! <span class=m>404</span>  <span class=s1>'skugga@https://registry.npmjs.org/skugga/-/skugga-9.1.1.tgz'</span> is not <span class=k>in</span> this registry.
+npm ERR! <span class=m>404</span>
+npm ERR! <span class=m>404</span> Note that you can also install from a
+npm ERR! <span class=m>404</span> tarball, folder, http url, or git url.
+
+npm ERR! A <span class=nb>complete</span> log of this run can be found <span class=k>in</span>:
+npm ERR!     /root/.npm/_logs/2022-04-29T16_20_17_523Z-debug-0.log
+</code></pre></div>
+
+<p>After 30 minutes of scrambling and head scratching, they hop on Twitter and from
+reading posts in their timeline they realize the author of <code>skugga</code> has removed
+the package entirely from the package registry.</p>
+<h2>Why airplane mode for dependencies?</h2>
+<p>Why was Alice able to start the Go backend after <strong>only</strong> just cloning the
+repository? Her team <a href="https://go.dev/ref/mod#go-mod-vendor">uses</a> <code>go mod vendor</code> and checks in the root
+<code>vendor/</code> directory to the codebase. This means that after <code>git clone</code>, all
+application binaries can be built by the Go compiler — no dependencies to
+fetch, no inflight Wi-Fi necessary! In addition to enabling airplane mode,
+there are several other benefits<sup id=sf-npm-mod-1-back><a href=#sf-npm-mod-1 class=simple-footnote title="The primary downside of checking in vendor/ is a larger git checkout.">1</a></sup> from checking in the <code>vendor/</code>
+directory:</p>
+<ul>
+<li>New dependencies show up in pull requests as changes to <code>vendor/</code>; the
+  larger the diff, the more "weight" that the dependency adds</li>
+<li>All builds (Docker and otherwise) are hermetic and don't require
+  fetching packages from the public internet<sup id=sf-npm-mod-2-back><a href=#sf-npm-mod-2 class=simple-footnote title="Mostly hermetic. This   really only applies to the components of the build containing Go or   TypeScript code (and packages).">2</a></sup></li>
+<li>Even if dependencies are <a href="https://qz.com/646467/how-one-programmer-broke-the-internet-by-deleting-a-tiny-piece-of-code/">deleted</a> by a third party, this won't impact
+  the current codebase (avoiding the
+  "my code didn't change but it stopped working!" crisis that Eve and Trudy
+  are in)</li>
+<li>Fully consistent development environments for all team members (without
+  need for consistent <code>~/.npm/_cacache</code>, <code>~/Library/Caches/Yarn/v6</code>, etc.)</li>
+<li>Supply chain <a href="https://jfrog.com/blog/npm-supply-chain-attack-targets-german-based-companies/">attacks</a> cannot impact the dependencies without making it
+  into a pull request</li>
+</ul>
+<h2>Switching <code>npm</code> into airplane mode</h2>
+<p>In order to bring the <code>go mod vendor</code> experience to the <code>npm</code> ecosystem, we've
+created an experimental CLI <a href="https://github.com/hardfinhq/npm-mod">tool</a> called <code>npm-mod</code>. Using the tool, Alice
+can download all package tarballs into the <code>vendor/</code> directory and change the
+application's <code>package.json</code> and <code>package-lock.json</code> so that all <strong>remote</strong>
+package references are replaced with local file references.</p>
+<div class=highlight><pre><span></span><code>$ npm-mod tidy
+$ npm-mod vendor
+Saved babel__helper-builder-binary-assignment-operator-visitor-7.16.7.tgz
+Saved babel__generator-7.17.9.tgz
+...
+$
+$ ls -1 vendor/
+abab-2.0.6.tgz
+...
+$ ls -1 vendor/ <span class=p>|</span> wc -l
+    <span class=m>1135</span>
+</code></pre></div>
+
+<p>After running this, both <code>package.json</code> and <code>package-lock.json</code> will be
+changed and a new <code>.npm-mod.tidy.json</code> file will be added:</p>
+<div class=highlight><pre><span></span><code><span class=gh>diff --git a/package-lock.json b/package-lock.json</span>
+<span class=gh>index 5303979..02c30e9 100644</span>
+<span class=gd>--- a/package-lock.json</span>
+<span class=gi>+++ b/package-lock.json</span>
+<span class=gu>@@ -18,8 +18,8 @@</span>
+       }
+     },
+     "node_modules/@ampproject/remapping": {
+<span class=gd>-      "version": "2.1.2",</span>
+<span class=gd>-      "resolved": "https://registry.npmjs.org/@ampproject/remapping/-/remapping-2.1.2.tgz",</span>
+<span class=gi>+      "version": "file:vendor/ampproject__remapping-2.1.2.tgz",</span>
+<span class=gi>+      "resolved": "file:vendor/ampproject__remapping-2.1.2.tgz",</span>
+       "integrity": "sha512-hoyByceqwKirw7w3Z7gnIIZC3Wx3J484Y3L/cMpXFbr7d9ZQj2mODrirNzcJa+SM3UlpWXYvKV4RlRpFXlWgXg==",
+       "dependencies": {
+         "@jridgewell/trace-mapping": "^0.3.0"
+<span class=gu>@@ -29,8 +29,8 @@</span>
+...
+<span class=gh>diff --git a/package.json b/package.json</span>
+<span class=gh>index 82115d2..753457c 100644</span>
+<span class=gd>--- a/package.json</span>
+<span class=gi>+++ b/package.json</span>
+<span class=gu>@@ -3,13 +3,13 @@</span>
+   "version": "0.0.1",
+   "private": true,
+   "dependencies": {
+<span class=gd>-    "@testing-library/jest-dom": "^5.16.4",</span>
+<span class=gd>-    "@testing-library/react": "^13.1.1",</span>
+<span class=gd>-    "@testing-library/user-event": "^13.5.0",</span>
+<span class=gd>-    "react": "^18.0.0",</span>
+<span class=gd>-    "react-dom": "^18.0.0",</span>
+<span class=gd>-    "react-scripts": "5.0.1",</span>
+<span class=gd>-    "web-vitals": "^2.1.4"</span>
+<span class=gi>+    "@testing-library/jest-dom": "file:vendor/testing-library__jest-dom-5.16.4.tgz",</span>
+<span class=gi>+    "@testing-library/react": "file:vendor/testing-library__react-13.1.1.tgz",</span>
+<span class=gi>+    "@testing-library/user-event": "file:vendor/testing-library__user-event-13.5.0.tgz",</span>
+<span class=gi>+    "react": "file:vendor/react-18.0.0.tgz",</span>
+<span class=gi>+    "react-dom": "file:vendor/react-dom-18.0.0.tgz",</span>
+<span class=gi>+    "react-scripts": "file:vendor/react-scripts-5.0.1.tgz",</span>
+<span class=gi>+    "web-vitals": "file:vendor/web-vitals-2.1.4.tgz"</span>
+   },
+   "scripts": {
+     "start": "react-scripts start",
+</code></pre></div>
+
+<h2>The next flight: future work</h2>
+<p>After doing this, Alice can happily install all of the <code>npm</code> packages for her
+team's application without any internet connection:</p>
+<div class=highlight><pre><span></span><code>$ ping hardfin.com
+ping: cannot resolve hardfin.com: Unknown host
+$
+$ <span class=nb>time</span> npm ci
+...
+
+added <span class=m>1393</span> packages, and audited <span class=m>1394</span> packages <span class=k>in</span> 4s
+
+...
+
+real    0m4.456s
+user    0m5.112s
+sys     0m5.802s
+</code></pre></div>
+
+<p>This is still an experiment and we'd want to see some improvements before
+recommending <code>npm-mod</code> as a core part of your team's workflow:</p>
+<ul>
+<li>This tool is intended for <strong>applications</strong>, it should not be used for a
+  library published to a package registry.</li>
+<li>The vendoring process should hook into <code>npm audit</code> (<a href="https://overreacted.io/npm-audit-broken-by-design/">problems</a> with
+  <code>npm audit</code> notwithstanding).</li>
+<li>The existence of <code>npm</code> install scripts still poses a large security
+  concern. There is a growing <a href="https://github.com/npm/rfcs/pull/488">movement</a> to disable install scripts.</li>
+<li>Though the <code>vendor/</code> approach mitigates supply chain "denial of service"
+  attacks like the <code>colors</code> <a href="https://research.swtch.com/npm-colors">incident</a>, actually <strong>catching</strong> instances
+  of this during code review is still a challenge if the only artifacts
+  checked into the <code>vendor/</code> directory are tarballs.</li>
+<li>There is no <code>npm</code> equivalent of the Go build cache (<code>go env GOCACHE</code>);
+  if the same Go package is built multiple times, the previous builds can
+  be reused. The nearest equivalent is the presence of the same
+  (already installed) package in <code>node_modules/</code>.</li>
+</ul>
+<h2>Landing the plane</h2>
+<p>We'd love to continue the <a href="https://github.com/hardfinhq/npm-mod/issues">discussion</a> and improve <code>npm-mod</code> to a point
+where teams like Alice's and our own are comfortable using it in daily
+workflows. By adopting this workflow and gaining airplane mode, teams can
+avoid unexpected breakages and ensure <strong>all</strong> code required to build the
+repo is present after checkout.</p>
+<p>In addition to the tooling, there is a cultural norm in the Go community
+of viewing new dependencies with skepticism. This is captured by a
+<a href="https://go-proverbs.github.io/">Go proverb</a>: A little copying is better than a little dependency.
+Checking application dependencies into the codebase means they are front
+and center, both for security and for their contents. In addition to enabling
+airplane mode, we hope that by vendoring the <a href="https://twitter.com/acdlite/status/1483223737424130048">weight</a> of dependencies starts
+to get more consideration.</p>
+<div style="text-align: center;">
+<p><img alt="Gopher Landing" src="/images/gopher-biplane.jpg"></p>
+</div><ol class=simple-footnotes><li id=sf-npm-mod-1>The primary <a href="https://penkovski.com/post/to-vendor-or-not-to-vendor/">downside</a> of checking in
+<code>vendor/</code> is a larger <code>git</code> checkout. <a href=#sf-npm-mod-1-back class=simple-footnote-back>↩</a></li><li id=sf-npm-mod-2><strong>Mostly</strong> hermetic. This
+  really only applies to the components of the build containing Go or
+  TypeScript code (and packages). <a href=#sf-npm-mod-2-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2022-05-26T00:00:00-07:00" pubdate>May 26, 2022</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/npm.html">npm</a>,    <a class="category" href="https://blog.bossylobster.com/tag/go.html">Go</a>,    <a class="category" href="https://blog.bossylobster.com/tag/packaging.html">Packaging</a>,    <a class="category" href="https://blog.bossylobster.com/tag/airplane-mode.html">Airplane Mode</a>,    <a class="category" href="https://blog.bossylobster.com/tag/offline.html">Offline</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2022/05/npm-mod.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2022/05/npm-mod.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2022/05/npm-mod.html';
+    var disqus_url = 'https://blog.bossylobster.com/2022/05/npm-mod.html';
+    var disqus_title = "<p>What npm Can Learn from Go</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

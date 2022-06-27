@@ -72,6 +72,45 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-05-decrypt-vault-ciphertext-context.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Decrypting Vault Ciphertext with a Context</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-10-05T00:00:00-07:00" pubdate>Oct 05, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p>In a previous <a href="/2021/07/vault-import.html">post</a>, I described a use case for customer provided keys
+with Vault. One of the implications of this was the need for decryption after a
+bulk data export. In that post, I gave a concrete example of decrypting Vault
+ciphertext <strong>directly</strong> with a customer provided key. However …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-04-atomically-idempotent.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Atomically Idempotent</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-10-04T00:00:00-07:00" pubdate>Oct 04, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p>Recently, I was analyzing some initialization code in Go with a <a href="https://github.com/mat285">teammate</a>.
+The value being initialized was meant to be used in concurrent Go, so
+initialization had some requirement of atomicity. The code essentially boiled
+down to:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">T</span><span class="p">)</span> <span class="nx">Start</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">LoadInt32</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">t</span><span class="p">.</span><span class="nx">State</span><span class="p">)</span> <span class="o">==</span> <span class="nx">Started</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="c1">// Early Exit …</span></code></pre></div></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-09-10-go-context-withvalue.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/09/go-context-withvalue.html">Wrapping Behavior of context.WithValue()</a>
@@ -146,47 +185,6 @@ important to understand</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2021/07/vault-import.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-12-node-ca-append.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-05-12T00:00:00-07:00" pubdate>May 12, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><blockquote>
-<p><strong>TL;DR</strong>: Using the <code>ca</code> field to specify custom CAs (certificate
-authorities) in Node.js is a <a href="/2021/05/node-ca-footgun.html">footgun</a>. It replaces (rather than appends
-to) the root trust store which can lead to unintended consequences. I've
-seen this behavior cause outages in production when a third party server does
-a routine …</p></blockquote></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-11-node-ca-footgun.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-05-11T00:00:00-07:00" pubdate>May 11, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><div style="text-align: center;">
-<p><img alt="Door to Nowhere" src="/images/door-nowhere.jpg"></p>
-</div>
-<p>This is a story of a brief outage caused by a slightly unintuitive API<sup id=sf-node-ca-footgun-1-back><a href=#sf-node-ca-footgun-1 class=simple-footnote title="Like a door to nowhere.">1</a></sup> that has some very <a href="https://en.wiktionary.org/wiki/footgun">sharp corners</a> for the
-uninitiated. The outage, though brief, was of the "wake up at 4am" variety so
-the lesson was especially salient.</p>
-<p>This <strong>is not</strong> a post trying to tear …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/4">&larr; Older</a>
 
@@ -202,6 +200,12 @@ the lesson was especially salient.</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
       </li>
       <li class="post">
@@ -209,12 +213,6 @@ the lesson was especially salient.</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Remodeling the House While Living in It</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
       </li>
     </ul>
   </section>
