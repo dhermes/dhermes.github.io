@@ -1,5 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2022-05-26T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>What npm Can Learn from Go</title><link href="https://blog.bossylobster.com/2022/05/npm-mod.html" rel="alternate"></link><published>2022-05-26T00:00:00-07:00</published><updated>2022-05-26T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2022-05-26:/2022/05/npm-mod.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2022-08-04T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Managing Tailscale subnet routers with Terraform</title><link href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html" rel="alternate"></link><published>2022-08-04T00:00:00-07:00</published><updated>2022-08-04T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2022-08-04:/2022/08/tailscale-terraform-fargate.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Tailscale, Terraform, and Fargate" src="/images/tailscale-terraform-fargate.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/08/tailscale-terraform-fargate/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;As a small and growing team, we need to focus our operational efforts as much as
+possible. Using &lt;a href="https://tailscale.com/"&gt;Tailscale&lt;/a&gt; as our VPN is very much aligned with this need.
+It's simple, with no central control plane to manage or other significant
+operational …&lt;/p&gt;</summary><content type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Tailscale, Terraform, and Fargate" src="/images/tailscale-terraform-fargate.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/08/tailscale-terraform-fargate/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;As a small and growing team, we need to focus our operational efforts as much as
+possible. Using &lt;a href="https://tailscale.com/"&gt;Tailscale&lt;/a&gt; as our VPN is very much aligned with this need.
+It's simple, with no central control plane to manage or other significant
+operational burden for our team.&lt;/p&gt;
+&lt;p&gt;In addition to providing a secure internal network for peer-to-peer
+communications, Tailscale enables us to securely access databases and services
+deployed in our AWS accounts via &lt;a href="https://tailscale.com/kb/1019/subnets/"&gt;subnet routers&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We run one subnet router per AWS VPC as an ECS &lt;a href="https://aws.amazon.com/fargate/"&gt;Fargate&lt;/a&gt; task and manage
+the deployment with Terraform. Today we are releasing the
+&lt;code&gt;hardfinhq/tailscale-subnet-router&lt;/code&gt; Terraform &lt;a href="https://registry.terraform.io/modules/hardfinhq/tailscale-subnet-router"&gt;module&lt;/a&gt; to share our tools
+for managing subnet routers.&lt;/p&gt;
+&lt;h2&gt;Why Tailscale?&lt;/h2&gt;
+&lt;p&gt;Nearly every day I see a new Tailscale user tweeting that they can't believe how
+quick and easy it is to set up. One of the biggest hallmarks of Tailscale is
+one we hope to emulate at Hardfin: it &lt;strong&gt;just works&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Our primary use case for a VPN is secure access to deployed environments.
+However, Tailscale also enables a new kind of lightweight collaboration for
+distributed teams. The peer-to-peer nature of a mesh VPN allows our team to
+share workspaces and run low fidelity internal services with almost no effort:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Working on a branch and want to share &lt;code&gt;localhost:3000&lt;/code&gt; with the team? Just
+  bind your webserver to &lt;code&gt;0.0.0.0&lt;/code&gt;&lt;sup id=sf-tailscale-terraform-fargate-1-back&gt;&lt;a href=#sf-tailscale-terraform-fargate-1 class=simple-footnote title="Or your 100.x.y.z Tailscale IP if   you'd like to be more surgical when binding to network interfaces."&gt;1&lt;/a&gt;&lt;/sup&gt; and
+  share a link using your machine's magic DNS name, e.g.
+  &lt;code&gt;fuzzy.hardfinhq.org.github.beta.tailscale.net&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Need a place to serve developer docs (&lt;code&gt;godoc -http=:6060&lt;/code&gt;) without the cost or
+  complexity of the cloud? Park a bare metal server in a closet and connect it
+  to your Tailnet.&lt;/li&gt;
+&lt;li&gt;Want static code coverage reports in &lt;code&gt;main&lt;/code&gt; for the team to keep an eye on
+  quality over time? SSH into that bare metal server and add another static
+  site.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Not only do we love the feature set, we also have a mountain of respect for the
+Tailscale team. Tailscale is filled with internet OGs that have experience
+running large networks, infrastructure at hyperscalers, and developing and
+deploying &lt;a href="https://www.wireguard.com/"&gt;WireGuard&lt;/a&gt;. This experience manifests in the product: Tailscale
+continues to work in &lt;a href="https://tailscale.com/blog/how-nat-traversal-works/"&gt;thorny&lt;/a&gt; networking conditions when most other VPNs
+are not able to. Their ability to clearly communicate
+&lt;a href="https://tailscale.com/blog/how-tailscale-works/"&gt;deep technical ideas&lt;/a&gt; is also one we hope to emulate right here in our
+engineering blog.&lt;/p&gt;
+&lt;h2&gt;Why Fargate?&lt;/h2&gt;
+&lt;p&gt;Running the services used by our customers is our core operational charter. The
+overhead of anything else must be carefully weighed and usually our answer is to
+live without tools that have &lt;strong&gt;any&lt;/strong&gt; operational overhead.&lt;/p&gt;
+&lt;p&gt;For example, our founding team has deep experience with HashiCorp Vault, but we
+decided not to use it because &lt;strong&gt;someone&lt;/strong&gt; would need to hold the pager. Instead
+we use &lt;a href="https://aws.amazon.com/secrets-manager/"&gt;AWS Secrets Manager&lt;/a&gt; for secrets and &lt;a href="https://aws.amazon.com/kms/"&gt;AWS KMS&lt;/a&gt; for transit
+encryption. Though the HashiCorp Vault feature set is more robust, the added
+benefit isn't worth the cost of running Vault with a small team.&lt;/p&gt;
+&lt;p&gt;ECS Fargate really fits our philosophy and delivers on the promise of the cloud.
+It is serverless in the sense that we care about: we don't have a
+cluster&lt;sup id=sf-tailscale-terraform-fargate-2-back&gt;&lt;a href=#sf-tailscale-terraform-fargate-2 class=simple-footnote title="Our founding team has deep experience with Kubernetes as well but chose not to use it because of the operational burden. An ECS task definition is very similar to a Kubernetes pod spec already, so we get many of the same benefits afforded by Kubernetes."&gt;2&lt;/a&gt;&lt;/sup&gt; or compute nodes (i.e. servers) to
+administer. Fargate provides a great blend of flexibility and focus. Though
+&lt;a href="https://firecracker-microvm.github.io/"&gt;Firecracker&lt;/a&gt; is used to enable serverless at AWS in both Fargate and
+Lambda, we prefer the flexibility of Docker containers and the control afforded
+by long-lived processes over the FaaS model.&lt;/p&gt;
+&lt;h2&gt;Using the module&lt;/h2&gt;
+&lt;p&gt;As we've mentioned &lt;a href="/2022/04/emulate-rds-permissions"&gt;previously&lt;/a&gt;, we are big proponents of
+Infrastructure-as-Code at Hardfin. With the &lt;code&gt;hardfinhq/tailscale-subnet-router&lt;/code&gt;
+&lt;a href="https://registry.terraform.io/modules/hardfinhq/tailscale-subnet-router"&gt;module&lt;/a&gt;, we are able to define all of the resources needed for a subnet
+router declaratively. We can easily add a subnet router every time we bring up a
+new VPC. For example:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;module&lt;/span&gt; &lt;span class=s&gt;"sandbox"&lt;/span&gt; {
+  &lt;span class=nb&gt;source&lt;/span&gt;  = &lt;span class=s&gt;"hardfinhq/tailscale-subnet-router/aws"&lt;/span&gt;
+  &lt;span class=nb&gt;version&lt;/span&gt; = &lt;span class=s&gt;"1.20220802.1"&lt;/span&gt;
+
+  &lt;span class=n&gt;vpc&lt;/span&gt;                         = &lt;span class=s&gt;"sandbox"&lt;/span&gt;
+  &lt;span class=n&gt;subnet_group&lt;/span&gt;                = &lt;span class=s&gt;"sandbox-igw-zz-minotaur-7"&lt;/span&gt;
+  &lt;span class=n&gt;security_group_ids&lt;/span&gt;          = [&lt;span class=n&gt;data&lt;/span&gt;.&lt;span class=n&gt;aws_security_group&lt;/span&gt;.&lt;span class=n&gt;vpn&lt;/span&gt;.&lt;span class=nb&gt;id&lt;/span&gt;]
+  &lt;span class=n&gt;target_ecs_cluster&lt;/span&gt;          = &lt;span class=s&gt;"sandbox-spot"&lt;/span&gt;
+  &lt;span class=n&gt;tailscale_auth_key_secret&lt;/span&gt;   = &lt;span class=s&gt;"sandbox-tailscale-auth-key"&lt;/span&gt;
+  &lt;span class=n&gt;tailscale_docker_repository&lt;/span&gt; = &lt;span class=s&gt;"tailscale"&lt;/span&gt;
+  &lt;span class=n&gt;tailscale_docker_tag&lt;/span&gt;        = &lt;span class=s&gt;"sha-a0063fef6ccfa4dc689642d60637a124c60b1be3"&lt;/span&gt;
+}
+
+&lt;span class=n&gt;data&lt;/span&gt; &lt;span class=s&gt;"aws_security_group"&lt;/span&gt; &lt;span class=s&gt;"vpn"&lt;/span&gt; {
+  &lt;span class=nb&gt;name&lt;/span&gt; = &lt;span class=s&gt;"sandbox-vpn"&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This only requires a few prerequisites to be in place:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A Tailscale &lt;a href="https://tailscale.com/kb/1085/auth-keys/"&gt;auth key&lt;/a&gt; stored in an AWS Secrets Manager secret&lt;/li&gt;
+&lt;li&gt;A Docker image tagged and pushed to ECR for running your subnet router; we
+  have provided a &lt;a href="https://github.com/hardfinhq/terraform-aws-tailscale-subnet-router/blob/v1.20220802.1/_docker/tailscale.Dockerfile"&gt;Dockerfile&lt;/a&gt; you can use&lt;/li&gt;
+&lt;li&gt;The core foundation needed for an ECS cluster that can schedule Fargate tasks
+  (i.e. the cluster, a VPC, subnets, security groups, etc.)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Onwards&lt;/h2&gt;
+&lt;p&gt;We'd love to continue the discussion &lt;a href="https://github.com/hardfinhq/terraform-aws-tailscale-subnet-router/issues/new"&gt;on GitHub&lt;/a&gt;. Feature requests and pull
+requests are welcome! For the initial release, the module is very much scoped to
+our internal networks at Hardfin but we'd be happy to make the module more
+configurable to make it accessible to a broader audience. There are a few
+&lt;a href="https://github.com/hardfinhq/terraform-aws-tailscale-subnet-router/tree/v1.20220802.1#room-for-improvement"&gt;suggestions&lt;/a&gt; already in the repository as a starting point for ways to
+help adapt the module to other engineering organizations.&lt;/p&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-tailscale-terraform-fargate-1&gt;Or your &lt;code&gt;100.x.y.z&lt;/code&gt; &lt;a href="https://tailscale.com/kb/1015/100.x-addresses/"&gt;Tailscale IP&lt;/a&gt; if
+  you'd like to be more surgical when binding to network interfaces. &lt;a href=#sf-tailscale-terraform-fargate-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-tailscale-terraform-fargate-2&gt;Our founding team has deep experience with Kubernetes as well but
+chose not to use it because of the operational burden. An ECS task definition is
+&lt;strong&gt;very&lt;/strong&gt; similar to a Kubernetes pod spec already, so we get many of the same
+benefits afforded by Kubernetes. &lt;a href=#sf-tailscale-terraform-fargate-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Tailscale"></category><category term="ECS"></category><category term="Fargate"></category><category term="Serverless"></category><category term="Terraform"></category><category term="Open Source"></category></entry><entry><title>What npm Can Learn from Go</title><link href="https://blog.bossylobster.com/2022/05/npm-mod.html" rel="alternate"></link><published>2022-05-26T00:00:00-07:00</published><updated>2022-05-26T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2022-05-26:/2022/05/npm-mod.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="npm and Go" src="/images/npm-and-go.png"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;blockquote&gt;

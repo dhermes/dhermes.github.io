@@ -72,6 +72,25 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-29-go-slices-gain-capacity.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">How Do Slices Gain Capacity in Go?</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-07-29T00:00:00-07:00" pubdate>Jul 29, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><h3>Looking Inside a Slice</h3>
+<p>The first thing to realize is that a <code>slice</code> in Go is really just a struct
+that wraps "header" information about (1) a pointer to the "real" underlying
+data, (2) the length and (3) the capacity without directly exposing those
+fields. We can use a <code>struct …</code></p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-27-life-of-request.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
@@ -157,26 +176,6 @@ before …</p></div>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/07/addr-vs-host.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-07-running-vault-locally.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Running vault Locally</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-07T00:00:00-07:00" pubdate>Jul 07, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>In order to run <code>vault</code> locally (I did this because I was on an airplane),
-first start the server with a known root token</p>
-<div class="highlight"><pre><span></span><code><span class="go">export VAULT_TOKEN=root VAULT_ADDR=http://localhost:8200</span>
-<span class="go">vault server -dev -dev-root-token-id=&quot;${VAULT_TOKEN}&quot;</span>
-
-<span class="go">vault version  # As a baseline, this is the version of `vault` I am using …</span></code></pre></div></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/7">&larr; Older</a>
 
@@ -192,6 +191,9 @@ first start the server with a known root token</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
       </li>
       <li class="post">
@@ -202,9 +204,6 @@ first start the server with a known root token</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
       </li>
     </ul>
   </section>

@@ -72,6 +72,29 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-12-01-broken-pipe.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-12-01T00:00:00-08:00" pubdate>Dec 01, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="Broken Pipe" src="/images/broken-pipe.jpg"></p>
+</div>
+<p>I recently put on my detective hat and tracked down a bug in network error
+recovery in a popular PostgreSQL library. Below, we'll walk through
+the process of bugfinding and iteratively making the feedback loop smaller
+and smaller. In order to find and fix the bug I</p>
+<ul>
+<li>Confirmed the root …</li></ul></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2020-11-25-pow-confusion.template" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
@@ -150,25 +173,6 @@ almost instantaneously). For real-time applications, if a migration runs "for �
     <a rel="full-article" href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-29-go-slices-gain-capacity.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">How Do Slices Gain Capacity in Go?</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-29T00:00:00-07:00" pubdate>Jul 29, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><h3>Looking Inside a Slice</h3>
-<p>The first thing to realize is that a <code>slice</code> in Go is really just a struct
-that wraps "header" information about (1) a pointer to the "real" underlying
-data, (2) the length and (3) the capacity without directly exposing those
-fields. We can use a <code>struct …</code></p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/6">&larr; Older</a>
 
@@ -184,6 +188,9 @@ fields. We can use a <code>struct …</code></p></div>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
       </li>
       <li class="post">
@@ -194,9 +201,6 @@ fields. We can use a <code>struct …</code></p></div>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
       </li>
     </ul>
   </section>

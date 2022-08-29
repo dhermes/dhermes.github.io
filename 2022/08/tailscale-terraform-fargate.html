@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>Managing Tailscale subnet routers with Terraform &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="Releasing a Terraform module for deploying a Tailscale subnet router with AWS ECS Fargate and managing the resources via Terraform." />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>Managing Tailscale subnet routers with Terraform</p>" />
+<meta itemprop="description" content="Releasing a Terraform module for deploying a Tailscale subnet router with AWS ECS Fargate and managing the resources via Terraform." />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/tailscale-terraform-fargate.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>Managing Tailscale subnet routers with Terraform</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/tailscale-terraform-fargate.png" />
+<meta property="og:description" content="Releasing a Terraform module for deploying a Tailscale subnet router with AWS ECS Fargate and managing the resources via Terraform." />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>Managing Tailscale subnet routers with Terraform</p>" />
+<meta name="twitter:description" content="Releasing a Terraform module for deploying a Tailscale subnet router with AWS ECS Fargate and managing the resources via Terraform." />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/tailscale-terraform-fargate.png" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2022-08-04-tailscale-terraform-fargate.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">Managing Tailscale subnet routers with Terraform</h1>
+    <p class="meta">
+<time datetime="2022-08-04T00:00:00-07:00" pubdate>Aug 04, 2022</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="Tailscale, Terraform, and Fargate" src="/images/tailscale-terraform-fargate.png"></p>
+</div>
+<blockquote>
+<p>This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2022/08/tailscale-terraform-fargate/">blog</a>.</p>
+</blockquote>
+<p>As a small and growing team, we need to focus our operational efforts as much as
+possible. Using <a href="https://tailscale.com/">Tailscale</a> as our VPN is very much aligned with this need.
+It's simple, with no central control plane to manage or other significant
+operational burden for our team.</p>
+<p>In addition to providing a secure internal network for peer-to-peer
+communications, Tailscale enables us to securely access databases and services
+deployed in our AWS accounts via <a href="https://tailscale.com/kb/1019/subnets/">subnet routers</a>.</p>
+<p>We run one subnet router per AWS VPC as an ECS <a href="https://aws.amazon.com/fargate/">Fargate</a> task and manage
+the deployment with Terraform. Today we are releasing the
+<code>hardfinhq/tailscale-subnet-router</code> Terraform <a href="https://registry.terraform.io/modules/hardfinhq/tailscale-subnet-router">module</a> to share our tools
+for managing subnet routers.</p>
+<h2>Why Tailscale?</h2>
+<p>Nearly every day I see a new Tailscale user tweeting that they can't believe how
+quick and easy it is to set up. One of the biggest hallmarks of Tailscale is
+one we hope to emulate at Hardfin: it <strong>just works</strong>.</p>
+<p>Our primary use case for a VPN is secure access to deployed environments.
+However, Tailscale also enables a new kind of lightweight collaboration for
+distributed teams. The peer-to-peer nature of a mesh VPN allows our team to
+share workspaces and run low fidelity internal services with almost no effort:</p>
+<ul>
+<li>Working on a branch and want to share <code>localhost:3000</code> with the team? Just
+  bind your webserver to <code>0.0.0.0</code><sup id=sf-tailscale-terraform-fargate-1-back><a href=#sf-tailscale-terraform-fargate-1 class=simple-footnote title="Or your 100.x.y.z Tailscale IP if   you'd like to be more surgical when binding to network interfaces.">1</a></sup> and
+  share a link using your machine's magic DNS name, e.g.
+  <code>fuzzy.hardfinhq.org.github.beta.tailscale.net</code>.</li>
+<li>Need a place to serve developer docs (<code>godoc -http=:6060</code>) without the cost or
+  complexity of the cloud? Park a bare metal server in a closet and connect it
+  to your Tailnet.</li>
+<li>Want static code coverage reports in <code>main</code> for the team to keep an eye on
+  quality over time? SSH into that bare metal server and add another static
+  site.</li>
+</ul>
+<p>Not only do we love the feature set, we also have a mountain of respect for the
+Tailscale team. Tailscale is filled with internet OGs that have experience
+running large networks, infrastructure at hyperscalers, and developing and
+deploying <a href="https://www.wireguard.com/">WireGuard</a>. This experience manifests in the product: Tailscale
+continues to work in <a href="https://tailscale.com/blog/how-nat-traversal-works/">thorny</a> networking conditions when most other VPNs
+are not able to. Their ability to clearly communicate
+<a href="https://tailscale.com/blog/how-tailscale-works/">deep technical ideas</a> is also one we hope to emulate right here in our
+engineering blog.</p>
+<h2>Why Fargate?</h2>
+<p>Running the services used by our customers is our core operational charter. The
+overhead of anything else must be carefully weighed and usually our answer is to
+live without tools that have <strong>any</strong> operational overhead.</p>
+<p>For example, our founding team has deep experience with HashiCorp Vault, but we
+decided not to use it because <strong>someone</strong> would need to hold the pager. Instead
+we use <a href="https://aws.amazon.com/secrets-manager/">AWS Secrets Manager</a> for secrets and <a href="https://aws.amazon.com/kms/">AWS KMS</a> for transit
+encryption. Though the HashiCorp Vault feature set is more robust, the added
+benefit isn't worth the cost of running Vault with a small team.</p>
+<p>ECS Fargate really fits our philosophy and delivers on the promise of the cloud.
+It is serverless in the sense that we care about: we don't have a
+cluster<sup id=sf-tailscale-terraform-fargate-2-back><a href=#sf-tailscale-terraform-fargate-2 class=simple-footnote title="Our founding team has deep experience with Kubernetes as well but chose not to use it because of the operational burden. An ECS task definition is very similar to a Kubernetes pod spec already, so we get many of the same benefits afforded by Kubernetes.">2</a></sup> or compute nodes (i.e. servers) to
+administer. Fargate provides a great blend of flexibility and focus. Though
+<a href="https://firecracker-microvm.github.io/">Firecracker</a> is used to enable serverless at AWS in both Fargate and
+Lambda, we prefer the flexibility of Docker containers and the control afforded
+by long-lived processes over the FaaS model.</p>
+<h2>Using the module</h2>
+<p>As we've mentioned <a href="/2022/04/emulate-rds-permissions">previously</a>, we are big proponents of
+Infrastructure-as-Code at Hardfin. With the <code>hardfinhq/tailscale-subnet-router</code>
+<a href="https://registry.terraform.io/modules/hardfinhq/tailscale-subnet-router">module</a>, we are able to define all of the resources needed for a subnet
+router declaratively. We can easily add a subnet router every time we bring up a
+new VPC. For example:</p>
+<div class=highlight><pre><span></span><code><span class=k>module</span> <span class=s>"sandbox"</span> {
+  <span class=nb>source</span>  = <span class=s>"hardfinhq/tailscale-subnet-router/aws"</span>
+  <span class=nb>version</span> = <span class=s>"1.20220802.1"</span>
+
+  <span class=n>vpc</span>                         = <span class=s>"sandbox"</span>
+  <span class=n>subnet_group</span>                = <span class=s>"sandbox-igw-zz-minotaur-7"</span>
+  <span class=n>security_group_ids</span>          = [<span class=n>data</span>.<span class=n>aws_security_group</span>.<span class=n>vpn</span>.<span class=nb>id</span>]
+  <span class=n>target_ecs_cluster</span>          = <span class=s>"sandbox-spot"</span>
+  <span class=n>tailscale_auth_key_secret</span>   = <span class=s>"sandbox-tailscale-auth-key"</span>
+  <span class=n>tailscale_docker_repository</span> = <span class=s>"tailscale"</span>
+  <span class=n>tailscale_docker_tag</span>        = <span class=s>"sha-a0063fef6ccfa4dc689642d60637a124c60b1be3"</span>
+}
+
+<span class=n>data</span> <span class=s>"aws_security_group"</span> <span class=s>"vpn"</span> {
+  <span class=nb>name</span> = <span class=s>"sandbox-vpn"</span>
+}
+</code></pre></div>
+
+<p>This only requires a few prerequisites to be in place:</p>
+<ul>
+<li>A Tailscale <a href="https://tailscale.com/kb/1085/auth-keys/">auth key</a> stored in an AWS Secrets Manager secret</li>
+<li>A Docker image tagged and pushed to ECR for running your subnet router; we
+  have provided a <a href="https://github.com/hardfinhq/terraform-aws-tailscale-subnet-router/blob/v1.20220802.1/_docker/tailscale.Dockerfile">Dockerfile</a> you can use</li>
+<li>The core foundation needed for an ECS cluster that can schedule Fargate tasks
+  (i.e. the cluster, a VPC, subnets, security groups, etc.)</li>
+</ul>
+<h2>Onwards</h2>
+<p>We'd love to continue the discussion <a href="https://github.com/hardfinhq/terraform-aws-tailscale-subnet-router/issues/new">on GitHub</a>. Feature requests and pull
+requests are welcome! For the initial release, the module is very much scoped to
+our internal networks at Hardfin but we'd be happy to make the module more
+configurable to make it accessible to a broader audience. There are a few
+<a href="https://github.com/hardfinhq/terraform-aws-tailscale-subnet-router/tree/v1.20220802.1#room-for-improvement">suggestions</a> already in the repository as a starting point for ways to
+help adapt the module to other engineering organizations.</p><ol class=simple-footnotes><li id=sf-tailscale-terraform-fargate-1>Or your <code>100.x.y.z</code> <a href="https://tailscale.com/kb/1015/100.x-addresses/">Tailscale IP</a> if
+  you'd like to be more surgical when binding to network interfaces. <a href=#sf-tailscale-terraform-fargate-1-back class=simple-footnote-back>↩</a></li><li id=sf-tailscale-terraform-fargate-2>Our founding team has deep experience with Kubernetes as well but
+chose not to use it because of the operational burden. An ECS task definition is
+<strong>very</strong> similar to a Kubernetes pod spec already, so we get many of the same
+benefits afforded by Kubernetes. <a href=#sf-tailscale-terraform-fargate-2-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2022-08-04T00:00:00-07:00" pubdate>Aug 04, 2022</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/tailscale.html">Tailscale</a>,    <a class="category" href="https://blog.bossylobster.com/tag/ecs.html">ECS</a>,    <a class="category" href="https://blog.bossylobster.com/tag/fargate.html">Fargate</a>,    <a class="category" href="https://blog.bossylobster.com/tag/serverless.html">Serverless</a>,    <a class="category" href="https://blog.bossylobster.com/tag/terraform.html">Terraform</a>,    <a class="category" href="https://blog.bossylobster.com/tag/open-source.html">Open Source</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2022/08/tailscale-terraform-fargate.html';
+    var disqus_url = 'https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html';
+    var disqus_title = "<p>Managing Tailscale subnet routers with Terraform</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

@@ -72,6 +72,26 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-07-running-vault-locally.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Running vault Locally</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-07-07T00:00:00-07:00" pubdate>Jul 07, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p>In order to run <code>vault</code> locally (I did this because I was on an airplane),
+first start the server with a known root token</p>
+<div class="highlight"><pre><span></span><code><span class="go">export VAULT_TOKEN=root VAULT_ADDR=http://localhost:8200</span>
+<span class="go">vault server -dev -dev-root-token-id=&quot;${VAULT_TOKEN}&quot;</span>
+
+<span class="go">vault version  # As a baseline, this is the version of `vault` I am using …</span></code></pre></div></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-05-14-trust-proxy.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Express Trust Proxy</a>
@@ -153,24 +173,6 @@ as a <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#u
     <a rel="full-article" href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-05-27-ruby-stack-traces.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Attack of Ruby Stack Traces</a>
-      </h1>
-    <p class="meta">
-<time datetime="2019-05-27T00:00:00-07:00" pubdate>May 27, 2019</time>    </p>
-</header>
-
-  <div class="entry-content"><p>First, let me say I'm not posting this to shame any company or language
-community. Getting to the scale Twitter reached in a short amount of time
-can quickly make past engineering decisions look foolish in hindsight. But
-almost always they are decisions made in good faith with the current …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/8">&larr; Older</a>
 
@@ -186,6 +188,9 @@ almost always they are decisions made in good faith with the current …</p></di
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
       </li>
       <li class="post">
@@ -196,9 +201,6 @@ almost always they are decisions made in good faith with the current …</p></di
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2021/12/tailsk8s.html">Bare Metal Kubernetes with Tailscale</a>
       </li>
     </ul>
   </section>

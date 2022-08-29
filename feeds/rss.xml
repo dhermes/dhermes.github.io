@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Thu, 26 May 2022 00:00:00 -0700</lastBuildDate><item><title>What npm Can Learn from Go</title><link>https://blog.bossylobster.com/2022/05/npm-mod.html</link><description>&lt;div style="text-align: center;"&gt;
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Thu, 04 Aug 2022 00:00:00 -0700</lastBuildDate><item><title>Managing Tailscale subnet routers with Terraform</title><link>https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html</link><description>&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Tailscale, Terraform, and Fargate" src="/images/tailscale-terraform-fargate.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/08/tailscale-terraform-fargate/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;As a small and growing team, we need to focus our operational efforts as much as
+possible. Using &lt;a href="https://tailscale.com/"&gt;Tailscale&lt;/a&gt; as our VPN is very much aligned with this need.
+It's simple, with no central control plane to manage or other significant
+operational …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 04 Aug 2022 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2022-08-04:/2022/08/tailscale-terraform-fargate.html</guid><category>misc</category><category>Tailscale</category><category>ECS</category><category>Fargate</category><category>Serverless</category><category>Terraform</category><category>Open Source</category></item><item><title>What npm Can Learn from Go</title><link>https://blog.bossylobster.com/2022/05/npm-mod.html</link><description>&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="npm and Go" src="/images/npm-and-go.png"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;blockquote&gt;
