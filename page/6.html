@@ -72,6 +72,28 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-01-go-pq-prevent-deadlock.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-09-01T00:00:00-07:00" pubdate>Sep 01, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p><img alt="All About Locks" src="/images/Lock-Up-The-Forest.jpg"></p>
+<p>I've been writing a library for running PostgreSQL migrations in Go. One
+of the primary pieces of advice I <a href="https://www.citusdata.com/blog/2018/02/22/seven-tips-for-dealing-with-postgres-locks/">keep</a> coming <a href="https://benchling.engineering/move-fast-and-migrate-things-how-we-automated-migrations-in-postgres-d60aba0fc3d4">across</a> is</p>
+<blockquote>
+<p>Beware of lock queues, use lock timeouts</p>
+</blockquote>
+<p>In other words, each migration stage should happen <strong>instantaneously</strong> (or
+almost instantaneously). For real-time applications, if a migration runs "for …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-29-go-slices-gain-capacity.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">How Do Slices Gain Capacity in Go?</a>
@@ -151,31 +173,6 @@ Kubernetes service that routes traffic to pods.</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/07/cordon-pod.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-08-addr-vs-host.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/addr-vs-host.html">ADDR vs. HOST</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-08T00:00:00-07:00" pubdate>Jul 08, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><blockquote>
-<p><strong>TL;DR</strong>: Prefer inclusion of the protocol in configurable environment
-variables</p>
-<p><code>VAULT_ADDR=https://vault.sandbox.invalid:8200</code></p>
-<p>over</p>
-<p><code>VAULT_HOST=vault.sandbox.invalid</code></p>
-<p>since this enables targeting a local server, e.g. <code>http://localhost:8200</code>
-without any code changes.</p>
-</blockquote>
-<p>We utilize sandbox, staging and other siloed environments to test changes
-before …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/addr-vs-host.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/7">&larr; Older</a>
 
@@ -191,6 +188,9 @@ before …</p></div>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2023/07/moser-circle-estimates.html">Moser's Circle Problem and Polynomial Root Asymptotes</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
       </li>
       <li class="post">
@@ -201,9 +201,6 @@ before …</p></div>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
       </li>
     </ul>
   </section>
@@ -230,7 +227,7 @@ before …</p></div>
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2023  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>

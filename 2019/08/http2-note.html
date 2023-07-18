@@ -128,7 +128,7 @@ the raw bytes being sent as part of the larger TCP packet data. For example
 in <code>... 6c 69 63 ...</code> the <code>69</code> (<code>0x69</code> in hexadecimal is <code>105</code> in decimal)
 corresponds to the ASCII encoding of the <code>i</code> in Alice.</p>
 <h3 id=why>Why?</h3>
-<p>When I excitedly told my <a href="https://twitter.com/eugeneiiim">CTO</a> Eugene "look what I built", he quickly said
+<p>When I excitedly told my <a href="https://twitter.com/eugenemarinelli">CTO</a> Eugene "look what I built", he quickly said
 "is this like <a href="https://www.wireshark.org/">Wireshark</a>?" and he hit the nail on the head. So why did I
 build something <strong>much less</strong> capable than Wireshark? Well the first answer to
 that question is something like "Oops".</p>
@@ -147,7 +147,7 @@ use all the time) and HTTP/2 (which is new to me).</p>
 <p>As for where this code is running, I mentioned I'd say a bit more about the
 Kubernetes service running a gRPC server. I'm currently doing some
 discovery<sup id=sf-http2-note-1-back><a href=#sf-http2-note-1 class=simple-footnote title="Many thanks to Alex Fish for being my sounding board during this process">1</a></sup> on gRPC patterns; I'm trying to understand if gRPC can work
-for me and possibly my team or other groups at <a href="https://blend.com/careers/">Blend</a>.</p>
+for me and possibly my team or other groups at Blend.</p>
 <p>Within our infrastructure, I had a Kubernetes pod handling raw TCP traffic on
 a port of my choosing. Unfortunately the AWS ELB<sup id=sf-http2-note-2-back><a href=#sf-http2-note-2 class=simple-footnote title="To my former Google Cloud colleagues, yes I use AWS every day">2</a></sup> uses the
 <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-proxy-protocol.html">proxy protocol</a> to add a prefix to the packet data from the first TCP
@@ -285,6 +285,9 @@ proxy if the proxy is able to share the certs of the server being proxied <a hre
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2023/07/moser-circle-estimates.html">Moser's Circle Problem and Polynomial Root Asymptotes</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
       </li>
       <li class="post">
@@ -295,9 +298,6 @@ proxy if the proxy is able to share the certs of the server being proxied <a hre
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">How to Write GitHub Actions in Go</a>
       </li>
     </ul>
   </section>
@@ -324,7 +324,7 @@ proxy if the proxy is able to share the certs of the server being proxied <a hre
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2022  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2023  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
