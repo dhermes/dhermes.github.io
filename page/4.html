@@ -72,6 +72,31 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-09-10-go-context-withvalue.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/09/go-context-withvalue.html">Wrapping Behavior of context.WithValue()</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-09-10T00:00:00-07:00" pubdate>Sep 10, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><h3>Motivation</h3>
+<p>Throughout the Go monorepo we use <code>context.WithValue()</code> to "stash" a global
+value on a root context. For example</p>
+<div class="highlight"><pre><span></span><code><span class="nx">ctx</span> <span class="p">=</span> <span class="nx">logger</span><span class="p">.</span><span class="nx">WithLogger</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">log</span><span class="p">)</span>
+<span class="c1">// ... later ...</span>
+<span class="nx">log</span> <span class="o">:=</span> <span class="nx">logger</span><span class="p">.</span><span class="nx">GetLogger</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</code></pre></div>
+
+<p>The implementations for stashing a <code>logger.Log</code> are in the same general form
+as most context wrapping helpers:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span> <span class="nx">loggerKey …</span></code></pre></div></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/09/go-context-withvalue.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-08-24-typeorm-timeouts.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/08/typeorm-timeouts.html">Setting Per-Connection Timeouts with TypeORM</a>
@@ -162,26 +187,6 @@ the lesson was especially salient.</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-03-03-custom-github-actions.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/03/custom-github-actions.html">Custom GitHub Actions</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-03-03T00:00:00-08:00" pubdate>Mar 03, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><p>The "obvious" way to write a custom GitHub Action is using Node.js, however
-it's not the only way. As it turns out, a GitHub Action really just
-communicates with the "orchestrator" via environment variables (as inputs)
-and STDOUT (to produce custom outputs).</p>
-<h3>Options</h3>
-<p>When defining an action, there are …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/03/custom-github-actions.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/5">&larr; Older</a>
 
@@ -197,6 +202,9 @@ and STDOUT (to produce custom outputs).</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2023/07/moser-circle-estimates.html">Moser's Circle Problem and Polynomial Root Asymptotes</a>
       </li>
       <li class="post">
@@ -207,9 +215,6 @@ and STDOUT (to produce custom outputs).</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
       </li>
     </ul>
   </section>
@@ -236,7 +241,7 @@ and STDOUT (to produce custom outputs).</p>
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2023  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2024  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>

@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Tue, 18 Jul 2023 00:00:00 -0700</lastBuildDate><item><title>Moser's Circle Problem and Polynomial Root Asymptotes</title><link>https://blog.bossylobster.com/2023/07/moser-circle-estimates.html</link><description>&lt;div style="text-align: center;"&gt;
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Thu, 29 Feb 2024 00:00:00 -0800</lastBuildDate><item><title>The missing type in the Go standard library: Date!</title><link>https://blog.bossylobster.com/2024/02/date-the-missing-type.html</link><description>&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt=go-date src="/images/calendar-pins.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The Go standard library uses a single overloaded &lt;a href="https://pkg.go.dev/time#Time"&gt;type&lt;/a&gt; as a stand-in for
+both full datetimes&lt;sup id=sf-date-the-missing-type-1-back&gt;&lt;a href=#sf-date-the-missing-type-1 class=simple-footnote title="Here by datetime, we mean an object that contains both date (year, month, day), time information (hour, minute, second, millisecond / microsecond / nanosecond), and often a relevant timezone as well. For example this is provided by the datetime.datetime type in Python and Date in JavaScript."&gt;1&lt;/a&gt;&lt;/sup&gt; and dates. This mostly "just works", but slowly
+starts to &lt;strong&gt;degrade correctness&lt;/strong&gt; in codebases where both datetime and date
+values need to &lt;a href=#opportunity-for-correctness-to-degrade&gt;interact&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We store …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 29 Feb 2024 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2024-02-29:/2024/02/date-the-missing-type.html</guid><category>misc</category><category>Go</category><category>Date</category><category>Datetime</category><category>Standard library</category></item><item><title>Moser's Circle Problem and Polynomial Root Asymptotes</title><link>https://blog.bossylobster.com/2023/07/moser-circle-estimates.html</link><description>&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="3b1b Moser's Circle Problem" src="/images/3b1b-moser-thumbnail.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;Below, we'll show two facts which help understand the positive integer solutions

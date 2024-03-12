@@ -1,5 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2023-07-18T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Moser's Circle Problem and Polynomial Root Asymptotes</title><link href="https://blog.bossylobster.com/2023/07/moser-circle-estimates.html" rel="alternate"></link><published>2023-07-18T00:00:00-07:00</published><updated>2023-07-18T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2023-07-18:/2023/07/moser-circle-estimates.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.all.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2024-02-29T00:00:00-08:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>The missing type in the Go standard library: Date!</title><link href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html" rel="alternate"></link><published>2024-02-29T00:00:00-08:00</published><updated>2024-02-29T00:00:00-08:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2024-02-29:/2024/02/date-the-missing-type.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt=go-date src="/images/calendar-pins.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The Go standard library uses a single overloaded &lt;a href="https://pkg.go.dev/time#Time"&gt;type&lt;/a&gt; as a stand-in for
+both full datetimes&lt;sup id=sf-date-the-missing-type-1-back&gt;&lt;a href=#sf-date-the-missing-type-1 class=simple-footnote title="Here by datetime, we mean an object that contains both date (year, month, day), time information (hour, minute, second, millisecond / microsecond / nanosecond), and often a relevant timezone as well. For example this is provided by the datetime.datetime type in Python and Date in JavaScript."&gt;1&lt;/a&gt;&lt;/sup&gt; and dates. This mostly "just works", but slowly
+starts to &lt;strong&gt;degrade correctness&lt;/strong&gt; in codebases where both datetime and date
+values need to &lt;a href=#opportunity-for-correctness-to-degrade&gt;interact&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We store …&lt;/p&gt;</summary><content type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt=go-date src="/images/calendar-pins.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The Go standard library uses a single overloaded &lt;a href="https://pkg.go.dev/time#Time"&gt;type&lt;/a&gt; as a stand-in for
+both full datetimes&lt;sup id=sf-date-the-missing-type-1-back&gt;&lt;a href=#sf-date-the-missing-type-1 class=simple-footnote title="Here by datetime, we mean an object that contains both date (year, month, day), time information (hour, minute, second, millisecond / microsecond / nanosecond), and often a relevant timezone as well. For example this is provided by the datetime.datetime type in Python and Date in JavaScript."&gt;1&lt;/a&gt;&lt;/sup&gt; and dates. This mostly "just works", but slowly
+starts to &lt;strong&gt;degrade correctness&lt;/strong&gt; in codebases where both datetime and date
+values need to &lt;a href=#opportunity-for-correctness-to-degrade&gt;interact&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We store events using a mix of datetime and date &lt;a href="https://www.postgresql.org/docs/16/datatype-datetime.html"&gt;columns&lt;/a&gt; in our database
+(depending on the type of event). Having a mix of datetimes and date values
+became a persistent source of subtle confusion and extended discussion&lt;sup id=sf-date-the-missing-type-2-back&gt;&lt;a href=#sf-date-the-missing-type-2 class=simple-footnote title='Those discussions usually included a phrase like "I wish the Go standard library had a separate Date type"!'&gt;2&lt;/a&gt;&lt;/sup&gt; within our engineering team. As a result, we
+created a simple &lt;code&gt;Date&lt;/code&gt; type that organically grew until it could replace all of
+our existing usage of &lt;code&gt;time.Time&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;go-date&lt;/code&gt; &lt;a href="https://pkg.go.dev/github.com/hardfinhq/go-date"&gt;package&lt;/a&gt; is here to fill the gap left by the Go standard
+library!&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Having a mix of datetimes and date values became a persistent source of subtle
+confusion and extended discussion within our engineering team&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=opportunity-for-correctness-to-degrade&gt;Opportunity for correctness to degrade&lt;/h2&gt;
+&lt;p&gt;To understand an example where correctness can start to degrade, consider
+a datetime value (&lt;code&gt;now&lt;/code&gt;) and a date value (&lt;code&gt;deadline&lt;/code&gt;):&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nx&gt;now&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Now&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=c1&gt;// Common convention for date values is to use a `time.Time` with&lt;/span&gt;
+&lt;span class=c1&gt;// only the year, month, and day set. For example, this convention&lt;/span&gt;
+&lt;span class=c1&gt;// is followed by the standard library when a timestamp of the form&lt;/span&gt;
+&lt;span class=c1&gt;// YYYY-MM-DD is parsed via `time.Parse(time.DateOnly, value)`.&lt;/span&gt;
+&lt;span class=nx&gt;deadline&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Date&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;2024&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;March&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;UTC&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;With two &lt;code&gt;time.Time&lt;/code&gt; values, it's very reasonable for a developer to
+compute the check "current date is on or before the deadline" via:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nx&gt;withinDeadline&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=p&gt;!&lt;/span&gt;&lt;span class=nx&gt;now&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;After&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;deadline&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;However, this is problematic for at least two reasons. First and foremost, the
+timestamp of &lt;code&gt;deadline&lt;/code&gt; is &lt;code&gt;00:00&lt;/code&gt;, so it leaves out virtually 100% of the
+deadline day. Secondly, the concept of "today" depends&lt;sup id=sf-date-the-missing-type-3-back&gt;&lt;a href=#sf-date-the-missing-type-3 class=simple-footnote title="Why does the &amp;quot;today&amp;quot; depend on the timezone? If a friend from Los Angeles calls at 11pm, but you're in New York, today is tomorrow! (Or yesterday, depending on who says it.)"&gt;3&lt;/a&gt;&lt;/sup&gt;
+on the &lt;strong&gt;timezone&lt;/strong&gt; and for many applications, the application user likely has a
+specific timezone that is natural for that check.&lt;/p&gt;
+&lt;p&gt;In codebases maintained over time by teams of different people, it's very
+common for a developer to come in and edit existing code that they didn't
+write. In cases like this, it's easy to have less context than the original
+author.&lt;/p&gt;
+&lt;p&gt;Without sufficient context, mixing up the precision of &lt;code&gt;now&lt;/code&gt; (datetime) and the
+precision of &lt;code&gt;deadline&lt;/code&gt; (date) is an easy mistake to make. On the other hand, if
+&lt;code&gt;deadline&lt;/code&gt; was not the same type as &lt;code&gt;now&lt;/code&gt;, developers are forced to consider the
+difference between the two types and account for this difference. If a &lt;code&gt;Date&lt;/code&gt;
+was used to represent the deadline instead:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nx&gt;deadlineDate&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;date&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;NewDate&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;2024&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;March&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;1&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;then a correct implementation can both incorporate the timezone and ensure
+that same percentage of the hours in the day are not erroneously ignored:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nx&gt;nowDate&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=nx&gt;date&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;InTimezone&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;now&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;tz&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;span class=nx&gt;withinDeadline&lt;/span&gt; &lt;span class=o&gt;:=&lt;/span&gt; &lt;span class=p&gt;!&lt;/span&gt;&lt;span class=nx&gt;nowDate&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;After&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;deadlineDate&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Missing pieces" src="/images/puzzle-missing-pieces.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;h2&gt;Integrating with sqlc&lt;/h2&gt;
+&lt;p&gt;We use the &lt;code&gt;sqlc&lt;/code&gt; &lt;a href="https://docs.sqlc.dev"&gt;library&lt;/a&gt; at Hardfin for all Go code that interacts with
+the database. (See the wonderful &lt;a href="https://brandur.org/sqlc"&gt;post&lt;/a&gt; by PostgreSQL blogging legend Brandur
+Leach for some of the benefits of &lt;code&gt;sqlc&lt;/code&gt;.)&lt;/p&gt;
+&lt;p&gt;Out of the box, &lt;code&gt;sqlc&lt;/code&gt; uses a Go &lt;code&gt;time.Time&lt;/code&gt; both for columns of type
+&lt;code&gt;TIMESTAMPTZ&lt;/code&gt; and &lt;code&gt;DATE&lt;/code&gt;. When reading &lt;code&gt;DATE&lt;/code&gt; values (which come over the
+wire in the form YYYY-MM-DD), the Go standard library produces values of the
+form:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;Date&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=nx&gt;YYYY&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;MM&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;DD&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=mi&gt;0&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=nx&gt;time&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=nx&gt;UTC&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Instead, we can instruct &lt;code&gt;sqlc&lt;/code&gt; to &lt;strong&gt;globally&lt;/strong&gt; use &lt;code&gt;date.Date&lt;/code&gt; and
+&lt;code&gt;date.NullDate&lt;/code&gt; when parsing &lt;code&gt;DATE&lt;/code&gt; columns:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=nn&gt;---&lt;/span&gt;
+&lt;span class=nt&gt;version&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class=s&gt;"2"&lt;/span&gt;
+&lt;span class=nt&gt;overrides&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+  &lt;span class=nt&gt;go&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+    &lt;span class=nt&gt;overrides&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class=nt&gt;go_type&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+          &lt;span class=nt&gt;import&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;github.com/hardfinhq/go-date&lt;/span&gt;
+          &lt;span class=nt&gt;package&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;date&lt;/span&gt;
+          &lt;span class=nt&gt;type&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;NullDate&lt;/span&gt;
+        &lt;span class=nt&gt;db_type&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;date&lt;/span&gt;
+        &lt;span class=nt&gt;nullable&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;true&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class=nt&gt;go_type&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt;
+          &lt;span class=nt&gt;import&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;github.com/hardfinhq/go-date&lt;/span&gt;
+          &lt;span class=nt&gt;package&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;date&lt;/span&gt;
+          &lt;span class=nt&gt;type&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;Date&lt;/span&gt;
+        &lt;span class=nt&gt;db_type&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;date&lt;/span&gt;
+        &lt;span class=nt&gt;nullable&lt;/span&gt;&lt;span class=p&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;false&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2&gt;Why do &lt;em&gt;we&lt;/em&gt; care?&lt;/h2&gt;
+&lt;p&gt;At Hardfin, we help equipment manufacturers automate their financial operations
+by connecting real world &lt;strong&gt;events&lt;/strong&gt; to hardware subscriptions. This inherently
+means we collect and store &lt;strong&gt;a lot&lt;/strong&gt; of dates.&lt;/p&gt;
+&lt;p&gt;For many event types, we are able to collect both the date and the timestamp.
+For example, if a user action occurs in our application or if an update comes in
+from a third party system like Stripe. However for some events, the timestamp is
+not required, not important, and oftentimes not known. For example, an operator
+may know that "a robot was shipped on December 28" but may not know the exact
+time of day that robot was shipped. The date December 28 has enough information
+&lt;strong&gt;without the timestamp&lt;/strong&gt; to trigger automation for the manufacturer's billing
+and revenue.&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Connecting events" src="/images/train-aerial-view.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;h2&gt;Go forth and differentiate&lt;/h2&gt;
+&lt;p&gt;This package is intended to be &lt;strong&gt;simple&lt;/strong&gt;! (Simple to understand and simple to
+implement.) The package is only intended to cover "modern" dates (i.e. dates
+between the years 1900 and 2100) and so it can avoid resorting to the
+&lt;a href="https://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar"&gt;proleptic Gregorian calendar&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;As a result, the core &lt;code&gt;Date&lt;/code&gt; type directly exposes the year, month, and day as
+struct fields.&lt;/p&gt;
+&lt;p&gt;We hope this package will come in handy for teams that need to draw a clear
+distinction between datetime and date values!&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Pick a date" src="/images/calendar-clipboard.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-date-the-missing-type-1&gt;Here by &lt;strong&gt;datetime&lt;/strong&gt;, we mean an object that contains
+&lt;strong&gt;both&lt;/strong&gt; date (year, month, day), time information (hour, minute, second,
+millisecond / microsecond / nanosecond), and often a relevant timezone as well.
+For example this is provided by the &lt;code&gt;datetime.datetime&lt;/code&gt; &lt;a href="https://docs.python.org/3/library/datetime.html"&gt;type&lt;/a&gt; in Python and
+&lt;code&gt;Date&lt;/code&gt; in JavaScript. &lt;a href=#sf-date-the-missing-type-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-date-the-missing-type-2&gt;Those
+discussions usually included a phrase like "I wish the Go standard library had a
+separate &lt;code&gt;Date&lt;/code&gt; type"! &lt;a href=#sf-date-the-missing-type-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-date-the-missing-type-3&gt;Why does the "today"
+depend on the timezone? If a friend from Los Angeles calls at 11pm, but you're
+in New York, today is tomorrow! (Or yesterday, depending on who says it.) &lt;a href=#sf-date-the-missing-type-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="Go"></category><category term="Date"></category><category term="Datetime"></category><category term="Standard library"></category></entry><entry><title>Moser's Circle Problem and Polynomial Root Asymptotes</title><link href="https://blog.bossylobster.com/2023/07/moser-circle-estimates.html" rel="alternate"></link><published>2023-07-18T00:00:00-07:00</published><updated>2023-07-18T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2023-07-18:/2023/07/moser-circle-estimates.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="3b1b Moser's Circle Problem" src="/images/3b1b-moser-thumbnail.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;Below, we'll show two facts which help understand the positive integer solutions

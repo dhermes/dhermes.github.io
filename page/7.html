@@ -72,6 +72,27 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-16-cordon-pod.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/07/cordon-pod.html">Isolating (Cordoning) a Misbehaving Pod</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-07-16T00:00:00-07:00" pubdate>Jul 16, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><blockquote>
+<p><strong>TL;DR</strong>: You can remove a misbehaving pod from a service without deleting
+it. Use <code>kubectl label pod ... cyberdyne-service- ...</code> to remove a
+label / labels. Once the labels are gone it will be removed from the
+Kubernetes service that routes traffic to pods.</p>
+</blockquote>
+<p>When a Kubernetes <strong>node</strong> is misbehaving, it's common …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/cordon-pod.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-08-addr-vs-host.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/addr-vs-host.html">ADDR vs. HOST</a>
@@ -159,24 +180,6 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
     <a rel="full-article" href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-08-31-http2-note.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2019/08/http2-note.html">Decoding HTTP/2 and gRPC</a>
-      </h1>
-    <p class="meta">
-<time datetime="2019-08-31T00:00:00-07:00" pubdate>Aug 31, 2019</time>    </p>
-</header>
-
-  <div class="entry-content"><p>In order to learn a bit more about how both the TCP and HTTP/2 protocols work,
-I recently created the <code>tcp-h2-describe</code> <a href="https://pypi.org/project/tcp-h2-describe/0.1.0/">reverse proxy</a> in Python. I was
-excited about some of the insights I was able to glean from the process, in
-particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0/EXAMPLE-gRPC.md">example</a> tracing a connection …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2019/08/http2-note.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/8">&larr; Older</a>
 
@@ -192,6 +195,9 @@ particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2023/07/moser-circle-estimates.html">Moser's Circle Problem and Polynomial Root Asymptotes</a>
       </li>
       <li class="post">
@@ -202,9 +208,6 @@ particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
       </li>
     </ul>
   </section>
@@ -231,7 +234,7 @@ particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2023  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2024  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
