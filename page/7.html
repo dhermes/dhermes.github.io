@@ -72,6 +72,28 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-17-loopback-vs-any-ip.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Difference Between localhost and 0.0.0.0</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-07-17T00:00:00-07:00" pubdate>Jul 17, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><blockquote>
+<p><strong>Note</strong>: In a <code>docker</code> container, a server can only be available
+<strong>outside of the container / pod</strong> if it is bound to the "any host"
+IP<sup id=sf-loopback-vs-any-ip-1-back><a href=#sf-loopback-vs-any-ip-1 class=simple-footnote title='The "any host" IP is 0.0.0.0 for IPv4 and :: for IPv6'>1</a></sup>.
+Binding a server to <code>localhost</code> / the loopback IP<sup id=sf-loopback-vs-any-ip-2-back><a href=#sf-loopback-vs-any-ip-2 class=simple-footnote title="The loopback IP is 127.0.0.1 for IPv4 and ::1 for IPv6.">2</a></sup> will mean the server is
+only reachable within the container / pod.</p>
+</blockquote>
+<p>Consider the following Express …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-16-cordon-pod.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/cordon-pod.html">Isolating (Cordoning) a Misbehaving Pod</a>
@@ -162,24 +184,6 @@ explains concretely why.</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-04-22-threadsafe-connection-pool.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-04-22T00:00:00-07:00" pubdate>Apr 22, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>I've been load testing quite a bit recently. So far I've been impressed by the
-<code>wrk</code> <a href="https://github.com/wg/wrk">project's</a> use of sockets to pour on a ridiculously high amount of
-load. When I had stretched the system under load <strong>past</strong> its limits, finding
-the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> was a breath of fresh air …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/8">&larr; Older</a>
 
@@ -195,6 +199,9 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
       </li>
       <li class="post">
@@ -205,9 +212,6 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
       </li>
     </ul>
   </section>

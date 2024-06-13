@@ -72,6 +72,24 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-04-22-threadsafe-connection-pool.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-04-22T00:00:00-07:00" pubdate>Apr 22, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p>I've been load testing quite a bit recently. So far I've been impressed by the
+<code>wrk</code> <a href="https://github.com/wg/wrk">project's</a> use of sockets to pour on a ridiculously high amount of
+load. When I had stretched the system under load <strong>past</strong> its limits, finding
+the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> was a breath of fresh air …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-08-31-http2-note.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2019/08/http2-note.html">Decoding HTTP/2 and gRPC</a>
@@ -146,24 +164,6 @@ Linear Algebra has been done via <a href="https://en.wikipedia.org/wiki/LAPACK">
     <a rel="full-article" href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2018-09-07-graduated.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2018/09/graduated.html">Graduated</a>
-      </h1>
-    <p class="meta">
-<time datetime="2018-09-07T00:00:00-07:00" pubdate>Sep 07, 2018</time>    </p>
-</header>
-
-  <div class="entry-content"><p>After five years, I'm excited to say I've finished <a href="https://github.com/dhermes/phd-thesis">my PhD</a>. I certainly
-learned a lot and met a lot of great people along the way.</p>
-<p>One of the biggest lessons I learned was about myself: I need to <strong>say no</strong>
-more often. I continued to say yes, to <a href="https://github.com/GoogleCloudPlatform/google-cloud-python/">side …</a></p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2018/09/graduated.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/9">&larr; Older</a>
 
@@ -179,6 +179,9 @@ more often. I continued to say yes, to <a href="https://github.com/GoogleCloudPl
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
       </li>
       <li class="post">
@@ -189,9 +192,6 @@ more often. I continued to say yes, to <a href="https://github.com/GoogleCloudPl
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
       </li>
     </ul>
   </section>

@@ -101,7 +101,8 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <p><img alt=go-date src="/images/calendar-pins.jpg"></p>
 </div>
 <blockquote>
-<p>This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/">blog</a>.</p>
+<p>This post was included in <a href="https://golangweekly.com/issues/499">Golang Weekly issue 499</a>.
+This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/">blog</a>.</p>
 </blockquote>
 <p>The Go standard library uses a single overloaded <a href="https://pkg.go.dev/time#Time">type</a> as a stand-in for
 both full datetimes<sup id=sf-date-the-missing-type-1-back><a href=#sf-date-the-missing-type-1 class=simple-footnote title="Here by datetime, we mean an object that contains both date (year, month, day), time information (hour, minute, second, millisecond / microsecond / nanosecond), and often a relevant timezone as well. For example this is provided by the datetime.datetime type in Python and Date in JavaScript.">1</a></sup> and dates. This mostly "just works", but slowly
@@ -256,6 +257,9 @@ in New York, today is tomorrow! (Or yesterday, depending on who says it.) <a hre
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
       </li>
       <li class="post">
@@ -266,9 +270,6 @@ in New York, today is tomorrow! (Or yesterday, depending on who says it.) <a hre
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
       </li>
     </ul>
   </section>

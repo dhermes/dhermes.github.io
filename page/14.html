@@ -72,6 +72,28 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2011-11-30-python-metaclass-for-extra-bad-errors.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2011/11/python-metaclass-for-extra-bad-errors.html">A Python Metaclass for "extra bad" errors in Google App Engine</a>
+      </h1>
+    <p class="meta">
+<time datetime="2011-11-30T00:00:00-08:00" pubdate>Nov 30, 2011</time>    </p>
+</header>
+
+  <div class="entry-content"><p>So now here we are, having tried to
+<a href="/2011/11/handling-errors-in-google-app-engineand.html">handle errors in Google App Engine...and failed</a>
+all because silly <code>DeadlineExceededError</code>
+<a href="https://code.google.com/p/googleappengine/source/browse/trunk/python/google/appengine/runtime/__init__.py?r=491#33">jumps over</a>
+<code>Exception</code> in the inheritance chain and goes right for <code>BaseException</code>.
+How can we catch these in our handlers while staying
+<a href="http://docs.python.org/glossary.html#term-pythonic">Pythonic</a>?</p>
+<p>First and foremost, in the case of …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2011/11/python-metaclass-for-extra-bad-errors.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2011-11-27-handling-errors-in-google-app-engineand.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2011/11/handling-errors-in-google-app-engineand.html">Handling errors in Google App Engine...and failing</a>
@@ -141,25 +163,6 @@ from <a href="https://twitter.com/#!/robhawkes">Rob Hawkes</a>:</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2011/10/protecting.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2011-08-29-finding-fibonacci-golden-nuggets-part-2.template" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets-part-2.html">Finding (Fibonacci) Golden Nuggets Part 2</a>
-      </h1>
-    <p class="meta">
-<time datetime="2011-08-29T00:00:00-07:00" pubdate>Aug 29, 2011</time>    </p>
-</header>
-
-  <div class="entry-content"><p>This is the <strong>mostly code</strong> second half of a
-<a href="/2011/08/finding-fibonacci-golden-nuggets.html">two part post</a>
-that delivers on a promise of meaningful uses of some theory I
-overviewed in my last set of posts.If you see words like topograph,
-river, and base and you aren't sure what I mean, you may want …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2011/08/finding-fibonacci-golden-nuggets-part-2.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/15">&larr; Older</a>
 
@@ -175,6 +178,9 @@ river, and base and you aren't sure what I mean, you may want …</p></div>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
       </li>
       <li class="post">
@@ -185,9 +191,6 @@ river, and base and you aren't sure what I mean, you may want …</p></div>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
       </li>
     </ul>
   </section>

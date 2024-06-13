@@ -72,6 +72,30 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2024-06-12-almost-unique-constraint.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
+      </h1>
+    <p class="meta">
+<time datetime="2024-06-12T00:00:00-07:00" pubdate>Jun 12, 2024</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt=almost-unique src="/images/almost-unique.jpg"></p>
+</div>
+<blockquote>
+<p>It turns out it's quite straightforward to construct an "<strong>almost</strong> unique"
+constraint in PostgreSQL via <code>EXCLUDE</code>.</p>
+</blockquote>
+<p>I was recently stuck in a jam in our PostgreSQL database during a feature
+migration. We needed a "<a href="https://www.postgresql.org/docs/16/indexes-partial.html">partial</a> <code>UNIQUE</code>" constraint and I was surprised
+to find out that PostgreSQL doesn't support them<sup id=sf-almost-unique-constraint-1-back><a href=#sf-almost-unique-constraint-1 class=simple-footnote title="I was surprised because my default assumption is that PostgreSQL can do everything">1 …</a></sup></p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2024-02-29-date-the-missing-type.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
@@ -84,13 +108,12 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <p><img alt=go-date src="/images/calendar-pins.jpg"></p>
 </div>
 <blockquote>
-<p>This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/">blog</a>.</p>
+<p>This post was included in <a href="https://golangweekly.com/issues/499">Golang Weekly issue 499</a>.
+This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/">blog</a>.</p>
 </blockquote>
 <p>The Go standard library uses a single overloaded <a href="https://pkg.go.dev/time#Time">type</a> as a stand-in for
 both full datetimes<sup id=sf-date-the-missing-type-1-back><a href=#sf-date-the-missing-type-1 class=simple-footnote title="Here by datetime, we mean an object that contains both date (year, month, day), time information (hour, minute, second, millisecond / microsecond / nanosecond), and often a relevant timezone as well. For example this is provided by the datetime.datetime type in Python and Date in JavaScript.">1</a></sup> and dates. This mostly "just works", but slowly
-starts to <strong>degrade correctness</strong> in codebases where both datetime and date
-values need to <a href=#opportunity-for-correctness-to-degrade>interact</a>.</p>
-<p>We store …</p></div>
+starts to <strong>degrade correctness</strong> in codebases where both …</p></div>
   <footer>
     <a rel="full-article" href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">Read On &crarr;</a>
   </footer>
@@ -157,38 +180,14 @@ operational …</p></div>
 <p><img alt="npm and Go" src="/images/npm-and-go.png"></p>
 </div>
 <blockquote>
-<p>This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2022/05/npm-mod/">blog</a>.</p>
+<p>This post was included in <a href="https://golangweekly.com/issues/414">Golang Weekly issue 414</a>.
+This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2022/05/npm-mod/">blog</a>.</p>
 </blockquote>
 <p>As programming language ecosystems evolve, they learn from each other. When this
 happens we all benefit from more useful features, patterns, libraries, and
-tools. A core part of a programming language ecosystem — packaging —
-can be a source of pain, e.g. from …</p></div>
+tools. A core part of a programming language ecosystem — packaging …</p></div>
   <footer>
     <a rel="full-article" href="https://blog.bossylobster.com/2022/05/npm-mod.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2022-04-04-emulate-rds-permissions.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
-      </h1>
-    <p class="meta">
-<time datetime="2022-04-04T00:00:00-07:00" pubdate>Apr 04, 2022</time>    </p>
-</header>
-
-  <div class="entry-content"><div style="text-align: center;">
-<p><img alt="Terraform, PostgreSQL and RDS" src="/images/terraform-postgresql-and-rds.png"></p>
-</div>
-<blockquote>
-<p>This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2022/04/emulate-rds-permissions/">blog</a>.</p>
-</blockquote>
-<p>At Hardfin, we use AWS RDS for managed PostgreSQL instances to simplify our
-infrastructure and focus on product. For the most part, RDS is
-"just PostgreSQL" and acts like the PostgreSQL instances that we run on our
-development machines. Unfortunately, it differs …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Read On &crarr;</a>
   </footer>
       </article>
 <div class="pagination">
@@ -205,6 +204,9 @@ development machines. Unfortunately, it differs …</p></div>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
       </li>
       <li class="post">
@@ -215,9 +217,6 @@ development machines. Unfortunately, it differs …</p></div>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
       </li>
     </ul>
   </section>

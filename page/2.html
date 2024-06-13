@@ -72,6 +72,30 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2022-04-04-emulate-rds-permissions.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
+      </h1>
+    <p class="meta">
+<time datetime="2022-04-04T00:00:00-07:00" pubdate>Apr 04, 2022</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt="Terraform, PostgreSQL and RDS" src="/images/terraform-postgresql-and-rds.png"></p>
+</div>
+<blockquote>
+<p>This is cross-posted from the Hardfin engineering <a href="https://engineering.hardfin.com/2022/04/emulate-rds-permissions/">blog</a>.</p>
+</blockquote>
+<p>At Hardfin, we use AWS RDS for managed PostgreSQL instances to simplify our
+infrastructure and focus on product. For the most part, RDS is
+"just PostgreSQL" and acts like the PostgreSQL instances that we run on our
+development machines. Unfortunately, it differs …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
       <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2022-03-04-blend-epitaph.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2022/03/blend-epitaph.html">Epitaph: Blend</a>
@@ -103,16 +127,14 @@ I want to thank you all from the bottom …</p></div>
 </header>
 
   <div class="entry-content"><p><img alt="Go with GitHub Actions" src="/images/go-with-github-actions.png"></p>
+<blockquote>
+<p>This post was included in <a href="https://golangweekly.com/issues/399">Golang Weekly issue 399</a>.</p>
+</blockquote>
 <p>I recently<sup id=sf-how-to-write-github-actions-in-go-1-back><a href=#sf-how-to-write-github-actions-in-go-1 class=simple-footnote title="It was recent when I wrote this on February 7, 2022.">1</a></sup> had
 the privilege of co-authoring a blog post on the Blend <a href="https://full-stack.blend.com/">engineering blog</a>
 with my esteemed colleague <a href="https://github.com/thomasnotfound">Thomas Taylor</a>. I copied this content over
 mostly as-is from the <a href="https://full-stack.blend.com/how-we-write-github-actions-in-go.html">original post</a> but wanted to preserve it here as
-well.</p>
-<h3>Contents</h3>
-<ul>
-<li><a href=#introduction>Introduction</a></li>
-<li><a href=#authoring-an-action>Authoring an Action: Today's Landscape</a></li>
-<li><a href=#how-we-release>How We …</a></li></ul></div>
+well …</p></div>
   <footer>
     <a rel="full-article" href="https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html">Read On &crarr;</a>
   </footer>
@@ -157,33 +179,6 @@ one such example of this, but that is mostly about differences between …</p></
     <a rel="full-article" href="https://blog.bossylobster.com/2021/11/safe-column-renames.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-30-database-migrations-milestone.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">What Is a Milestone Migration and Why Do I Care?</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-10-30T00:00:00-07:00" pubdate>Oct 30, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><p><img alt="Database Milestone" src="/images/database_milestone.jpg"></p>
-<h3 id=motivation>Motivation</h3>
-<p>Over time an application becomes a living thing. When operating a running
-service, it's crucial to not only ask the question</p>
-<blockquote>
-<p>Does the code being deployed work?</p>
-</blockquote>
-<p>it's also crucial to ask</p>
-<blockquote>
-<p>Can I safely deploy this change given the currently running version of my
-service?</p>
-</blockquote>
-<p>This second question …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/database-migrations-milestone.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/3">&larr; Older</a>
 
@@ -199,6 +194,9 @@ service?</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
       </li>
       <li class="post">
@@ -209,9 +207,6 @@ service?</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html">Emulating RDS Permissions with Terraform</a>
       </li>
     </ul>
   </section>

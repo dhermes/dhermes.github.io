@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Thu, 29 Feb 2024 00:00:00 -0800</lastBuildDate><item><title>The missing type in the Go standard library: Date!</title><link>https://blog.bossylobster.com/2024/02/date-the-missing-type.html</link><description>&lt;div style="text-align: center;"&gt;
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Wed, 12 Jun 2024 00:00:00 -0700</lastBuildDate><item><title>Almost unique (constraints)</title><link>https://blog.bossylobster.com/2024/06/almost-unique-constraint.html</link><description>&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt=almost-unique src="/images/almost-unique.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;It turns out it's quite straightforward to construct an "&lt;strong&gt;almost&lt;/strong&gt; unique"
+constraint in PostgreSQL via &lt;code&gt;EXCLUDE&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I was recently stuck in a jam in our PostgreSQL database during a feature
+migration. We needed a "&lt;a href="https://www.postgresql.org/docs/16/indexes-partial.html"&gt;partial&lt;/a&gt; &lt;code&gt;UNIQUE&lt;/code&gt;" constraint and I was surprised
+to find out that PostgreSQL doesn't support them&lt;sup id=sf-almost-unique-constraint-1-back&gt;&lt;a href=#sf-almost-unique-constraint-1 class=simple-footnote title="I was surprised because my default assumption is that PostgreSQL can do everything"&gt;1 …&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Wed, 12 Jun 2024 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2024-06-12:/2024/06/almost-unique-constraint.html</guid><category>misc</category><category>PostgreSQL</category><category>SQL</category><category>database</category><category>constraint</category><category>TIL</category></item><item><title>The missing type in the Go standard library: Date!</title><link>https://blog.bossylobster.com/2024/02/date-the-missing-type.html</link><description>&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt=go-date src="/images/calendar-pins.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;blockquote&gt;
-&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This post was included in &lt;a href="https://golangweekly.com/issues/499"&gt;Golang Weekly issue 499&lt;/a&gt;.
+This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2024/02/date-the-missing-type/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;The Go standard library uses a single overloaded &lt;a href="https://pkg.go.dev/time#Time"&gt;type&lt;/a&gt; as a stand-in for
 both full datetimes&lt;sup id=sf-date-the-missing-type-1-back&gt;&lt;a href=#sf-date-the-missing-type-1 class=simple-footnote title="Here by datetime, we mean an object that contains both date (year, month, day), time information (hour, minute, second, millisecond / microsecond / nanosecond), and often a relevant timezone as well. For example this is provided by the datetime.datetime type in Python and Date in JavaScript."&gt;1&lt;/a&gt;&lt;/sup&gt; and dates. This mostly "just works", but slowly
-starts to &lt;strong&gt;degrade correctness&lt;/strong&gt; in codebases where both datetime and date
-values need to &lt;a href=#opportunity-for-correctness-to-degrade&gt;interact&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;We store …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 29 Feb 2024 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2024-02-29:/2024/02/date-the-missing-type.html</guid><category>misc</category><category>Go</category><category>Date</category><category>Datetime</category><category>Standard library</category></item><item><title>Moser's Circle Problem and Polynomial Root Asymptotes</title><link>https://blog.bossylobster.com/2023/07/moser-circle-estimates.html</link><description>&lt;div style="text-align: center;"&gt;
+starts to &lt;strong&gt;degrade correctness&lt;/strong&gt; in codebases where both …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 29 Feb 2024 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2024-02-29:/2024/02/date-the-missing-type.html</guid><category>misc</category><category>Go</category><category>Date</category><category>Datetime</category><category>Standard library</category></item><item><title>Moser's Circle Problem and Polynomial Root Asymptotes</title><link>https://blog.bossylobster.com/2023/07/moser-circle-estimates.html</link><description>&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="3b1b Moser's Circle Problem" src="/images/3b1b-moser-thumbnail.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;p&gt;Below, we'll show two facts which help understand the positive integer solutions
@@ -31,12 +39,12 @@ operational …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/
 &lt;p&gt;&lt;img alt="npm and Go" src="/images/npm-and-go.png"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;blockquote&gt;
-&lt;p&gt;This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/05/npm-mod/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This post was included in &lt;a href="https://golangweekly.com/issues/414"&gt;Golang Weekly issue 414&lt;/a&gt;.
+This is cross-posted from the Hardfin engineering &lt;a href="https://engineering.hardfin.com/2022/05/npm-mod/"&gt;blog&lt;/a&gt;.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;As programming language ecosystems evolve, they learn from each other. When this
 happens we all benefit from more useful features, patterns, libraries, and
-tools. A core part of a programming language ecosystem — packaging —
-can be a source of pain, e.g. from …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 26 May 2022 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2022-05-26:/2022/05/npm-mod.html</guid><category>misc</category><category>npm</category><category>Go</category><category>Packaging</category><category>Airplane Mode</category><category>Offline</category></item><item><title>Emulating RDS Permissions with Terraform</title><link>https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html</link><description>&lt;div style="text-align: center;"&gt;
+tools. A core part of a programming language ecosystem — packaging …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 26 May 2022 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2022-05-26:/2022/05/npm-mod.html</guid><category>misc</category><category>npm</category><category>Go</category><category>Packaging</category><category>Airplane Mode</category><category>Offline</category></item><item><title>Emulating RDS Permissions with Terraform</title><link>https://blog.bossylobster.com/2022/04/emulate-rds-permissions.html</link><description>&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt="Terraform, PostgreSQL and RDS" src="/images/terraform-postgresql-and-rds.png"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;blockquote&gt;
@@ -53,16 +61,14 @@ development machines. Unfortunately, it differs …&lt;/p&gt;</description><dc:c
 (March 4, 2022) is my last day. I am overwhelmed with emotion thinking about
 all of the amazing people I worked with and projects I worked on at Blend.
 I want to thank you all from the bottom …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Fri, 04 Mar 2022 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2022-03-04:/2022/03/blend-epitaph.html</guid><category>misc</category><category>Blend</category><category>Goodbyes</category><category>Epitaph</category></item><item><title>How to Write GitHub Actions in Go</title><link>https://blog.bossylobster.com/2022/02/how-to-write-github-actions-in-go.html</link><description>&lt;p&gt;&lt;img alt="Go with GitHub Actions" src="/images/go-with-github-actions.png"&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This post was included in &lt;a href="https://golangweekly.com/issues/399"&gt;Golang Weekly issue 399&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
 &lt;p&gt;I recently&lt;sup id=sf-how-to-write-github-actions-in-go-1-back&gt;&lt;a href=#sf-how-to-write-github-actions-in-go-1 class=simple-footnote title="It was recent when I wrote this on February 7, 2022."&gt;1&lt;/a&gt;&lt;/sup&gt; had
 the privilege of co-authoring a blog post on the Blend &lt;a href="https://full-stack.blend.com/"&gt;engineering blog&lt;/a&gt;
 with my esteemed colleague &lt;a href="https://github.com/thomasnotfound"&gt;Thomas Taylor&lt;/a&gt;. I copied this content over
 mostly as-is from the &lt;a href="https://full-stack.blend.com/how-we-write-github-actions-in-go.html"&gt;original post&lt;/a&gt; but wanted to preserve it here as
-well.&lt;/p&gt;
-&lt;h3&gt;Contents&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=#introduction&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=#authoring-an-action&gt;Authoring an Action: Today's Landscape&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=#how-we-release&gt;How We …&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Mon, 07 Feb 2022 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2022-02-07:/2022/02/how-to-write-github-actions-in-go.html</guid><category>misc</category><category>Go</category><category>GitHub Actions</category><category>Continuous Integration</category><category>Golang</category></item><item><title>Bare Metal Kubernetes with Tailscale</title><link>https://blog.bossylobster.com/2021/12/tailsk8s.html</link><description>&lt;p&gt;For my most recent side project &lt;code&gt;tailsk8s&lt;/code&gt;, I've been &lt;a href="https://github.com/dhermes/tailsk8s/tree/v1.20211214.1"&gt;hacking&lt;/a&gt; on a
+well …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Mon, 07 Feb 2022 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2022-02-07:/2022/02/how-to-write-github-actions-in-go.html</guid><category>misc</category><category>Go</category><category>GitHub Actions</category><category>Continuous Integration</category><category>Golang</category></item><item><title>Bare Metal Kubernetes with Tailscale</title><link>https://blog.bossylobster.com/2021/12/tailsk8s.html</link><description>&lt;p&gt;For my most recent side project &lt;code&gt;tailsk8s&lt;/code&gt;, I've been &lt;a href="https://github.com/dhermes/tailsk8s/tree/v1.20211214.1"&gt;hacking&lt;/a&gt; on a
 bare metal Kubernetes cluster that uses &lt;a href="https://tailscale.com/"&gt;Tailscale&lt;/a&gt; for networking.
 I had a lot of fun and learned a lot, but the TL;DR is that each Kubernetes
 node is a Tailscale &lt;a href="https://tailscale.com/kb/1019/subnets/"&gt;subnet router&lt;/a&gt; and uses the &lt;code&gt;kubenet&lt;/code&gt; &lt;a href="https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#kubenet"&gt;CNI …&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Tue, 14 Dec 2021 00:00:00 -0800</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2021-12-14:/2021/12/tailsk8s.html</guid><category>misc</category><category>Kubernetes</category><category>CNI</category><category>Tailscale</category><category>VPN</category><category>Mesh VPN</category></item><item><title>Remodeling the House While Living in It</title><link>https://blog.bossylobster.com/2021/11/safe-column-renames.html</link><description>&lt;div style="text-align: center;"&gt;
