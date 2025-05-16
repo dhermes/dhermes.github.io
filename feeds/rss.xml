@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Wed, 12 Jun 2024 00:00:00 -0700</lastBuildDate><item><title>Almost unique (constraints)</title><link>https://blog.bossylobster.com/2024/06/almost-unique-constraint.html</link><description>&lt;div style="text-align: center;"&gt;
+<rss version="2.0"><channel><title>Bossy Lobster</title><link>https://blog.bossylobster.com/</link><description>A blog by Danny Hermes; musing on tech, mathematics, etc.</description><lastBuildDate>Thu, 15 May 2025 00:00:00 -0700</lastBuildDate><item><title>AI-assisted Postgres schema surgery</title><link>https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html</link><description>&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt=lock-contention src="/images/postgres-schema-surgery-hero.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the WorkWhile engineering &lt;a href="https://tech.workwhile.ai/blogs/ai-assisted-postgres-schema-surgery-p5hilaq7"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This post describes a zero-downtime schema change to a high contention table
+— guided (and greatly accelerated) by ChatGPT.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#wrong-assumption&gt;We made the wrong assumption&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#online-migrations&gt;Online migrations and table contention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#get-by-with-help&gt;I get by with a little help from my (AI) friend&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#add-new-column&gt;Add new …&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Danny Hermes (dhermes@bossylobster.com)</dc:creator><pubDate>Thu, 15 May 2025 00:00:00 -0700</pubDate><guid isPermaLink="false">tag:blog.bossylobster.com,2025-05-15:/2025/05/ai-assisted-postgres-schema-surgery.html</guid><category>misc</category><category>PostgreSQL</category><category>Migrations</category><category>ChatGPT</category><category>LLM</category></item><item><title>Almost unique (constraints)</title><link>https://blog.bossylobster.com/2024/06/almost-unique-constraint.html</link><description>&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt=almost-unique src="/images/almost-unique.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;blockquote&gt;

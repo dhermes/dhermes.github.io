@@ -72,7 +72,27 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-11-node-ca-footgun.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-05-12-node-ca-append.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-05-12T00:00:00-07:00" pubdate>May 12, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><blockquote>
+<p><strong>TL;DR</strong>: Using the <code>ca</code> field to specify custom CAs (certificate
+authorities) in Node.js is a <a href="/2021/05/node-ca-footgun.html">footgun</a>. It replaces (rather than appends
+to) the root trust store which can lead to unintended consequences. I've
+seen this behavior cause outages in production when a third party server does
+a routine …</p></blockquote></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-05-11-node-ca-footgun.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/05/node-ca-footgun.html">The Node.js CA Footgun</a>
       </h1>
@@ -93,7 +113,7 @@ the lesson was especially salient.</p>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-03-03-custom-github-actions.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-03-03-custom-github-actions.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/03/custom-github-actions.html">Custom GitHub Actions</a>
       </h1>
@@ -113,7 +133,7 @@ and STDOUT (to produce custom outputs).</p>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-02-24-http-is-just-text.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-02-24-http-is-just-text.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/02/http-is-just-text.html">HTTP Is Just Text</a>
       </h1>
@@ -133,7 +153,7 @@ HTTP …</p></div>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-12-01-broken-pipe.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-12-01-broken-pipe.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Broken Pipe in a Haystack</a>
       </h1>
@@ -154,25 +174,6 @@ and smaller. In order to find and fix the bug I</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/12/broken-pipe.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2020-11-25-pow-confusion.template" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-11-25T00:00:00-08:00" pubdate>Nov 25, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>In my first summer of graduate school my code suddenly stopped working
-because Fortran and Python (via <code>pow()</code> in C) do exponentiation differently.
-Once I debugged and understood the problem, I learned about the highly
-optimized assembly code produced by Fortran for integer exponents.</p>
-<p>To give a sample of the …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/11/pow-confusion.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/6">&larr; Older</a>
 
@@ -188,6 +189,9 @@ optimized assembly code produced by Fortran for integer exponents.</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html">AI-assisted Postgres schema surgery</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
       </li>
       <li class="post">
@@ -198,9 +202,6 @@ optimized assembly code produced by Fortran for integer exponents.</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
       </li>
     </ul>
   </section>
@@ -227,7 +228,7 @@ optimized assembly code produced by Fortran for integer exponents.</p>
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2024  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2025  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>

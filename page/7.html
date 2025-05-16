@@ -72,7 +72,26 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-17-loopback-vs-any-ip.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-07-27-life-of-request.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-07-27T00:00:00-07:00" pubdate>Jul 27, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p>I recently<sup id=sf-life-of-request-1-back><a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020.">1</a></sup> had the
+privilege of co-authoring a blog post on the Blend <a href="https://full-stack.blend.com/">engineering blog</a> with
+my esteemed colleague <a href="https://github.com/hapoore">Austin Poore</a>. Our engineering organization is
+growing like crazy right now and it's a lot of fun so if any of this post is
+interesting to you, check out our …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/life-of-request.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-07-17-loopback-vs-any-ip.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/loopback-vs-any-ip.html">Difference Between localhost and 0.0.0.0</a>
       </h1>
@@ -94,7 +113,7 @@ only reachable within the container / pod.</p>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-16-cordon-pod.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-07-16-cordon-pod.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/cordon-pod.html">Isolating (Cordoning) a Misbehaving Pod</a>
       </h1>
@@ -115,7 +134,7 @@ Kubernetes service that routes traffic to pods.</p>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-08-addr-vs-host.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-07-08-addr-vs-host.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/addr-vs-host.html">ADDR vs. HOST</a>
       </h1>
@@ -140,7 +159,7 @@ before …</p></div>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-07-running-vault-locally.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-07-07-running-vault-locally.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Running vault Locally</a>
       </h1>
@@ -158,32 +177,6 @@ first start the server with a known root token</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/07/running-vault-locally.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-05-14-trust-proxy.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Express Trust Proxy</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-05-14T00:00:00-07:00" pubdate>May 14, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><h3>Why?</h3>
-<p>Using <code>app.use('trust proxy', true)</code> is likely too permissive, this post
-explains concretely why.</p>
-<h3>Example Applications</h3>
-<p>Consider two Express applications <code>index-first.js</code> that uses
-<code>app.set("trust proxy", true)</code></p>
-<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>express</span> <span class=o>=</span> <span class=nx>require</span><span class=p>(</span><span class=s2>"express"</span><span class=p>);</span>
-<span class=kd>const</span> <span class=nx>app</span> <span class=o>=</span> <span class=nx>express</span><span class=p>();</span>
-<span class=kd>const</span> <span class=nx>port</span> <span class=o>=</span> <span class=mf>3000</span><span class=p>;</span>
-
-<span class=nx>app</span><span class=p>.</span><span class=nx>set</span><span class=p>(</span><span class=s2>"trust proxy"</span><span class=p>,</span> <span class=kc>true</span><span class=p>);</span>
-<span class=nx>app</span><span class=p>.</span><span class=nx>get</span><span class=p>(</span><span class=s2>"/"</span><span class=p>,</span> <span class=p>(</span><span class=nx>req</span><span class=p>,</span> <span class=nx>res …</span></code></pre></div></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/8">&larr; Older</a>
 
@@ -199,6 +192,9 @@ explains concretely why.</p>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html">AI-assisted Postgres schema surgery</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
       </li>
       <li class="post">
@@ -209,9 +205,6 @@ explains concretely why.</p>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
       </li>
     </ul>
   </section>
@@ -238,7 +231,7 @@ explains concretely why.</p>
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2024  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2025  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>

@@ -72,7 +72,33 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-04-22-threadsafe-connection-pool.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-05-14-trust-proxy.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Express Trust Proxy</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-05-14T00:00:00-07:00" pubdate>May 14, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><h3>Why?</h3>
+<p>Using <code>app.use('trust proxy', true)</code> is likely too permissive, this post
+explains concretely why.</p>
+<h3>Example Applications</h3>
+<p>Consider two Express applications <code>index-first.js</code> that uses
+<code>app.set("trust proxy", true)</code></p>
+<div class=highlight><pre><span></span><code><span class=kd>const</span> <span class=nx>express</span> <span class=o>=</span> <span class=nx>require</span><span class=p>(</span><span class=s2>"express"</span><span class=p>);</span>
+<span class=kd>const</span> <span class=nx>app</span> <span class=o>=</span> <span class=nx>express</span><span class=p>();</span>
+<span class=kd>const</span> <span class=nx>port</span> <span class=o>=</span> <span class=mf>3000</span><span class=p>;</span>
+
+<span class=nx>app</span><span class=p>.</span><span class=nx>set</span><span class=p>(</span><span class=s2>"trust proxy"</span><span class=p>,</span> <span class=kc>true</span><span class=p>);</span>
+<span class=nx>app</span><span class=p>.</span><span class=nx>get</span><span class=p>(</span><span class=s2>"/"</span><span class=p>,</span> <span class=p>(</span><span class=nx>req</span><span class=p>,</span> <span class=nx>res …</span></code></pre></div></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/05/trust-proxy.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-04-22-threadsafe-connection-pool.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/04/threadsafe-connection-pool.html">A Threadsafe Connection Pool for Requests</a>
       </h1>
@@ -90,7 +116,7 @@ the <code>fortio</code> <a href="https://github.com/fortio/fortio">project</a> w
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-08-31-http2-note.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2019-08-31-http2-note.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2019/08/http2-note.html">Decoding HTTP/2 and gRPC</a>
       </h1>
@@ -108,7 +134,7 @@ particular a full <a href="https://github.com/dhermes/tcp-h2-describe/blob/0.1.0
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-06-09-type-guards-for-union-types.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2019-06-09-type-guards-for-union-types.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2019/06/type-guards-for-union-types.html">Type Guards for Union Types in TypeScript</a>
       </h1>
@@ -129,7 +155,7 @@ as a <a href="https://www.typescriptlang.org/docs/handbook/advanced-types.html#u
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2019-05-27-ruby-stack-traces.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2019-05-27-ruby-stack-traces.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Attack of Ruby Stack Traces</a>
       </h1>
@@ -143,25 +169,6 @@ can quickly make past engineering decisions look foolish in hindsight. But
 almost always they are decisions made in good faith with the current …</p></div>
   <footer>
     <a rel="full-article" href="https://blog.bossylobster.com/2019/05/ruby-stack-traces.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/templated_content/2018-09-13-learn-you-a-lapack.template" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html">Learn You a LAPACK for Great Good</a>
-      </h1>
-    <p class="meta">
-<time datetime="2018-09-13T00:00:00-07:00" pubdate>Sep 13, 2018</time>    </p>
-</header>
-
-  <div class="entry-content"><p>Linear Algebra is an incredibly powerful tool. A joke among mathematicians
-is that the only way we can solve a hard problem is to boil it down to
-Linear Algebra<sup id=sf-learn-you-a-lapack-1-back><a href=#sf-learn-you-a-lapack-1 class=simple-footnote title="This actually happened to me. My undergraduate research project (REU) eventually boiled down to showing that a particularly special matrix had a nonzero determinant.">1</a></sup>. Harnessing the <strong>numerical</strong> power of
-Linear Algebra has been done via <a href="https://en.wikipedia.org/wiki/LAPACK">LAPACK</a> for the last 40+ years.</p>
-<p>In my …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2018/09/learn-you-a-lapack.html">Read On &crarr;</a>
   </footer>
       </article>
 <div class="pagination">
@@ -179,6 +186,9 @@ Linear Algebra has been done via <a href="https://en.wikipedia.org/wiki/LAPACK">
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html">AI-assisted Postgres schema surgery</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
       </li>
       <li class="post">
@@ -189,9 +199,6 @@ Linear Algebra has been done via <a href="https://en.wikipedia.org/wiki/LAPACK">
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
       </li>
     </ul>
   </section>
@@ -218,7 +225,7 @@ Linear Algebra has been done via <a href="https://en.wikipedia.org/wiki/LAPACK">
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2024  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2025  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>

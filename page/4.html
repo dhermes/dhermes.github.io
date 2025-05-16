@@ -72,7 +72,25 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-10-04-atomically-idempotent.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-10-05-decrypt-vault-ciphertext-context.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Decrypting Vault Ciphertext with a Context</a>
+      </h1>
+    <p class="meta">
+<time datetime="2021-10-05T00:00:00-07:00" pubdate>Oct 05, 2021</time>    </p>
+</header>
+
+  <div class="entry-content"><p>In a previous <a href="/2021/07/vault-import.html">post</a>, I described a use case for customer provided keys
+with Vault. One of the implications of this was the need for decryption after a
+bulk data export. In that post, I gave a concrete example of decrypting Vault
+ciphertext <strong>directly</strong> with a customer provided key. However …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2021/10/decrypt-vault-ciphertext-context.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-10-04-atomically-idempotent.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/10/atomically-idempotent.html">Atomically Idempotent</a>
       </h1>
@@ -93,7 +111,7 @@ down to:</p>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-09-10-go-context-withvalue.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-09-10-go-context-withvalue.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/09/go-context-withvalue.html">Wrapping Behavior of context.WithValue()</a>
       </h1>
@@ -118,7 +136,7 @@ as most context wrapping helpers:</p>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-08-24-typeorm-timeouts.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-08-24-typeorm-timeouts.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/08/typeorm-timeouts.html">Setting Per-Connection Timeouts with TypeORM</a>
       </h1>
@@ -140,7 +158,7 @@ monsters_inc=&gt; SHOW statement_timeout;
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-07-09-vault-import.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2021-07-09-vault-import.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2021/07/vault-import.html">Importing External Keys into Vault</a>
       </h1>
@@ -167,26 +185,6 @@ important to understand</p>
     <a rel="full-article" href="https://blog.bossylobster.com/2021/07/vault-import.html">Read On &crarr;</a>
   </footer>
       </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2021-05-12-node-ca-append.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Fixing the Custom CA Problem in Node.js</a>
-      </h1>
-    <p class="meta">
-<time datetime="2021-05-12T00:00:00-07:00" pubdate>May 12, 2021</time>    </p>
-</header>
-
-  <div class="entry-content"><blockquote>
-<p><strong>TL;DR</strong>: Using the <code>ca</code> field to specify custom CAs (certificate
-authorities) in Node.js is a <a href="/2021/05/node-ca-footgun.html">footgun</a>. It replaces (rather than appends
-to) the root trust store which can lead to unintended consequences. I've
-seen this behavior cause outages in production when a third party server does
-a routine …</p></blockquote></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2021/05/node-ca-append.html">Read On &crarr;</a>
-  </footer>
-      </article>
 <div class="pagination">
     <a class="prev" href="https://blog.bossylobster.com/page/5">&larr; Older</a>
 
@@ -202,6 +200,9 @@ a routine …</p></blockquote></div>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html">AI-assisted Postgres schema surgery</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
       </li>
       <li class="post">
@@ -212,9 +213,6 @@ a routine …</p></blockquote></div>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
       </li>
     </ul>
   </section>
@@ -241,7 +239,7 @@ a routine …</p></blockquote></div>
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2024  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2025  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>

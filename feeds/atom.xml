@@ -1,5 +1,471 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2024-06-12T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>Almost unique (constraints)</title><link href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html" rel="alternate"></link><published>2024-06-12T00:00:00-07:00</published><updated>2024-06-12T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2024-06-12:/2024/06/almost-unique-constraint.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Bossy Lobster</title><link href="https://blog.bossylobster.com/" rel="alternate"></link><link href="https://blog.bossylobster.com/feeds/atom.xml" rel="self"></link><id>https://blog.bossylobster.com/</id><updated>2025-05-15T00:00:00-07:00</updated><subtitle>A blog by Danny Hermes; musing on tech, mathematics, etc.</subtitle><entry><title>AI-assisted Postgres schema surgery</title><link href="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html" rel="alternate"></link><published>2025-05-15T00:00:00-07:00</published><updated>2025-05-15T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2025-05-15:/2025/05/ai-assisted-postgres-schema-surgery.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt=lock-contention src="/images/postgres-schema-surgery-hero.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the WorkWhile engineering &lt;a href="https://tech.workwhile.ai/blogs/ai-assisted-postgres-schema-surgery-p5hilaq7"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This post describes a zero-downtime schema change to a high contention table
+— guided (and greatly accelerated) by ChatGPT.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#wrong-assumption&gt;We made the wrong assumption&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#online-migrations&gt;Online migrations and table contention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#get-by-with-help&gt;I get by with a little help from my (AI) friend&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#add-new-column&gt;Add new …&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;</summary><content type="html">&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt=lock-contention src="/images/postgres-schema-surgery-hero.jpg"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;blockquote&gt;
+&lt;p&gt;This is cross-posted from the WorkWhile engineering &lt;a href="https://tech.workwhile.ai/blogs/ai-assisted-postgres-schema-surgery-p5hilaq7"&gt;blog&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;This post describes a zero-downtime schema change to a high contention table
+— guided (and greatly accelerated) by ChatGPT.&lt;/p&gt;
+&lt;h3&gt;Contents&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=#wrong-assumption&gt;We made the wrong assumption&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#online-migrations&gt;Online migrations and table contention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#get-by-with-help&gt;I get by with a little help from my (AI) friend&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#add-new-column&gt;Add new column&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#constrain-new-column&gt;Constrain new column&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#mirror-writes&gt;Mirror writes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#backfill&gt;Backfill&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#validate-mirrored-data&gt;Validate mirrored data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#column-swap&gt;Column (name) swap&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#say-goodbye&gt;Say goodbye&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#migration-alembic&gt;Migration (Alembic)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#model-changes-sqlalchemy&gt;Model changes (SQLAlchemy)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=#conclusion&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=wrong-assumption&gt;We made the wrong assumption&lt;/h3&gt;
+&lt;p&gt;On our (real) &lt;code&gt;address&lt;/code&gt; table in the database, we put a constraint on the
+&lt;code&gt;street&lt;/code&gt; column directly in the definition: &lt;code&gt;street VARCHAR(50)&lt;/code&gt;. (Yes we've
+read the PostgreSQL &lt;a href="https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_varchar.28n.29_by_default"&gt;"Don't Do This"&lt;/a&gt; wiki.) Unfortunately, a street being
+capped at 50 characters is a falsehood programmers (may) &lt;a href="https://www.mjt.me.uk/posts/falsehoods-programmers-believe-about-addresses/"&gt;believe&lt;/a&gt; about
+addresses. We ran into legitimate data from a user with a length of 51:
+&lt;strong&gt;12345 Doctor Martin Luther King Junior Street North&lt;/strong&gt;&lt;sup id=sf-ai-assisted-postgres-schema-surgery-1-back&gt;&lt;a href=#sf-ai-assisted-postgres-schema-surgery-1 class=simple-footnote title="OK not actually 12345, but a 5 digit street number!"&gt;1&lt;/a&gt;&lt;/sup&gt; in St. Petersburg, FL.&lt;/p&gt;
+&lt;p&gt;We wanted to support this user, so we needed to relax this constraint and get
+the data in the database. However, the &lt;code&gt;address&lt;/code&gt; table is a high contention
+table in our application: it receives a constant stream of reads and writes.
+This makes it much more challenging to just change a column's type!&lt;/p&gt;
+&lt;h3 id=online-migrations&gt;Online migrations and table contention&lt;/h3&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Lock contention" src="/images/postgres-schema-surgery-01.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;In our application, we have active users at all times of the day. This means
+there is no opportunity for taking downtime without impacting users. As a
+result, we &lt;em&gt;strictly&lt;/em&gt; use &lt;strong&gt;online migrations&lt;/strong&gt; for evolving our PostgreSQL
+schema. This also allows our team to be nimble and make changes throughout the
+workday to add new features or improve existing ones.&lt;/p&gt;
+&lt;p&gt;In order to resolve the character length issue, we needed to change the column
+type of &lt;code&gt;street&lt;/code&gt; (to either &lt;code&gt;VARCHAR(N&amp;gt;50)&lt;/code&gt; or to &lt;code&gt;TEXT&lt;/code&gt;). Changing the table
+schema will always require an &lt;code&gt;ACCESS EXCLUSIVE&lt;/code&gt; &lt;a href="https://www.postgresql.org/docs/17/explicit-locking.html#LOCKING-TABLES"&gt;lock&lt;/a&gt;, which means &lt;strong&gt;all&lt;/strong&gt;
+queries to the table will need to wait for the schema change to complete.&lt;/p&gt;
+&lt;p&gt;For a high contention table that receives multiple reads per second and close to
+one write per second, an &lt;code&gt;ACCESS EXCLUSIVE&lt;/code&gt; lock can cause the entire
+application to stall. This is not acceptable to us or our users! Luckily, most
+table schema changes resolve in a few microseconds after acquiring a lock due to
+steady improvements in PostgreSQL over the last 15+ years.&lt;/p&gt;
+&lt;p&gt;However, changing a column's type is a special type of change: it may require a
+full table rewrite. For a large table like &lt;code&gt;address&lt;/code&gt;, a table rewrite is a very
+long and costly operation, which would mean holding the &lt;code&gt;ACCESS EXCLUSIVE&lt;/code&gt; lock
+for a long time. Changing from a &lt;code&gt;VARCHAR(50)&lt;/code&gt; to &lt;code&gt;TEXT&lt;/code&gt; is a binary-coercible
+column change and &lt;strong&gt;should not&lt;/strong&gt; incur a full table rewrite on modern
+PostgreSQL.&lt;/p&gt;
+&lt;h3 id=get-by-with-help&gt;I get by with a little help from my (AI) friend&lt;/h3&gt;
+&lt;p&gt;Although the column types are binary-coercible, we wanted to be &lt;strong&gt;VERY&lt;/strong&gt; sure
+our application remained stable, so we chose to avoid&lt;sup id=sf-ai-assisted-postgres-schema-surgery-2-back&gt;&lt;a href=#sf-ai-assisted-postgres-schema-surgery-2 class=simple-footnote title="Early in the process, we attempted to change column type and kept getting timeouts, some of which made slight impacts on application performance. This may very well have been bad luck with lock contention. Rather than wait to find out, we elected to go with the safer route and totally avoid the chance of a table rewrite."&gt;2&lt;/a&gt;&lt;/sup&gt;
+that and instead:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Introduce a new column &lt;code&gt;street_new&lt;/code&gt; with the correct type&lt;/li&gt;
+&lt;li&gt;Add &lt;code&gt;CHECK&lt;/code&gt; on &lt;code&gt;street_new&lt;/code&gt; that can constrain text length but be more easily
+  changed in the future without a column type change&lt;/li&gt;
+&lt;li&gt;Copy data from &lt;code&gt;street&lt;/code&gt; into the new column (in batches) and mirror writes&lt;/li&gt;
+&lt;li&gt;Swap names after backfill is complete&lt;/li&gt;
+&lt;li&gt;Drop the &lt;code&gt;street_new&lt;/code&gt; column&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I knew conceptually how to do all of this but I leaned heavily on ChatGPT to
+just do all the actual work of writing DDL, SQLAlchemy, and Alembic code while I
+did the &lt;strong&gt;thinking&lt;/strong&gt;. Even as a daily user of LLM tools, I was really surprised
+how perfectly ChatGPT nailed this and helped me go &lt;strong&gt;really fast&lt;/strong&gt;:&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="ChatGPT: Schema migration advice" src="/images/postgres-schema-surgery-02.png"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;h3 id=add-new-column&gt;Add new column&lt;/h3&gt;
+&lt;p&gt;First step we'll add the new column. We elected to do this with DDL directly
+rather than use Alembic migrations. This gave us the maximum level of control
+while managing this sensitive change:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- new-column.sql&lt;/span&gt;
+&lt;span class=k&gt;SELECT&lt;/span&gt; &lt;span class=n&gt;NOW&lt;/span&gt;&lt;span class=p&gt;();&lt;/span&gt;
+
+&lt;span class=k&gt;SET&lt;/span&gt; &lt;span class=n&gt;statement_timeout&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'15s'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;SET&lt;/span&gt; &lt;span class=n&gt;lock_timeout&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=s1&gt;'15s'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt; &lt;span class=k&gt;ADD&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt; &lt;span class=n&gt;street_new&lt;/span&gt; &lt;span class=nb&gt;TEXT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;SELECT&lt;/span&gt; &lt;span class=n&gt;NOW&lt;/span&gt;&lt;span class=p&gt;();&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Note that it's crucial that we cap the amount of time we're willing to wait on
+and hold a lock as well as the total amount of time a statement will take.
+Additionally, we print out before / after timestamps for auditing in case any
+issues occur&lt;sup id=sf-ai-assisted-postgres-schema-surgery-3-back&gt;&lt;a href=#sf-ai-assisted-postgres-schema-surgery-3 class=simple-footnote title="In future examples, we'll hide the SELECT NOW() and the setting of timeouts but it's crucial to always track these when doing database operations."&gt;3&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c&gt;workwhile&lt;/span&gt;&lt;span class=nv&gt;&amp;gt;&lt;/span&gt;&lt;span class=c&gt; \i new&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;column&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;sql&lt;/span&gt;
+&lt;span class=c&gt;You're about to run a destructive command&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;Do you want to proceed? &lt;/span&gt;&lt;span class=k&gt;[&lt;/span&gt;&lt;span class=c&gt;y/N&lt;/span&gt;&lt;span class=k&gt;]&lt;/span&gt;&lt;span class=c&gt;: y&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 14:54:09&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;741308&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;BEGIN&lt;/span&gt;
+&lt;span class=c&gt;ALTER TABLE&lt;/span&gt;
+&lt;span class=c&gt;COMMIT&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 14:54:18&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;186533&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;Time: 9&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;035s (9 seconds)&lt;/span&gt;&lt;span class=nt&gt;,&lt;/span&gt;&lt;span class=c&gt; executed in: 9&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;027s (9 seconds)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=constrain-new-column&gt;Constrain new column&lt;/h3&gt;
+&lt;p&gt;Adding a &lt;code&gt;CHECK&lt;/code&gt; constraint still requires an &lt;code&gt;ACCESS EXCLUSIVE&lt;/code&gt; lock on the
+table so we get it out of the way as soon as we can. (For large tables, it may
+make more sense to add this constraint &lt;a href="https://www.shayon.dev/post/2022/17/why-i-enjoy-postgresql-infrastructure-engineers-perspective/#adding-not-null-or-other-constraints"&gt;as not valid&lt;/a&gt; and then
+&lt;code&gt;VALIDATE CONSTRAINT&lt;/code&gt; after.)&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- add-length-constraint.sql&lt;/span&gt;
+&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt;
+  &lt;span class=k&gt;ADD&lt;/span&gt; &lt;span class=k&gt;CONSTRAINT&lt;/span&gt; &lt;span class=n&gt;street_length_check&lt;/span&gt;
+  &lt;span class=k&gt;CHECK&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;&lt;span class=k&gt;CHAR_LENGTH&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;street_new&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt; &lt;span class=o&gt;&amp;lt;=&lt;/span&gt; &lt;span class=mi&gt;60&lt;/span&gt;&lt;span class=p&gt;);&lt;/span&gt;
+
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Note that &lt;code&gt;CHAR_LENGTH(street_new)&lt;/code&gt; refers to the new column but we want it to
+refer to &lt;code&gt;street&lt;/code&gt; when things are renamed and all said and done. Luckily
+PostgreSQL will track this when the column gets renamed!&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c&gt;workwhile&lt;/span&gt;&lt;span class=nv&gt;&amp;gt;&lt;/span&gt;&lt;span class=c&gt; \i add&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;length&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;constraint&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;sql&lt;/span&gt;
+&lt;span class=c&gt;You're about to run a destructive command&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;Do you want to proceed? &lt;/span&gt;&lt;span class=k&gt;[&lt;/span&gt;&lt;span class=c&gt;y/N&lt;/span&gt;&lt;span class=k&gt;]&lt;/span&gt;&lt;span class=c&gt;: y&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 14:58:42&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;280429&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;BEGIN&lt;/span&gt;
+&lt;span class=c&gt;ALTER TABLE&lt;/span&gt;
+&lt;span class=c&gt;COMMIT&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 14:58:47&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;972947&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;Time: 6&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;260s (6 seconds)&lt;/span&gt;&lt;span class=nt&gt;,&lt;/span&gt;&lt;span class=c&gt; executed in: 6&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;252s (6 seconds)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=mirror-writes&gt;Mirror writes&lt;/h3&gt;
+&lt;p&gt;In order to ensure that we can swap &lt;code&gt;street&lt;/code&gt; and &lt;code&gt;street_new&lt;/code&gt;, we need them both
+to have the same data! To do this &lt;strong&gt;WITHOUT&lt;/strong&gt; locking the table for an extended
+period of time, we need to be able to backfill data in batches and ensure future
+writes get mirrored to both columns. We can safely assume that &lt;code&gt;street_new&lt;/code&gt;
+&lt;strong&gt;NEVER&lt;/strong&gt; receives writes directly: the application has only ever heard of
+&lt;code&gt;street&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- add-trigger-to-table.sql&lt;/span&gt;
+&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;CREATE&lt;/span&gt; &lt;span class=k&gt;OR&lt;/span&gt; &lt;span class=k&gt;REPLACE&lt;/span&gt; &lt;span class=k&gt;FUNCTION&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;mirror_street_to_new&lt;/span&gt;&lt;span class=p&gt;()&lt;/span&gt;
+&lt;span class=k&gt;RETURNS&lt;/span&gt; &lt;span class=k&gt;TRIGGER&lt;/span&gt; &lt;span class=k&gt;AS&lt;/span&gt; &lt;span class=err&gt;$$&lt;/span&gt;
+&lt;span class=k&gt;BEGIN&lt;/span&gt;
+  &lt;span class=k&gt;NEW&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;street_new&lt;/span&gt; &lt;span class=p&gt;:&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt; &lt;span class=k&gt;NEW&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;street&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+  &lt;span class=k&gt;RETURN&lt;/span&gt; &lt;span class=k&gt;NEW&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;END&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=err&gt;$$&lt;/span&gt; &lt;span class=k&gt;LANGUAGE&lt;/span&gt; &lt;span class=n&gt;plpgsql&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;CREATE&lt;/span&gt; &lt;span class=k&gt;TRIGGER&lt;/span&gt; &lt;span class=n&gt;sync_street_to_street_new&lt;/span&gt;
+  &lt;span class=k&gt;BEFORE&lt;/span&gt; &lt;span class=k&gt;INSERT&lt;/span&gt; &lt;span class=k&gt;OR&lt;/span&gt; &lt;span class=k&gt;UPDATE&lt;/span&gt; &lt;span class=k&gt;ON&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt;
+  &lt;span class=k&gt;FOR&lt;/span&gt; &lt;span class=k&gt;EACH&lt;/span&gt; &lt;span class=k&gt;ROW&lt;/span&gt;
+  &lt;span class=k&gt;EXECUTE&lt;/span&gt; &lt;span class=k&gt;FUNCTION&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;mirror_street_to_new&lt;/span&gt;&lt;span class=p&gt;();&lt;/span&gt;
+
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;It's important that &lt;code&gt;street_new&lt;/code&gt; is a "stable" name&lt;sup id=sf-ai-assisted-postgres-schema-surgery-4-back&gt;&lt;a href=#sf-ai-assisted-postgres-schema-surgery-4 class=simple-footnote title="Ask me how I know this!"&gt;4&lt;/a&gt;&lt;/sup&gt; in the &lt;code&gt;mirror_street_to_new()&lt;/code&gt; function. After we swap the
+columns, we'll leave the &lt;code&gt;sync_street_to_street_new&lt;/code&gt; trigger in place to keep
+the data in sync for final validation. So if &lt;code&gt;street_new&lt;/code&gt; becomes an invalid
+name, the function will begin to cause all writes to fail.&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c&gt;workwhile&lt;/span&gt;&lt;span class=nv&gt;&amp;gt;&lt;/span&gt;&lt;span class=c&gt; \i add&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;trigger&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;to&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;table&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;sql&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 15:02:21&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;586163&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;BEGIN&lt;/span&gt;
+&lt;span class=c&gt;CREATE FUNCTION&lt;/span&gt;
+&lt;span class=c&gt;CREATE TRIGGER&lt;/span&gt;
+&lt;span class=c&gt;COMMIT&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 15:02:22&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;011339&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;Time: 0&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;509s&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=backfill&gt;Backfill&lt;/h3&gt;
+&lt;p&gt;Recall the primary reason we chose column mirroring was to avoid a table
+rewrite. To that end, we need to backfill data into &lt;code&gt;street_new&lt;/code&gt; in batches.
+Luckily, we use &lt;code&gt;created_at&lt;/code&gt; and &lt;code&gt;updated_at&lt;/code&gt; metadata columns in &lt;strong&gt;ALL&lt;/strong&gt; of our
+tables so we can define batches based on most recent update. For example:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;UPDATE&lt;/span&gt;
+  &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt;
+&lt;span class=k&gt;SET&lt;/span&gt;
+  &lt;span class=n&gt;street_new&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;street&lt;/span&gt;
+&lt;span class=k&gt;WHERE&lt;/span&gt;
+  &lt;span class=s1&gt;'2022-10-01T00:00:00.000Z'&lt;/span&gt; &lt;span class=o&gt;&amp;lt;=&lt;/span&gt; &lt;span class=n&gt;updated_at&lt;/span&gt;
+  &lt;span class=k&gt;AND&lt;/span&gt; &lt;span class=n&gt;updated_at&lt;/span&gt; &lt;span class=o&gt;&amp;lt;&lt;/span&gt; &lt;span class=s1&gt;'2024-01-01T00:00:00.000Z'&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code&gt;updated_at&lt;/code&gt; time is a &lt;strong&gt;moving target&lt;/strong&gt; because addresses can be updated
+during our backfill process. However, that's OK because any newer updates will
+already be in sync due to our &lt;code&gt;sync_street_to_street_new&lt;/code&gt; trigger.&lt;/p&gt;
+&lt;h3 id=validate-mirrored-data&gt;Validate mirrored data&lt;/h3&gt;
+&lt;p&gt;After completing the backfill, we need to ensure that &lt;code&gt;street&lt;/code&gt; and &lt;code&gt;street_new&lt;/code&gt;
+are identical. Note that &lt;code&gt;street = street_new&lt;/code&gt; is not a sufficient predicate
+because nulls will not compare equal with the &lt;code&gt;=&lt;/code&gt; operator, so we use
+&lt;code&gt;IS DISTINCT FROM&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;workwhile&amp;gt; SELECT
+   COUNT(*)
+ FROM
+   public.address
+ WHERE
+   street IS DISTINCT FROM street_new;
++-------+
+| count |
+|-------|
+| 0     |
++-------+
+SELECT 1
+Time: 0.207s
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=column-swap&gt;Column (name) swap&lt;/h3&gt;
+&lt;p&gt;In order to swap &lt;code&gt;street&lt;/code&gt; and &lt;code&gt;street_new&lt;/code&gt;, we first need to rename &lt;code&gt;street&lt;/code&gt; to
+a different column name to enable the swap without both columns using the same
+name at once:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- swap-column-names.sql&lt;/span&gt;
+&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt;
+  &lt;span class=k&gt;RENAME&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt; &lt;span class=n&gt;street&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt; &lt;span class=n&gt;street_old&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt;
+  &lt;span class=k&gt;RENAME&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt; &lt;span class=n&gt;street_new&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt; &lt;span class=n&gt;street&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt;
+  &lt;span class=k&gt;RENAME&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt; &lt;span class=n&gt;street_old&lt;/span&gt; &lt;span class=k&gt;TO&lt;/span&gt; &lt;span class=n&gt;street_new&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Recall we want to continue to use the &lt;code&gt;street_new&lt;/code&gt; name because at this point in
+the migration, mirroring is still enabled and &lt;code&gt;mirror_street_to_new()&lt;/code&gt; has a
+"generic" (not table-specific) reference to &lt;code&gt;NEW.street_new&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c&gt;workwhile&lt;/span&gt;&lt;span class=nv&gt;&amp;gt;&lt;/span&gt;&lt;span class=c&gt; \i swap&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;column&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;names&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;sql&lt;/span&gt;
+&lt;span class=c&gt;You're about to run a destructive command&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;Do you want to proceed? &lt;/span&gt;&lt;span class=k&gt;[&lt;/span&gt;&lt;span class=c&gt;y/N&lt;/span&gt;&lt;span class=k&gt;]&lt;/span&gt;&lt;span class=c&gt;: y&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 15:17:06&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;559432&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;BEGIN&lt;/span&gt;
+&lt;span class=c&gt;ALTER TABLE&lt;/span&gt;
+&lt;span class=c&gt;ALTER TABLE&lt;/span&gt;
+&lt;span class=c&gt;ALTER TABLE&lt;/span&gt;
+&lt;span class=c&gt;COMMIT&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 15:17:11&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;142957&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;Time: 5&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;279s (5 seconds)&lt;/span&gt;&lt;span class=nt&gt;,&lt;/span&gt;&lt;span class=c&gt; executed in: 5&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;271s (5 seconds)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=say-goodbye&gt;Say goodbye&lt;/h3&gt;
+&lt;p&gt;At this point, after a final validation,&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;workwhile&amp;gt; SELECT
+   COUNT(*)
+ FROM
+   public.address
+ WHERE
+   street IS DISTINCT FROM street_new;
++-------+
+| count |
+|-------|
+| 0     |
++-------+
+SELECT 1
+Time: 0.202s
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;we can stop mirroring and drop the &lt;code&gt;street_new&lt;/code&gt; column:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c1&gt;-- drop-old-column.sql&lt;/span&gt;
+&lt;span class=k&gt;BEGIN&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;DROP&lt;/span&gt; &lt;span class=k&gt;TRIGGER&lt;/span&gt; &lt;span class=n&gt;sync_street_to_street_new&lt;/span&gt; &lt;span class=k&gt;ON&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;DROP&lt;/span&gt; &lt;span class=k&gt;FUNCTION&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;mirror_street_to_new&lt;/span&gt;&lt;span class=p&gt;();&lt;/span&gt;
+
+&lt;span class=k&gt;ALTER&lt;/span&gt; &lt;span class=k&gt;TABLE&lt;/span&gt; &lt;span class=k&gt;public&lt;/span&gt;&lt;span class=p&gt;.&lt;/span&gt;&lt;span class=n&gt;address&lt;/span&gt;
+  &lt;span class=k&gt;DROP&lt;/span&gt; &lt;span class=k&gt;COLUMN&lt;/span&gt; &lt;span class=n&gt;street_new&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+
+&lt;span class=k&gt;COMMIT&lt;/span&gt;&lt;span class=p&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Notice that dropping the column may take a slightly longer time than some of the
+other migrations. However, the primary issue is getting a table lock (which is
+highly variable depending on current application activity):&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=c&gt;workwhile&lt;/span&gt;&lt;span class=nv&gt;&amp;gt;&lt;/span&gt;&lt;span class=c&gt; \i drop&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;old&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;column&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;sql&lt;/span&gt;
+&lt;span class=c&gt;You're about to run a destructive command&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;Do you want to proceed? &lt;/span&gt;&lt;span class=k&gt;[&lt;/span&gt;&lt;span class=c&gt;y/N&lt;/span&gt;&lt;span class=k&gt;]&lt;/span&gt;&lt;span class=c&gt;: y&lt;/span&gt;
+&lt;span class=nb&gt;+-----------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                         |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-----------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 15:23:36&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;9894&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-----------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;SET&lt;/span&gt;
+&lt;span class=c&gt;BEGIN&lt;/span&gt;
+&lt;span class=c&gt;DROP TRIGGER&lt;/span&gt;
+&lt;span class=c&gt;DROP FUNCTION&lt;/span&gt;
+&lt;span class=c&gt;ALTER TABLE&lt;/span&gt;
+&lt;span class=c&gt;COMMIT&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;| now                           |&lt;/span&gt;
+&lt;span class=c&gt;|&lt;/span&gt;&lt;span class=nb&gt;-------------------------------&lt;/span&gt;&lt;span class=c&gt;|&lt;/span&gt;
+&lt;span class=c&gt;| 2025&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;04&lt;/span&gt;&lt;span class=nb&gt;-&lt;/span&gt;&lt;span class=c&gt;24 15:23:51&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;666602&lt;/span&gt;&lt;span class=nb&gt;+&lt;/span&gt;&lt;span class=c&gt;00 |&lt;/span&gt;
+&lt;span class=nb&gt;+-------------------------------+&lt;/span&gt;&lt;span class=c&gt;&lt;/span&gt;
+&lt;span class=c&gt;SELECT 1&lt;/span&gt;
+&lt;span class=c&gt;Time: 15&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;139s (15 seconds)&lt;/span&gt;&lt;span class=nt&gt;,&lt;/span&gt;&lt;span class=c&gt; executed in: 15&lt;/span&gt;&lt;span class=nt&gt;.&lt;/span&gt;&lt;span class=c&gt;130s (15 seconds)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=migration-alembic&gt;Migration (Alembic)&lt;/h3&gt;
+&lt;p&gt;Though we ran this migration via many small and careful steps, it's still useful
+to document this step for future team members. Our team uses Alembic for the
+large majority of migrations. (The raw DDL escape hatch is only necessary in
+cases where we need to make a sensitive change that'll require locks that are
+potentially problematic for the application.)&lt;/p&gt;
+&lt;p&gt;To document the change at a conceptual level:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;def&lt;/span&gt; &lt;span class=nf&gt;upgrade&lt;/span&gt;&lt;span class=p&gt;():&lt;/span&gt;
+    &lt;span class=c1&gt;# 1. Change column type to TEXT&lt;/span&gt;
+    &lt;span class=n&gt;op&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;alter_column&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;
+        &lt;span class=s2&gt;"address"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=s2&gt;"street"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;existing_type&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;sa&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;String&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;50&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+        &lt;span class=n&gt;type_&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;sa&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;Text&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt;
+        &lt;span class=n&gt;existing_nullable&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=kc&gt;True&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;schema&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"public"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=p&gt;)&lt;/span&gt;
+
+    &lt;span class=c1&gt;# 2. Add CHECK constraint&lt;/span&gt;
+    &lt;span class=n&gt;op&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;create_check_constraint&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;
+        &lt;span class=n&gt;constraint_name&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"street_length_check"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;table_name&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"address"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;condition&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"CHAR_LENGTH(street) &amp;lt;= 60"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;schema&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"public"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=p&gt;)&lt;/span&gt;
+
+
+&lt;span class=k&gt;def&lt;/span&gt; &lt;span class=nf&gt;downgrade&lt;/span&gt;&lt;span class=p&gt;():&lt;/span&gt;
+    &lt;span class=c1&gt;# 2. Remove CHECK constraint&lt;/span&gt;
+    &lt;span class=n&gt;op&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;drop_constraint&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;
+        &lt;span class=n&gt;constraint_name&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"street_length_check"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;table_name&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"address"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;type_&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"check"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;schema&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"public"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=p&gt;)&lt;/span&gt;
+
+    &lt;span class=c1&gt;# 1. Revert column type to VARCHAR(50)&lt;/span&gt;
+    &lt;span class=n&gt;op&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;alter_column&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;
+        &lt;span class=s2&gt;"address"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=s2&gt;"street"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;existing_type&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;sa&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;Text&lt;/span&gt;&lt;span class=p&gt;(),&lt;/span&gt;
+        &lt;span class=n&gt;type_&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=n&gt;sa&lt;/span&gt;&lt;span class=o&gt;.&lt;/span&gt;&lt;span class=n&gt;String&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=mi&gt;50&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+        &lt;span class=n&gt;existing_nullable&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=kc&gt;True&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+        &lt;span class=n&gt;schema&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"public"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt;
+    &lt;span class=p&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;We always use &lt;code&gt;alembic stamp&lt;/code&gt; to memorialize changes made outside of a typical
+&lt;code&gt;alembic upgrade&lt;/code&gt; operation:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ date
+Thu Apr &lt;span class=m&gt;24&lt;/span&gt; &lt;span class=m&gt;10&lt;/span&gt;:34:14 CDT &lt;span class=m&gt;2025&lt;/span&gt;
+$
+$
+$ uv run alembic stamp ef4486a350ee
+INFO &lt;span class=o&gt;[&lt;/span&gt;alembic.runtime.migration&lt;span class=o&gt;]&lt;/span&gt; Context impl PostgresqlImpl.
+INFO &lt;span class=o&gt;[&lt;/span&gt;alembic.runtime.migration&lt;span class=o&gt;]&lt;/span&gt; Will assume transactional DDL.
+INFO &lt;span class=o&gt;[&lt;/span&gt;alembic.runtime.migration&lt;span class=o&gt;]&lt;/span&gt; Running stamp_revision 146b1f84dda9 -&amp;gt; ef4486a350ee
+$
+$
+$ date
+Thu Apr &lt;span class=m&gt;24&lt;/span&gt; &lt;span class=m&gt;10&lt;/span&gt;:34:18 CDT &lt;span class=m&gt;2025&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=model-changes-sqlalchemy&gt;Model changes (SQLAlchemy)&lt;/h3&gt;
+&lt;p&gt;In addition to changing the &lt;code&gt;Column(TEXT)&lt;/code&gt; in the model definition, the extra
+&lt;code&gt;CHECK&lt;/code&gt; constraint must be tracked in &lt;code&gt;__table_args__&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=highlight&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class=k&gt;class&lt;/span&gt; &lt;span class=nc&gt;Address&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;BaseModel&lt;/span&gt;&lt;span class=p&gt;):&lt;/span&gt;
+    &lt;span class=n&gt;__table_args__&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=p&gt;(&lt;/span&gt;
+        &lt;span class=n&gt;CheckConstraint&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=s2&gt;"CHAR_LENGTH(street) &amp;lt;= 60"&lt;/span&gt;&lt;span class=p&gt;,&lt;/span&gt; &lt;span class=n&gt;name&lt;/span&gt;&lt;span class=o&gt;=&lt;/span&gt;&lt;span class=s2&gt;"street_length_check"&lt;/span&gt;&lt;span class=p&gt;),&lt;/span&gt;
+    &lt;span class=p&gt;)&lt;/span&gt;
+
+    &lt;span class=n&gt;street&lt;/span&gt; &lt;span class=o&gt;=&lt;/span&gt; &lt;span class=n&gt;Column&lt;/span&gt;&lt;span class=p&gt;(&lt;/span&gt;&lt;span class=n&gt;TEXT&lt;/span&gt;&lt;span class=p&gt;)&lt;/span&gt;
+    &lt;span class=c1&gt;# ...&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=conclusion&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;Fixing schema constraints in high contention tables like &lt;code&gt;address&lt;/code&gt; is rarely
+straightforward. But with a careful, methodical approach, it's absolutely
+achievable without user-facing downtime. It's important to combine deep
+understanding of PostgreSQL internals with thoughtful engineering practices like
+online backfills and trigger-based mirroring. Just as importantly, it's a
+reminder that tools like LLMs can meaningfully augment engineering workflows
+— not by replacing decision-making, but by accelerating safe and accurate
+implementation. Schema changes may always be risky, but they don't have to be
+&lt;strong&gt;scary&lt;/strong&gt;!&lt;/p&gt;
+&lt;div style="text-align: center;"&gt;
+&lt;p&gt;&lt;img alt="Spooky DB" src="/images/postgres-schema-surgery-03.png"&gt;&lt;/p&gt;
+&lt;/div&gt;&lt;ol class=simple-footnotes&gt;&lt;li id=sf-ai-assisted-postgres-schema-surgery-1&gt;OK not actually
+12345, but a 5 digit street number! &lt;a href=#sf-ai-assisted-postgres-schema-surgery-1-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-ai-assisted-postgres-schema-surgery-2&gt;Early in the process,
+we attempted to change column type and kept getting timeouts, some of which
+made slight impacts on application performance. This may very well have been
+bad luck with lock contention. Rather than wait to find out, we elected to go
+with the safer route and totally avoid the chance of a table rewrite. &lt;a href=#sf-ai-assisted-postgres-schema-surgery-2-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-ai-assisted-postgres-schema-surgery-3&gt;In future examples, we'll hide the &lt;code&gt;SELECT NOW()&lt;/code&gt; and the
+setting of timeouts but it's crucial to always track these when doing database
+operations. &lt;a href=#sf-ai-assisted-postgres-schema-surgery-3-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;li id=sf-ai-assisted-postgres-schema-surgery-4&gt;Ask me how I know
+this! &lt;a href=#sf-ai-assisted-postgres-schema-surgery-4-back class=simple-footnote-back&gt;↩&lt;/a&gt;&lt;/li&gt;&lt;/ol&gt;</content><category term="misc"></category><category term="PostgreSQL"></category><category term="Migrations"></category><category term="ChatGPT"></category><category term="LLM"></category></entry><entry><title>Almost unique (constraints)</title><link href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html" rel="alternate"></link><published>2024-06-12T00:00:00-07:00</published><updated>2024-06-12T00:00:00-07:00</updated><author><name>Danny Hermes (dhermes@bossylobster.com)</name></author><id>tag:blog.bossylobster.com,2024-06-12:/2024/06/almost-unique-constraint.html</id><summary type="html">&lt;div style="text-align: center;"&gt;
 &lt;p&gt;&lt;img alt=almost-unique src="/images/almost-unique.jpg"&gt;&lt;/p&gt;
 &lt;/div&gt;
 &lt;blockquote&gt;
@@ -6877,7 +7343,7 @@ was searching for "memory leak" caused by "Ruby stack traces".&lt;/p&gt;
 &lt;li&gt;I was searching for "memory leak" but the issue was actually caused by
   excessive use of compute resources&lt;/li&gt;
 &lt;li&gt;The comment was just a small footnote in a much longer talk about
-  &lt;a href="https://www.youtube.com/watch?v=LjFM8vw3pbU"&gt;The Summer of Rust&lt;/a&gt;&lt;/li&gt;
+  &lt;a href="https://www.youtube.com/watch?v=YKv_IDN0zCA"&gt;The Summer of Rust&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;When I finally found the talk, I was so excited. In order to make my future
 Google searches actually turn up results I wanted to write this blog post.

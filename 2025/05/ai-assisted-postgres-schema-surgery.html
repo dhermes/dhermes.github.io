@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Article">
+  <meta charset="utf-8">
+  <title>AI-assisted Postgres schema surgery &mdash; Bossy Lobster</title>
+  <meta name="author" content="Danny Hermes">
+  <meta name="description" content="This post describes a zero-downtime schema change to a high contention table &mdash; guided (and greatly accelerated) by ChatGPT." />
+
+  <link href="https://blog.bossylobster.com/feeds/atom.xml" type="application/atom+xml" rel="alternate"
+        title="Bossy Lobster Atom Feed" />
+  <link href="https://blog.bossylobster.com/feeds/rss.xml" type="application/rss+xml" rel="alternate"
+        title="Bossy Lobster RSS Feed" />
+
+    <link href="/css/custom.css" rel="stylesheet" type="text/css"/>
+<link href="/css/katex.min.css" rel="stylesheet" type="text/css"/>
+
+
+<!-- Schema.org markup for Google+ -->
+<meta itemprop="name" content="<p>AI-assisted Postgres schema surgery</p>" />
+<meta itemprop="description" content="This post describes a zero-downtime schema change to a high contention table &mdash; guided (and greatly accelerated) by ChatGPT." />
+<meta itemprop="image" content="https://blog.bossylobster.com/images/postgres-schema-surgery-02.png" />
+
+<!-- Open Graph data -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="<p>AI-assisted Postgres schema surgery</p>" />
+<meta property="og:image" content="https://blog.bossylobster.com/images/postgres-schema-surgery-02.png" />
+<meta property="og:description" content="This post describes a zero-downtime schema change to a high contention table &mdash; guided (and greatly accelerated) by ChatGPT." />
+
+<!-- Twitter Card data -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bossylobster" />
+<meta name="twitter:title" content="<p>AI-assisted Postgres schema surgery</p>" />
+<meta name="twitter:description" content="This post describes a zero-downtime schema change to a high contention table &mdash; guided (and greatly accelerated) by ChatGPT." />
+<meta name="twitter:creator" content="@bossylobster" />
+<meta name="twitter:image" content="https://blog.bossylobster.com/images/postgres-schema-surgery-02.png" />
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <link href="https://blog.bossylobster.com/favicon.png" rel="icon">
+
+  <link href="https://blog.bossylobster.com/theme/css/main.css" media="screen, projection"
+        rel="stylesheet" type="text/css">
+
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic"
+        rel="stylesheet" type="text/css">
+</head>
+
+<body>
+  <header role="banner"><hgroup>
+  <h1><a href="https://blog.bossylobster.com/">Bossy Lobster</a></h1>
+    <h2>A blog by Danny Hermes; musing on tech, mathematics, etc.</h2>
+</hgroup></header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="https://blog.bossylobster.com/feeds/atom.xml" rel="subscribe-atom">Atom</a></li>
+  <li><a href="https://blog.bossylobster.com/feeds/rss.xml" rel="subscribe-rss">RSS</a></li>
+</ul>
+
+<form action="//google.com/search" method="get" id="site-search">
+  <fieldset role="search">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+<script>
+function site_search_submit(submit_event) {
+  var form_element = submit_event.srcElement;
+  var query_elt = form_element.elements['q'];
+  
+  query_elt.value = 'site:https://blog.bossylobster.com ' + query_elt.value;
+  
+}
+document.getElementById('site-search').onsubmit = site_search_submit;
+</script>
+
+<ul class="main-navigation">
+    <li><a href="/all-posts.html">All Posts</a></li>
+    <li><a href="http://github.com/dhermes/">GitHub</a></li>
+    <li><a href="/mathematics">Mathematics</a></li>
+    <li><a href="/testimonials">Testimonials</a></li>
+    <li><a href="/about-me">About Me</a></li>
+</ul></nav>
+  <div id="main">
+    <div id="content">
+<div>
+  <article class="hentry" role="article">
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2025-05-15-ai-assisted-postgres-schema-surgery.md" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">AI-assisted Postgres schema surgery</h1>
+    <p class="meta">
+<time datetime="2025-05-15T00:00:00-07:00" pubdate>May 15, 2025</time>    </p>
+</header>
+
+  <div class="entry-content"><div style="text-align: center;">
+<p><img alt=lock-contention src="/images/postgres-schema-surgery-hero.jpg"></p>
+</div>
+<blockquote>
+<p>This is cross-posted from the WorkWhile engineering <a href="https://tech.workwhile.ai/blogs/ai-assisted-postgres-schema-surgery-p5hilaq7">blog</a>.</p>
+</blockquote>
+<p>This post describes a zero-downtime schema change to a high contention table
+— guided (and greatly accelerated) by ChatGPT.</p>
+<h3>Contents</h3>
+<ul>
+<li><a href=#wrong-assumption>We made the wrong assumption</a></li>
+<li><a href=#online-migrations>Online migrations and table contention</a></li>
+<li><a href=#get-by-with-help>I get by with a little help from my (AI) friend</a></li>
+<li><a href=#add-new-column>Add new column</a></li>
+<li><a href=#constrain-new-column>Constrain new column</a></li>
+<li><a href=#mirror-writes>Mirror writes</a></li>
+<li><a href=#backfill>Backfill</a></li>
+<li><a href=#validate-mirrored-data>Validate mirrored data</a></li>
+<li><a href=#column-swap>Column (name) swap</a></li>
+<li><a href=#say-goodbye>Say goodbye</a></li>
+<li><a href=#migration-alembic>Migration (Alembic)</a></li>
+<li><a href=#model-changes-sqlalchemy>Model changes (SQLAlchemy)</a></li>
+<li><a href=#conclusion>Conclusion</a></li>
+</ul>
+<h3 id=wrong-assumption>We made the wrong assumption</h3>
+<p>On our (real) <code>address</code> table in the database, we put a constraint on the
+<code>street</code> column directly in the definition: <code>street VARCHAR(50)</code>. (Yes we've
+read the PostgreSQL <a href="https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_varchar.28n.29_by_default">"Don't Do This"</a> wiki.) Unfortunately, a street being
+capped at 50 characters is a falsehood programmers (may) <a href="https://www.mjt.me.uk/posts/falsehoods-programmers-believe-about-addresses/">believe</a> about
+addresses. We ran into legitimate data from a user with a length of 51:
+<strong>12345 Doctor Martin Luther King Junior Street North</strong><sup id=sf-ai-assisted-postgres-schema-surgery-1-back><a href=#sf-ai-assisted-postgres-schema-surgery-1 class=simple-footnote title="OK not actually 12345, but a 5 digit street number!">1</a></sup> in St. Petersburg, FL.</p>
+<p>We wanted to support this user, so we needed to relax this constraint and get
+the data in the database. However, the <code>address</code> table is a high contention
+table in our application: it receives a constant stream of reads and writes.
+This makes it much more challenging to just change a column's type!</p>
+<h3 id=online-migrations>Online migrations and table contention</h3>
+<div style="text-align: center;">
+<p><img alt="Lock contention" src="/images/postgres-schema-surgery-01.png"></p>
+</div>
+<p>In our application, we have active users at all times of the day. This means
+there is no opportunity for taking downtime without impacting users. As a
+result, we <em>strictly</em> use <strong>online migrations</strong> for evolving our PostgreSQL
+schema. This also allows our team to be nimble and make changes throughout the
+workday to add new features or improve existing ones.</p>
+<p>In order to resolve the character length issue, we needed to change the column
+type of <code>street</code> (to either <code>VARCHAR(N&gt;50)</code> or to <code>TEXT</code>). Changing the table
+schema will always require an <code>ACCESS EXCLUSIVE</code> <a href="https://www.postgresql.org/docs/17/explicit-locking.html#LOCKING-TABLES">lock</a>, which means <strong>all</strong>
+queries to the table will need to wait for the schema change to complete.</p>
+<p>For a high contention table that receives multiple reads per second and close to
+one write per second, an <code>ACCESS EXCLUSIVE</code> lock can cause the entire
+application to stall. This is not acceptable to us or our users! Luckily, most
+table schema changes resolve in a few microseconds after acquiring a lock due to
+steady improvements in PostgreSQL over the last 15+ years.</p>
+<p>However, changing a column's type is a special type of change: it may require a
+full table rewrite. For a large table like <code>address</code>, a table rewrite is a very
+long and costly operation, which would mean holding the <code>ACCESS EXCLUSIVE</code> lock
+for a long time. Changing from a <code>VARCHAR(50)</code> to <code>TEXT</code> is a binary-coercible
+column change and <strong>should not</strong> incur a full table rewrite on modern
+PostgreSQL.</p>
+<h3 id=get-by-with-help>I get by with a little help from my (AI) friend</h3>
+<p>Although the column types are binary-coercible, we wanted to be <strong>VERY</strong> sure
+our application remained stable, so we chose to avoid<sup id=sf-ai-assisted-postgres-schema-surgery-2-back><a href=#sf-ai-assisted-postgres-schema-surgery-2 class=simple-footnote title="Early in the process, we attempted to change column type and kept getting timeouts, some of which made slight impacts on application performance. This may very well have been bad luck with lock contention. Rather than wait to find out, we elected to go with the safer route and totally avoid the chance of a table rewrite.">2</a></sup>
+that and instead:</p>
+<ul>
+<li>Introduce a new column <code>street_new</code> with the correct type</li>
+<li>Add <code>CHECK</code> on <code>street_new</code> that can constrain text length but be more easily
+  changed in the future without a column type change</li>
+<li>Copy data from <code>street</code> into the new column (in batches) and mirror writes</li>
+<li>Swap names after backfill is complete</li>
+<li>Drop the <code>street_new</code> column</li>
+</ul>
+<p>I knew conceptually how to do all of this but I leaned heavily on ChatGPT to
+just do all the actual work of writing DDL, SQLAlchemy, and Alembic code while I
+did the <strong>thinking</strong>. Even as a daily user of LLM tools, I was really surprised
+how perfectly ChatGPT nailed this and helped me go <strong>really fast</strong>:</p>
+<div style="text-align: center;">
+<p><img alt="ChatGPT: Schema migration advice" src="/images/postgres-schema-surgery-02.png"></p>
+</div>
+<h3 id=add-new-column>Add new column</h3>
+<p>First step we'll add the new column. We elected to do this with DDL directly
+rather than use Alembic migrations. This gave us the maximum level of control
+while managing this sensitive change:</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- new-column.sql</span>
+<span class=k>SELECT</span> <span class=n>NOW</span><span class=p>();</span>
+
+<span class=k>SET</span> <span class=n>statement_timeout</span> <span class=o>=</span> <span class=s1>'15s'</span><span class=p>;</span>
+<span class=k>SET</span> <span class=n>lock_timeout</span> <span class=o>=</span> <span class=s1>'15s'</span><span class=p>;</span>
+
+<span class=k>BEGIN</span><span class=p>;</span>
+
+<span class=k>ALTER</span> <span class=k>TABLE</span> <span class=k>public</span><span class=p>.</span><span class=n>address</span> <span class=k>ADD</span> <span class=k>COLUMN</span> <span class=n>street_new</span> <span class=nb>TEXT</span><span class=p>;</span>
+
+<span class=k>COMMIT</span><span class=p>;</span>
+
+<span class=k>SELECT</span> <span class=n>NOW</span><span class=p>();</span>
+</code></pre></div>
+
+<p>Note that it's crucial that we cap the amount of time we're willing to wait on
+and hold a lock as well as the total amount of time a statement will take.
+Additionally, we print out before / after timestamps for auditing in case any
+issues occur<sup id=sf-ai-assisted-postgres-schema-surgery-3-back><a href=#sf-ai-assisted-postgres-schema-surgery-3 class=simple-footnote title="In future examples, we'll hide the SELECT NOW() and the setting of timeouts but it's crucial to always track these when doing database operations.">3</a></sup>.</p>
+<div class=highlight><pre><span></span><code><span class=c>workwhile</span><span class=nv>&gt;</span><span class=c> \i new</span><span class=nb>-</span><span class=c>column</span><span class=nt>.</span><span class=c>sql</span>
+<span class=c>You're about to run a destructive command</span><span class=nt>.</span><span class=c></span>
+<span class=c>Do you want to proceed? </span><span class=k>[</span><span class=c>y/N</span><span class=k>]</span><span class=c>: y</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 14:54:09</span><span class=nt>.</span><span class=c>741308</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>SET</span>
+<span class=c>SET</span>
+<span class=c>BEGIN</span>
+<span class=c>ALTER TABLE</span>
+<span class=c>COMMIT</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 14:54:18</span><span class=nt>.</span><span class=c>186533</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>Time: 9</span><span class=nt>.</span><span class=c>035s (9 seconds)</span><span class=nt>,</span><span class=c> executed in: 9</span><span class=nt>.</span><span class=c>027s (9 seconds)</span>
+</code></pre></div>
+
+<h3 id=constrain-new-column>Constrain new column</h3>
+<p>Adding a <code>CHECK</code> constraint still requires an <code>ACCESS EXCLUSIVE</code> lock on the
+table so we get it out of the way as soon as we can. (For large tables, it may
+make more sense to add this constraint <a href="https://www.shayon.dev/post/2022/17/why-i-enjoy-postgresql-infrastructure-engineers-perspective/#adding-not-null-or-other-constraints">as not valid</a> and then
+<code>VALIDATE CONSTRAINT</code> after.)</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- add-length-constraint.sql</span>
+<span class=k>BEGIN</span><span class=p>;</span>
+
+<span class=k>ALTER</span> <span class=k>TABLE</span> <span class=k>public</span><span class=p>.</span><span class=n>address</span>
+  <span class=k>ADD</span> <span class=k>CONSTRAINT</span> <span class=n>street_length_check</span>
+  <span class=k>CHECK</span> <span class=p>(</span><span class=k>CHAR_LENGTH</span><span class=p>(</span><span class=n>street_new</span><span class=p>)</span> <span class=o>&lt;=</span> <span class=mi>60</span><span class=p>);</span>
+
+<span class=k>COMMIT</span><span class=p>;</span>
+</code></pre></div>
+
+<p>Note that <code>CHAR_LENGTH(street_new)</code> refers to the new column but we want it to
+refer to <code>street</code> when things are renamed and all said and done. Luckily
+PostgreSQL will track this when the column gets renamed!</p>
+<div class=highlight><pre><span></span><code><span class=c>workwhile</span><span class=nv>&gt;</span><span class=c> \i add</span><span class=nb>-</span><span class=c>length</span><span class=nb>-</span><span class=c>constraint</span><span class=nt>.</span><span class=c>sql</span>
+<span class=c>You're about to run a destructive command</span><span class=nt>.</span><span class=c></span>
+<span class=c>Do you want to proceed? </span><span class=k>[</span><span class=c>y/N</span><span class=k>]</span><span class=c>: y</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 14:58:42</span><span class=nt>.</span><span class=c>280429</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>SET</span>
+<span class=c>SET</span>
+<span class=c>BEGIN</span>
+<span class=c>ALTER TABLE</span>
+<span class=c>COMMIT</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 14:58:47</span><span class=nt>.</span><span class=c>972947</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>Time: 6</span><span class=nt>.</span><span class=c>260s (6 seconds)</span><span class=nt>,</span><span class=c> executed in: 6</span><span class=nt>.</span><span class=c>252s (6 seconds)</span>
+</code></pre></div>
+
+<h3 id=mirror-writes>Mirror writes</h3>
+<p>In order to ensure that we can swap <code>street</code> and <code>street_new</code>, we need them both
+to have the same data! To do this <strong>WITHOUT</strong> locking the table for an extended
+period of time, we need to be able to backfill data in batches and ensure future
+writes get mirrored to both columns. We can safely assume that <code>street_new</code>
+<strong>NEVER</strong> receives writes directly: the application has only ever heard of
+<code>street</code>.</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- add-trigger-to-table.sql</span>
+<span class=k>BEGIN</span><span class=p>;</span>
+
+<span class=k>CREATE</span> <span class=k>OR</span> <span class=k>REPLACE</span> <span class=k>FUNCTION</span> <span class=k>public</span><span class=p>.</span><span class=n>mirror_street_to_new</span><span class=p>()</span>
+<span class=k>RETURNS</span> <span class=k>TRIGGER</span> <span class=k>AS</span> <span class=err>$$</span>
+<span class=k>BEGIN</span>
+  <span class=k>NEW</span><span class=p>.</span><span class=n>street_new</span> <span class=p>:</span><span class=o>=</span> <span class=k>NEW</span><span class=p>.</span><span class=n>street</span><span class=p>;</span>
+  <span class=k>RETURN</span> <span class=k>NEW</span><span class=p>;</span>
+<span class=k>END</span><span class=p>;</span>
+<span class=err>$$</span> <span class=k>LANGUAGE</span> <span class=n>plpgsql</span><span class=p>;</span>
+
+<span class=k>CREATE</span> <span class=k>TRIGGER</span> <span class=n>sync_street_to_street_new</span>
+  <span class=k>BEFORE</span> <span class=k>INSERT</span> <span class=k>OR</span> <span class=k>UPDATE</span> <span class=k>ON</span> <span class=k>public</span><span class=p>.</span><span class=n>address</span>
+  <span class=k>FOR</span> <span class=k>EACH</span> <span class=k>ROW</span>
+  <span class=k>EXECUTE</span> <span class=k>FUNCTION</span> <span class=k>public</span><span class=p>.</span><span class=n>mirror_street_to_new</span><span class=p>();</span>
+
+<span class=k>COMMIT</span><span class=p>;</span>
+</code></pre></div>
+
+<p>It's important that <code>street_new</code> is a "stable" name<sup id=sf-ai-assisted-postgres-schema-surgery-4-back><a href=#sf-ai-assisted-postgres-schema-surgery-4 class=simple-footnote title="Ask me how I know this!">4</a></sup> in the <code>mirror_street_to_new()</code> function. After we swap the
+columns, we'll leave the <code>sync_street_to_street_new</code> trigger in place to keep
+the data in sync for final validation. So if <code>street_new</code> becomes an invalid
+name, the function will begin to cause all writes to fail.</p>
+<div class=highlight><pre><span></span><code><span class=c>workwhile</span><span class=nv>&gt;</span><span class=c> \i add</span><span class=nb>-</span><span class=c>trigger</span><span class=nb>-</span><span class=c>to</span><span class=nb>-</span><span class=c>table</span><span class=nt>.</span><span class=c>sql</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 15:02:21</span><span class=nt>.</span><span class=c>586163</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>SET</span>
+<span class=c>SET</span>
+<span class=c>BEGIN</span>
+<span class=c>CREATE FUNCTION</span>
+<span class=c>CREATE TRIGGER</span>
+<span class=c>COMMIT</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 15:02:22</span><span class=nt>.</span><span class=c>011339</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>Time: 0</span><span class=nt>.</span><span class=c>509s</span>
+</code></pre></div>
+
+<h3 id=backfill>Backfill</h3>
+<p>Recall the primary reason we chose column mirroring was to avoid a table
+rewrite. To that end, we need to backfill data into <code>street_new</code> in batches.
+Luckily, we use <code>created_at</code> and <code>updated_at</code> metadata columns in <strong>ALL</strong> of our
+tables so we can define batches based on most recent update. For example:</p>
+<div class=highlight><pre><span></span><code><span class=k>UPDATE</span>
+  <span class=k>public</span><span class=p>.</span><span class=n>address</span>
+<span class=k>SET</span>
+  <span class=n>street_new</span> <span class=o>=</span> <span class=n>street</span>
+<span class=k>WHERE</span>
+  <span class=s1>'2022-10-01T00:00:00.000Z'</span> <span class=o>&lt;=</span> <span class=n>updated_at</span>
+  <span class=k>AND</span> <span class=n>updated_at</span> <span class=o>&lt;</span> <span class=s1>'2024-01-01T00:00:00.000Z'</span><span class=p>;</span>
+</code></pre></div>
+
+<p>The <code>updated_at</code> time is a <strong>moving target</strong> because addresses can be updated
+during our backfill process. However, that's OK because any newer updates will
+already be in sync due to our <code>sync_street_to_street_new</code> trigger.</p>
+<h3 id=validate-mirrored-data>Validate mirrored data</h3>
+<p>After completing the backfill, we need to ensure that <code>street</code> and <code>street_new</code>
+are identical. Note that <code>street = street_new</code> is not a sufficient predicate
+because nulls will not compare equal with the <code>=</code> operator, so we use
+<code>IS DISTINCT FROM</code>:</p>
+<div class=highlight><pre><span></span><code>workwhile&gt; SELECT
+   COUNT(*)
+ FROM
+   public.address
+ WHERE
+   street IS DISTINCT FROM street_new;
++-------+
+| count |
+|-------|
+| 0     |
++-------+
+SELECT 1
+Time: 0.207s
+</code></pre></div>
+
+<h3 id=column-swap>Column (name) swap</h3>
+<p>In order to swap <code>street</code> and <code>street_new</code>, we first need to rename <code>street</code> to
+a different column name to enable the swap without both columns using the same
+name at once:</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- swap-column-names.sql</span>
+<span class=k>BEGIN</span><span class=p>;</span>
+
+<span class=k>ALTER</span> <span class=k>TABLE</span> <span class=k>public</span><span class=p>.</span><span class=n>address</span>
+  <span class=k>RENAME</span> <span class=k>COLUMN</span> <span class=n>street</span> <span class=k>TO</span> <span class=n>street_old</span><span class=p>;</span>
+<span class=k>ALTER</span> <span class=k>TABLE</span> <span class=k>public</span><span class=p>.</span><span class=n>address</span>
+  <span class=k>RENAME</span> <span class=k>COLUMN</span> <span class=n>street_new</span> <span class=k>TO</span> <span class=n>street</span><span class=p>;</span>
+<span class=k>ALTER</span> <span class=k>TABLE</span> <span class=k>public</span><span class=p>.</span><span class=n>address</span>
+  <span class=k>RENAME</span> <span class=k>COLUMN</span> <span class=n>street_old</span> <span class=k>TO</span> <span class=n>street_new</span><span class=p>;</span>
+
+<span class=k>COMMIT</span><span class=p>;</span>
+</code></pre></div>
+
+<p>Recall we want to continue to use the <code>street_new</code> name because at this point in
+the migration, mirroring is still enabled and <code>mirror_street_to_new()</code> has a
+"generic" (not table-specific) reference to <code>NEW.street_new</code>:</p>
+<div class=highlight><pre><span></span><code><span class=c>workwhile</span><span class=nv>&gt;</span><span class=c> \i swap</span><span class=nb>-</span><span class=c>column</span><span class=nb>-</span><span class=c>names</span><span class=nt>.</span><span class=c>sql</span>
+<span class=c>You're about to run a destructive command</span><span class=nt>.</span><span class=c></span>
+<span class=c>Do you want to proceed? </span><span class=k>[</span><span class=c>y/N</span><span class=k>]</span><span class=c>: y</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 15:17:06</span><span class=nt>.</span><span class=c>559432</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>SET</span>
+<span class=c>SET</span>
+<span class=c>BEGIN</span>
+<span class=c>ALTER TABLE</span>
+<span class=c>ALTER TABLE</span>
+<span class=c>ALTER TABLE</span>
+<span class=c>COMMIT</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 15:17:11</span><span class=nt>.</span><span class=c>142957</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>Time: 5</span><span class=nt>.</span><span class=c>279s (5 seconds)</span><span class=nt>,</span><span class=c> executed in: 5</span><span class=nt>.</span><span class=c>271s (5 seconds)</span>
+</code></pre></div>
+
+<h3 id=say-goodbye>Say goodbye</h3>
+<p>At this point, after a final validation,</p>
+<div class=highlight><pre><span></span><code>workwhile&gt; SELECT
+   COUNT(*)
+ FROM
+   public.address
+ WHERE
+   street IS DISTINCT FROM street_new;
++-------+
+| count |
+|-------|
+| 0     |
++-------+
+SELECT 1
+Time: 0.202s
+</code></pre></div>
+
+<p>we can stop mirroring and drop the <code>street_new</code> column:</p>
+<div class=highlight><pre><span></span><code><span class=c1>-- drop-old-column.sql</span>
+<span class=k>BEGIN</span><span class=p>;</span>
+
+<span class=k>DROP</span> <span class=k>TRIGGER</span> <span class=n>sync_street_to_street_new</span> <span class=k>ON</span> <span class=k>public</span><span class=p>.</span><span class=n>address</span><span class=p>;</span>
+
+<span class=k>DROP</span> <span class=k>FUNCTION</span> <span class=k>public</span><span class=p>.</span><span class=n>mirror_street_to_new</span><span class=p>();</span>
+
+<span class=k>ALTER</span> <span class=k>TABLE</span> <span class=k>public</span><span class=p>.</span><span class=n>address</span>
+  <span class=k>DROP</span> <span class=k>COLUMN</span> <span class=n>street_new</span><span class=p>;</span>
+
+<span class=k>COMMIT</span><span class=p>;</span>
+</code></pre></div>
+
+<p>Notice that dropping the column may take a slightly longer time than some of the
+other migrations. However, the primary issue is getting a table lock (which is
+highly variable depending on current application activity):</p>
+<div class=highlight><pre><span></span><code><span class=c>workwhile</span><span class=nv>&gt;</span><span class=c> \i drop</span><span class=nb>-</span><span class=c>old</span><span class=nb>-</span><span class=c>column</span><span class=nt>.</span><span class=c>sql</span>
+<span class=c>You're about to run a destructive command</span><span class=nt>.</span><span class=c></span>
+<span class=c>Do you want to proceed? </span><span class=k>[</span><span class=c>y/N</span><span class=k>]</span><span class=c>: y</span>
+<span class=nb>+-----------------------------+</span><span class=c></span>
+<span class=c>| now                         |</span>
+<span class=c>|</span><span class=nb>-----------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 15:23:36</span><span class=nt>.</span><span class=c>9894</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-----------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>SET</span>
+<span class=c>SET</span>
+<span class=c>BEGIN</span>
+<span class=c>DROP TRIGGER</span>
+<span class=c>DROP FUNCTION</span>
+<span class=c>ALTER TABLE</span>
+<span class=c>COMMIT</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>| now                           |</span>
+<span class=c>|</span><span class=nb>-------------------------------</span><span class=c>|</span>
+<span class=c>| 2025</span><span class=nb>-</span><span class=c>04</span><span class=nb>-</span><span class=c>24 15:23:51</span><span class=nt>.</span><span class=c>666602</span><span class=nb>+</span><span class=c>00 |</span>
+<span class=nb>+-------------------------------+</span><span class=c></span>
+<span class=c>SELECT 1</span>
+<span class=c>Time: 15</span><span class=nt>.</span><span class=c>139s (15 seconds)</span><span class=nt>,</span><span class=c> executed in: 15</span><span class=nt>.</span><span class=c>130s (15 seconds)</span>
+</code></pre></div>
+
+<h3 id=migration-alembic>Migration (Alembic)</h3>
+<p>Though we ran this migration via many small and careful steps, it's still useful
+to document this step for future team members. Our team uses Alembic for the
+large majority of migrations. (The raw DDL escape hatch is only necessary in
+cases where we need to make a sensitive change that'll require locks that are
+potentially problematic for the application.)</p>
+<p>To document the change at a conceptual level:</p>
+<div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>upgrade</span><span class=p>():</span>
+    <span class=c1># 1. Change column type to TEXT</span>
+    <span class=n>op</span><span class=o>.</span><span class=n>alter_column</span><span class=p>(</span>
+        <span class=s2>"address"</span><span class=p>,</span>
+        <span class=s2>"street"</span><span class=p>,</span>
+        <span class=n>existing_type</span><span class=o>=</span><span class=n>sa</span><span class=o>.</span><span class=n>String</span><span class=p>(</span><span class=mi>50</span><span class=p>),</span>
+        <span class=n>type_</span><span class=o>=</span><span class=n>sa</span><span class=o>.</span><span class=n>Text</span><span class=p>(),</span>
+        <span class=n>existing_nullable</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span>
+        <span class=n>schema</span><span class=o>=</span><span class=s2>"public"</span><span class=p>,</span>
+    <span class=p>)</span>
+
+    <span class=c1># 2. Add CHECK constraint</span>
+    <span class=n>op</span><span class=o>.</span><span class=n>create_check_constraint</span><span class=p>(</span>
+        <span class=n>constraint_name</span><span class=o>=</span><span class=s2>"street_length_check"</span><span class=p>,</span>
+        <span class=n>table_name</span><span class=o>=</span><span class=s2>"address"</span><span class=p>,</span>
+        <span class=n>condition</span><span class=o>=</span><span class=s2>"CHAR_LENGTH(street) &lt;= 60"</span><span class=p>,</span>
+        <span class=n>schema</span><span class=o>=</span><span class=s2>"public"</span><span class=p>,</span>
+    <span class=p>)</span>
+
+
+<span class=k>def</span> <span class=nf>downgrade</span><span class=p>():</span>
+    <span class=c1># 2. Remove CHECK constraint</span>
+    <span class=n>op</span><span class=o>.</span><span class=n>drop_constraint</span><span class=p>(</span>
+        <span class=n>constraint_name</span><span class=o>=</span><span class=s2>"street_length_check"</span><span class=p>,</span>
+        <span class=n>table_name</span><span class=o>=</span><span class=s2>"address"</span><span class=p>,</span>
+        <span class=n>type_</span><span class=o>=</span><span class=s2>"check"</span><span class=p>,</span>
+        <span class=n>schema</span><span class=o>=</span><span class=s2>"public"</span><span class=p>,</span>
+    <span class=p>)</span>
+
+    <span class=c1># 1. Revert column type to VARCHAR(50)</span>
+    <span class=n>op</span><span class=o>.</span><span class=n>alter_column</span><span class=p>(</span>
+        <span class=s2>"address"</span><span class=p>,</span>
+        <span class=s2>"street"</span><span class=p>,</span>
+        <span class=n>existing_type</span><span class=o>=</span><span class=n>sa</span><span class=o>.</span><span class=n>Text</span><span class=p>(),</span>
+        <span class=n>type_</span><span class=o>=</span><span class=n>sa</span><span class=o>.</span><span class=n>String</span><span class=p>(</span><span class=mi>50</span><span class=p>),</span>
+        <span class=n>existing_nullable</span><span class=o>=</span><span class=kc>True</span><span class=p>,</span>
+        <span class=n>schema</span><span class=o>=</span><span class=s2>"public"</span><span class=p>,</span>
+    <span class=p>)</span>
+</code></pre></div>
+
+<p>We always use <code>alembic stamp</code> to memorialize changes made outside of a typical
+<code>alembic upgrade</code> operation:</p>
+<div class=highlight><pre><span></span><code>$ date
+Thu Apr <span class=m>24</span> <span class=m>10</span>:34:14 CDT <span class=m>2025</span>
+$
+$
+$ uv run alembic stamp ef4486a350ee
+INFO <span class=o>[</span>alembic.runtime.migration<span class=o>]</span> Context impl PostgresqlImpl.
+INFO <span class=o>[</span>alembic.runtime.migration<span class=o>]</span> Will assume transactional DDL.
+INFO <span class=o>[</span>alembic.runtime.migration<span class=o>]</span> Running stamp_revision 146b1f84dda9 -&gt; ef4486a350ee
+$
+$
+$ date
+Thu Apr <span class=m>24</span> <span class=m>10</span>:34:18 CDT <span class=m>2025</span>
+</code></pre></div>
+
+<h3 id=model-changes-sqlalchemy>Model changes (SQLAlchemy)</h3>
+<p>In addition to changing the <code>Column(TEXT)</code> in the model definition, the extra
+<code>CHECK</code> constraint must be tracked in <code>__table_args__</code>:</p>
+<div class=highlight><pre><span></span><code><span class=k>class</span> <span class=nc>Address</span><span class=p>(</span><span class=n>BaseModel</span><span class=p>):</span>
+    <span class=n>__table_args__</span> <span class=o>=</span> <span class=p>(</span>
+        <span class=n>CheckConstraint</span><span class=p>(</span><span class=s2>"CHAR_LENGTH(street) &lt;= 60"</span><span class=p>,</span> <span class=n>name</span><span class=o>=</span><span class=s2>"street_length_check"</span><span class=p>),</span>
+    <span class=p>)</span>
+
+    <span class=n>street</span> <span class=o>=</span> <span class=n>Column</span><span class=p>(</span><span class=n>TEXT</span><span class=p>)</span>
+    <span class=c1># ...</span>
+</code></pre></div>
+
+<h3 id=conclusion>Conclusion</h3>
+<p>Fixing schema constraints in high contention tables like <code>address</code> is rarely
+straightforward. But with a careful, methodical approach, it's absolutely
+achievable without user-facing downtime. It's important to combine deep
+understanding of PostgreSQL internals with thoughtful engineering practices like
+online backfills and trigger-based mirroring. Just as importantly, it's a
+reminder that tools like LLMs can meaningfully augment engineering workflows
+— not by replacing decision-making, but by accelerating safe and accurate
+implementation. Schema changes may always be risky, but they don't have to be
+<strong>scary</strong>!</p>
+<div style="text-align: center;">
+<p><img alt="Spooky DB" src="/images/postgres-schema-surgery-03.png"></p>
+</div><ol class=simple-footnotes><li id=sf-ai-assisted-postgres-schema-surgery-1>OK not actually
+12345, but a 5 digit street number! <a href=#sf-ai-assisted-postgres-schema-surgery-1-back class=simple-footnote-back>↩</a></li><li id=sf-ai-assisted-postgres-schema-surgery-2>Early in the process,
+we attempted to change column type and kept getting timeouts, some of which
+made slight impacts on application performance. This may very well have been
+bad luck with lock contention. Rather than wait to find out, we elected to go
+with the safer route and totally avoid the chance of a table rewrite. <a href=#sf-ai-assisted-postgres-schema-surgery-2-back class=simple-footnote-back>↩</a></li><li id=sf-ai-assisted-postgres-schema-surgery-3>In future examples, we'll hide the <code>SELECT NOW()</code> and the
+setting of timeouts but it's crucial to always track these when doing database
+operations. <a href=#sf-ai-assisted-postgres-schema-surgery-3-back class=simple-footnote-back>↩</a></li><li id=sf-ai-assisted-postgres-schema-surgery-4>Ask me how I know
+this! <a href=#sf-ai-assisted-postgres-schema-surgery-4-back class=simple-footnote-back>↩</a></li></ol></div>
+    <footer>
+<p class="meta">
+  <span class="byline author vcard">
+    Posted by <span class="fn">
+        Danny Hermes (dhermes@bossylobster.com)
+    </span>
+  </span>
+<time datetime="2025-05-15T00:00:00-07:00" pubdate>May 15, 2025</time>  <span class="categories">
+    <a class="category" href="https://blog.bossylobster.com/tag/postgresql.html">PostgreSQL</a>,    <a class="category" href="https://blog.bossylobster.com/tag/migrations.html">Migrations</a>,    <a class="category" href="https://blog.bossylobster.com/tag/chatgpt.html">ChatGPT</a>,    <a class="category" href="https://blog.bossylobster.com/tag/llm.html">LLM</a>  </span>
+</p><div class="sharing">
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html" data-via="bossylobster" data-counturl="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html" >Tweet</a>
+  <div class="g-plusone" data-size="medium"></div>
+</div>    </footer>
+  </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div>
+  </section>
+</div>
+<aside class="sidebar">
+  <section class="sidebar-img">
+    <img src="https://blog.bossylobster.com/images/bossy_lobster_350_alpha.png" alt="" width=""/>
+    <img src="https://blog.bossylobster.com/images/dhermes_headshot.jpg" />
+  </section>
+  <section>
+    <h1>Recent Posts</h1>
+    <ul id="recent_posts">
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html">AI-assisted Postgres schema surgery</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2024/02/date-the-missing-type.html">The missing type in the Go standard library: Date!</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2023/07/moser-circle-estimates.html">Moser's Circle Problem and Polynomial Root Asymptotes</a>
+      </li>
+      <li class="post">
+          <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
+      </li>
+    </ul>
+  </section>
+
+
+
+
+<section>
+    <a href="http://twitter.com/bossylobster" class="twitter-follow-button" data-show-count="true">Follow @bossylobster</a>
+</section>
+<section>
+  <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- responsive-blog-ad -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4173900012268590"
+     data-ad-slot="9363500864"
+     data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</section>
+</aside>    </div>
+  </div>
+  <footer role="contentinfo"><p>
+    Copyright &copy;  2011&ndash;2025  Danny Hermes &mdash;
+  <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
+</p></footer>
+  <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/ender.js"></script>
+  <script src="https://blog.bossylobster.com/theme/js/octopress.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-56716324-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-56716324-1');
+    ga('send', 'pageview');
+</script>
+  <script type="text/javascript">
+    var disqus_shortname = 'bossylobster';
+    var disqus_identifier = '/2025/05/ai-assisted-postgres-schema-surgery.html';
+    var disqus_url = 'https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html';
+    var disqus_title = "<p>AI-assisted Postgres schema surgery</p>";
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = "//" + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+  </script>
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+</body>
+</html>

@@ -72,7 +72,26 @@ document.getElementById('site-search').onsubmit = site_search_submit;
 <div class="blog-index">
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-28-local-dd-agent.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/templated_content/2020-11-25-pow-confusion.template" class="fab fa-github"> Edit on GitHub</a>
+      <h1 class="entry-title">
+        <a href="https://blog.bossylobster.com/2020/11/pow-confusion.html">pow Confusion</a>
+      </h1>
+    <p class="meta">
+<time datetime="2020-11-25T00:00:00-08:00" pubdate>Nov 25, 2020</time>    </p>
+</header>
+
+  <div class="entry-content"><p>In my first summer of graduate school my code suddenly stopped working
+because Fortran and Python (via <code>pow()</code> in C) do exponentiation differently.
+Once I debugged and understood the problem, I learned about the highly
+optimized assembly code produced by Fortran for integer exponents.</p>
+<p>To give a sample of the …</p></div>
+  <footer>
+    <a rel="full-article" href="https://blog.bossylobster.com/2020/11/pow-confusion.html">Read On &crarr;</a>
+  </footer>
+      </article>
+      <article>
+<header>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-09-28-local-dd-agent.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/09/local-dd-agent.html">Running dd-agent Locally</a>
       </h1>
@@ -92,7 +111,7 @@ go wrong. To run <code>dd-agent</code> locally just clone the
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-04-istio-workload-secrets.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-09-04-istio-workload-secrets.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/09/istio-workload-secrets.html">Reading Istio Secrets</a>
       </h1>
@@ -111,7 +130,7 @@ network …</p></div>
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-09-01-go-pq-prevent-deadlock.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-09-01-go-pq-prevent-deadlock.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/09/go-pq-prevent-deadlock.html">Preventing PostgreSQL Deadlocks in Go</a>
       </h1>
@@ -133,7 +152,7 @@ almost instantaneously). For real-time applications, if a migration runs "for �
       </article>
       <article>
 <header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-29-go-slices-gain-capacity.md" class="fab fa-github"> Edit on GitHub</a>
+      <a href="https://github.com/dhermes/bossylobster-blog/blob/main/content/2020-07-29-go-slices-gain-capacity.md" class="fab fa-github"> Edit on GitHub</a>
       <h1 class="entry-title">
         <a href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">How Do Slices Gain Capacity in Go?</a>
       </h1>
@@ -148,25 +167,6 @@ data, (2) the length and (3) the capacity without directly exposing those
 fields. We can use a <code>struct …</code></p></div>
   <footer>
     <a rel="full-article" href="https://blog.bossylobster.com/2020/07/go-slices-gain-capacity.html">Read On &crarr;</a>
-  </footer>
-      </article>
-      <article>
-<header>
-      <a href="https://github.com/dhermes/bossylobster-blog/blob/master/content/2020-07-27-life-of-request.md" class="fab fa-github"> Edit on GitHub</a>
-      <h1 class="entry-title">
-        <a href="https://blog.bossylobster.com/2020/07/life-of-request.html">A Day in the Life of a (Secure) Request</a>
-      </h1>
-    <p class="meta">
-<time datetime="2020-07-27T00:00:00-07:00" pubdate>Jul 27, 2020</time>    </p>
-</header>
-
-  <div class="entry-content"><p>I recently<sup id=sf-life-of-request-1-back><a href=#sf-life-of-request-1 class=simple-footnote title="It was recent when I wrote this on July 27, 2020.">1</a></sup> had the
-privilege of co-authoring a blog post on the Blend <a href="https://full-stack.blend.com/">engineering blog</a> with
-my esteemed colleague <a href="https://github.com/hapoore">Austin Poore</a>. Our engineering organization is
-growing like crazy right now and it's a lot of fun so if any of this post is
-interesting to you, check out our …</p></div>
-  <footer>
-    <a rel="full-article" href="https://blog.bossylobster.com/2020/07/life-of-request.html">Read On &crarr;</a>
   </footer>
       </article>
 <div class="pagination">
@@ -184,6 +184,9 @@ interesting to you, check out our …</p></div>
     <h1>Recent Posts</h1>
     <ul id="recent_posts">
       <li class="post">
+          <a href="https://blog.bossylobster.com/2025/05/ai-assisted-postgres-schema-surgery.html">AI-assisted Postgres schema surgery</a>
+      </li>
+      <li class="post">
           <a href="https://blog.bossylobster.com/2024/06/almost-unique-constraint.html">Almost unique (constraints)</a>
       </li>
       <li class="post">
@@ -194,9 +197,6 @@ interesting to you, check out our …</p></div>
       </li>
       <li class="post">
           <a href="https://blog.bossylobster.com/2022/08/tailscale-terraform-fargate.html">Managing Tailscale subnet routers with Terraform</a>
-      </li>
-      <li class="post">
-          <a href="https://blog.bossylobster.com/2022/05/npm-mod.html">What npm Can Learn from Go</a>
       </li>
     </ul>
   </section>
@@ -223,7 +223,7 @@ interesting to you, check out our …</p></div>
 </aside>    </div>
   </div>
   <footer role="contentinfo"><p>
-    Copyright &copy;  2011&ndash;2024  Danny Hermes &mdash;
+    Copyright &copy;  2011&ndash;2025  Danny Hermes &mdash;
   <span class="credit">Powered by <a href="http://getpelican.com">Pelican</a></span>
 </p></footer>
   <script src="https://blog.bossylobster.com/theme/js/modernizr-2.0.js"></script>
